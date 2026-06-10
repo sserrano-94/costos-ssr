@@ -818,10 +818,11 @@ function renderCalendar(){
 
     dayEvents.forEach(ev=>{
       const c=getEventColor(ev.tipo);
+      const tipoCorto=ev.tipo==='Vitaminas / Antiparasitario / Hormonas'?'Vitaminas':ev.tipo;
       const tag=document.createElement('div');
-      tag.style.cssText=`font-size:9px;padding:1px 4px;border-radius:3px;margin-bottom:2px;background:${c.bg};border-left:2px solid ${c.border};color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+      tag.style.cssText=`font-size:9px;padding:2px 5px;border-radius:4px;margin-bottom:3px;background:${c.bg};border:1px solid ${c.border};color:${c.text};white-space:normal;word-break:break-word;line-height:1.3;`;
       tag.title=ev.horse+': '+ev.tipo+(ev.descripcion?' — '+ev.descripcion:'');
-      tag.textContent=ev.horse.split(' ')[0]+' '+ev.tipo.substring(0,6);
+      tag.textContent=ev.horse+' · '+tipoCorto;
       cell.appendChild(tag);
     });
 
