@@ -178,6 +178,7 @@ select:focus,input:focus{border-color:var(--accent)}
   <button class="nav-tab active" onclick="showTab('resumen')">Resumen</button>
   <button class="nav-tab" onclick="showTab('ingresar')">Ingresar costo</button>
   <button class="nav-tab" onclick="showTab('caballos')">Caballos</button>
+  <button class="nav-tab" onclick="showTab('calendario')">📅 Calendario</button>
 </nav>
 <main>
   <div class="section active" id="tab-resumen">
@@ -212,6 +213,45 @@ select:focus,input:focus{border-color:var(--accent)}
         <img id="new-horse-preview" class="photo-preview" style="width:60px;height:60px">
       </div>
       <button id="add-horse-btn" onclick="addHorse()" style="height:28px;padding:0 14px;font-size:11px;font-weight:600;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer">Agregar caballo</button>
+    </div>
+  </div>
+
+  <div class="section" id="tab-calendario">
+    <div class="section-header"><h2>Calendario</h2><p>Herrajes, vitaminas y eventos por caballo</p></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <button onclick="prevMonth()" style="width:32px;height:32px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;font-size:16px">‹</button>
+        <span id="cal-title" style="font-size:15px;font-weight:600;min-width:160px;text-align:center"></span>
+        <button onclick="nextMonth()" style="width:32px;height:32px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;font-size:16px">›</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="cal-horse-filter" onchange="renderCalendar()" style="height:32px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface)"><option value="">Todos los caballos</option></select>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center">
+        <div style="padding:8px;font-size:11px;font-weight:600;color:var(--text-soft);border-bottom:1px solid var(--border);background:#fafaf8">Lun</div>
+        <div style="padding:8px;font-size:11px;font-weight:600;color:var(--text-soft);border-bottom:1px solid var(--border);background:#fafaf8">Mar</div>
+        <div style="padding:8px;font-size:11px;font-weight:600;color:var(--text-soft);border-bottom:1px solid var(--border);background:#fafaf8">Mié</div>
+        <div style="padding:8px;font-size:11px;font-weight:600;color:var(--text-soft);border-bottom:1px solid var(--border);background:#fafaf8">Jue</div>
+        <div style="padding:8px;font-size:11px;font-weight:600;color:var(--text-soft);border-bottom:1px solid var(--border);background:#fafaf8">Vie</div>
+        <div style="padding:8px;font-size:11px;font-weight:600;color:var(--text-soft);border-bottom:1px solid var(--border);background:#fafaf8">Sáb</div>
+        <div style="padding:8px;font-size:11px;font-weight:600;color:var(--text-soft);border-bottom:1px solid var(--border);background:#fafaf8">Dom</div>
+      </div>
+      <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr)"></div>
+    </div>
+    <!-- Event list below calendar -->
+    <div id="cal-events-list" style="margin-top:16px"></div>
+    <!-- Add manual event -->
+    <div id="add-event-card" class="card" style="margin-top:16px">
+      <div style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;margin-bottom:10px">Agregar evento manual</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:10px">
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Caballo</label><select id="ev-horse" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></select></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Fecha</label><input type="date" id="ev-date" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Tipo</label><input type="text" id="ev-tipo" placeholder="Ej: Veterinario" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Descripción</label><input type="text" id="ev-desc" placeholder="Detalle opcional" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
+      </div>
+      <button onclick="addManualEvent()" style="height:28px;padding:0 14px;font-size:11px;font-weight:600;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer">+ Agregar evento</button>
     </div>
   </div>
 </main>
@@ -457,11 +497,12 @@ function buildExpMonth(horse,year,month,he,parentSid){
     <div class="add-cat-title">Agregar gasto</div>
     <div class="cat-add-rows">${CATS.map(cat=>{
       const cid=(cat+msid).replace(/[^a-zA-Z0-9]/g,'_');
+      const useDateFn = (cat==='Herraje'||cat==='Vitaminas / Antiparasitario / Hormonas') ? 'saveCatEntryWithDate' : 'saveCatEntry';
       return `<div class="cat-add-row">
         <span class="cat-label">${cat}</span>
         <input class="amt-in" type="number" id="amt_${cid}" placeholder="Monto" min="0">
         <input class="note-in" type="text" id="note_${cid}" placeholder="Nota">
-        <button class="btn-save-cat" onclick="saveCatEntry('${horse.replace(/'/g,"\\'")}',${year},${month},'${cat.replace(/'/g,"\\'")}','${cid}','${parentSid}',${month})">✓</button>
+        <button class="btn-save-cat" onclick="${useDateFn}('${horse.replace(/'/g,"\\'")}",${year},${month},'${cat.replace(/'/g,"\\'")}",\'${cid}\','${parentSid}',${month})">✓</button>
       </div>`;
     }).join('')}</div>
   </div>`:'';
@@ -693,12 +734,235 @@ async function addHorse(){
 
 function showTab(name){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach((btn,i)=>{btn.classList.toggle('active',['resumen','ingresar','caballos'][i]===name);});
+  document.querySelectorAll('.nav-tab').forEach((btn,i)=>{btn.classList.toggle('active',['resumen','ingresar','caballos','calendario'][i]===name);});
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='resumen')renderResumen();
   if(name==='ingresar')renderExpBlocks();
   if(name==='caballos')renderCaballos();
+  if(name==='calendario'){loadEvents().then(()=>{renderCalendar();});}
 }
+
+// ===== CALENDARIO =====
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-indexed
+let allEvents = [];
+
+const EVENT_COLORS = {
+  'Herraje': {bg:'#e8f4fd',border:'#2b5fa6',dot:'#2b5fa6',text:'#1a3a6b'},
+  'Vitaminas / Antiparasitario / Hormonas': {bg:'#e8f7ee',border:'#1a7a4a',dot:'#1a7a4a',text:'#0f4a2c'},
+  'default': {bg:'#f3eeff',border:'#7b5ea7',dot:'#7b5ea7',text:'#4a2d7a'}
+};
+
+function getEventColor(tipo){
+  return EVENT_COLORS[tipo] || EVENT_COLORS['default'];
+}
+
+async function loadEvents(){
+  try{
+    allEvents = await sbFetch('eventos?select=*&order=fecha.asc&limit=500');
+  }catch(e){ allEvents=[]; }
+}
+
+function prevMonth(){
+  calMonth--;
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+function nextMonth(){
+  calMonth++;
+  if(calMonth>11){calMonth=0;calYear++;}
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const horseFilter = document.getElementById('cal-horse-filter').value;
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-title').textContent = monthNames[calMonth] + ' ' + calYear;
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth+1, 0);
+  const startDow = (firstDay.getDay()+6)%7; // Monday=0
+  const totalDays = lastDay.getDate();
+
+  // Filter events for this month
+  const monthEvents = allEvents.filter(e=>{
+    const d = new Date(e.fecha+'T12:00:00');
+    return d.getFullYear()===calYear && d.getMonth()===calMonth && (!horseFilter||e.horse===horseFilter);
+  });
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML='';
+  const today = new Date();
+
+  // Empty cells before first day
+  for(let i=0;i<startDow;i++){
+    const cell = document.createElement('div');
+    cell.style.cssText='min-height:80px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:#fafaf8;';
+    grid.appendChild(cell);
+  }
+
+  for(let d=1;d<=totalDays;d++){
+    const isToday = today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===d;
+    const dayEvents = monthEvents.filter(e=>new Date(e.fecha+'T12:00:00').getDate()===d);
+    const dateStr = calYear+'-'+(String(calMonth+1).padStart(2,'0'))+'-'+(String(d).padStart(2,'0'));
+
+    const cell = document.createElement('div');
+    cell.style.cssText=`min-height:80px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px;cursor:pointer;${isToday?'background:#e8eef8;':'background:var(--surface);'}`;
+    cell.onmouseover=()=>{if(!isToday)cell.style.background='var(--accent-light)';};
+    cell.onmouseout=()=>{if(!isToday)cell.style.background='var(--surface)';};
+
+    const dayNum = document.createElement('div');
+    dayNum.style.cssText=`font-size:12px;font-weight:${isToday?'700':'500'};color:${isToday?'var(--accent)':'var(--text)'};margin-bottom:3px;`;
+    dayNum.textContent=d;
+    cell.appendChild(dayNum);
+
+    dayEvents.forEach(ev=>{
+      const c=getEventColor(ev.tipo);
+      const tag=document.createElement('div');
+      tag.style.cssText=`font-size:9px;padding:1px 4px;border-radius:3px;margin-bottom:2px;background:${c.bg};border-left:2px solid ${c.border};color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+      tag.title=ev.horse+': '+ev.tipo+(ev.descripcion?' — '+ev.descripcion:'');
+      tag.textContent=ev.horse.split(' ')[0]+' '+ev.tipo.substring(0,6);
+      cell.appendChild(tag);
+    });
+
+    grid.appendChild(cell);
+  }
+
+  // Fill remaining cells
+  const total = startDow + totalDays;
+  const remainder = total % 7;
+  if(remainder>0){
+    for(let i=0;i<7-remainder;i++){
+      const cell=document.createElement('div');
+      cell.style.cssText='min-height:80px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:#fafaf8;';
+      grid.appendChild(cell);
+    }
+  }
+
+  // Events list for this month
+  renderEventsList(monthEvents);
+
+  // Update horse filter options
+  const sel=document.getElementById('cal-horse-filter');
+  const cur=sel.value;
+  const horses=sortedActive();
+  sel.innerHTML='<option value="">Todos los caballos</option>'+horses.map(h=>`<option value="${h}">${h}</option>`).join('');
+  if(cur)sel.value=cur;
+
+  // Update ev-horse select
+  const evHorse=document.getElementById('ev-horse');
+  if(evHorse){
+    const curEv=evHorse.value;
+    evHorse.innerHTML=horses.map(h=>`<option value="${h}">${h}</option>`).join('');
+    if(curEv)evHorse.value=curEv;
+  }
+}
+
+function renderEventsList(events){
+  const container=document.getElementById('cal-events-list');
+  if(!events.length){container.innerHTML='';return;}
+  const grouped={};
+  events.forEach(e=>{
+    if(!grouped[e.horse])grouped[e.horse]=[];
+    grouped[e.horse].push(e);
+  });
+  container.innerHTML='<div style="font-size:12px;font-weight:600;color:var(--text-soft);text-transform:uppercase;margin-bottom:8px">Eventos del mes</div>'+
+    Object.entries(grouped).map(([horse,evs])=>`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;box-shadow:var(--shadow)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px">${horse}</div>
+        ${evs.map(ev=>{
+          const c=getEventColor(ev.tipo);
+          const fecha=new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-CL');
+          const delBtn=isAdmin?`<button onclick="deleteEvent(${ev.id})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:0 4px">×</button>`:'';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)">
+            <div style="width:8px;height:8px;border-radius:50%;background:${c.dot};flex-shrink:0"></div>
+            <span style="font-size:12px;color:var(--text-soft);width:70px;flex-shrink:0">${fecha}</span>
+            <span style="font-size:12px;font-weight:500;flex:1">${ev.tipo}${ev.descripcion?' — '+ev.descripcion:''}</span>
+            ${delBtn}
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+}
+
+async function addManualEvent(){
+  if(!isAdmin){toast('Sin permisos','err');return;}
+  const horse=document.getElementById('ev-horse').value;
+  const fecha=document.getElementById('ev-date').value;
+  const tipo=document.getElementById('ev-tipo').value.trim();
+  const desc=document.getElementById('ev-desc').value.trim();
+  if(!horse||!fecha||!tipo){toast('Completa caballo, fecha y tipo','err');return;}
+  try{
+    const res=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha,tipo,descripcion:desc})});
+    allEvents=[...allEvents,...res];
+    document.getElementById('ev-date').value='';
+    document.getElementById('ev-tipo').value='';
+    document.getElementById('ev-desc').value='';
+    renderCalendar();
+    toast('✓ Evento agregado');
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+async function deleteEvent(id){
+  if(!confirm('¿Eliminar evento?'))return;
+  try{
+    await sbFetch('eventos?id=eq.'+id,{method:'DELETE',headers:{'Prefer':''}});
+    allEvents=allEvents.filter(e=>e.id!==id);
+    renderCalendar();
+    toast('Evento eliminado');
+  }catch(e){toast('Error','err');}
+}
+
+// Auto-prompt date when saving Herraje or Vitaminas
+async function saveCatEntryWithDate(horse,year,month,cat,cid,parentSid,mnum){
+  if(!isAdmin){toast('Sin permisos','err');return;}
+  const amount=+document.getElementById('amt_'+cid).value;
+  const note=document.getElementById('note_'+cid).value.trim();
+  if(!amount){toast('Ingresa el monto','err');return;}
+
+  // Ask for date if Herraje or Vitaminas
+  const needsDate = cat==='Herraje' || cat==='Vitaminas / Antiparasitario / Hormonas';
+  let eventDate = null;
+  if(needsDate){
+    const defaultDate = year+'-'+(String(month).padStart(2,'0'))+'-01';
+    eventDate = prompt('📅 Fecha exacta para '+cat+' de '+horse+' (AAAA-MM-DD):', defaultDate);
+    if(eventDate && !/^\d{4}-\d{2}-\d{2}$/.test(eventDate)){
+      toast('Formato de fecha inválido','err');return;
+    }
+  }
+
+  try{
+    const res=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount,note})});
+    allEntries=[...res,...allEntries];
+    document.getElementById('amt_'+cid).value='';
+    document.getElementById('note_'+cid).value='';
+
+    // Save event if date provided
+    if(needsDate && eventDate){
+      const evRes=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha:eventDate,tipo:cat,descripcion:note||''})});
+      allEvents=[...allEvents,...evRes];
+      toast('✓ Guardado + evento en calendario');
+    } else {
+      toast('✓ Guardado');
+    }
+
+    const e=res[0];
+    const msid=parentSid+'_m'+month;
+    const rowsEl=document.getElementById('erows'+msid);
+    if(rowsEl){
+      const div=document.createElement('div');div.className='cat-row';div.id='cr'+e.id;
+      const valEl=`<span class="cat-val" onclick="editCatVal(this,${e.id},'${parentSid}',${year},${month})" title="Clic para editar">${clp(e.amount)}</span>`;
+      div.innerHTML=`<span class="cat-name">${e.cat}</span>${valEl}<span class="cat-note">${e.note||''}</span><button class="cat-del" onclick="delCatEntry(${e.id},'${parentSid}',${year},${month})">×</button>`;
+      rowsEl.appendChild(div);
+    }
+    const mt=allEntries.filter(en=>en.horse===horse&&en.year===year&&en.month===month).reduce((s,en)=>s+Number(en.amount),0);
+    const mtEl=document.getElementById('emt'+parentSid+'_m'+month);if(mtEl)mtEl.textContent=clp(mt);
+    const ht=allEntries.filter(en=>en.horse===horse&&en.year===year).reduce((s,en)=>s+Number(en.amount),0);
+    const htEl=document.getElementById('eht'+parentSid);if(htEl)htEl.textContent=clp(ht);
+    const yt=allEntries.filter(en=>en.year===year).reduce((s,en)=>s+Number(en.amount),0);
+    const ytEl=document.getElementById('eyt'+year);if(ytEl)ytEl.textContent=clp(yt);
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
 </script>
 </body>
 </html>
