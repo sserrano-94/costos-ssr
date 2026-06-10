@@ -246,7 +246,7 @@ select:focus,input:focus{border-color:var(--accent)}
     <div id="add-event-card" class="card" style="margin-top:16px">
       <div style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;margin-bottom:10px">Agregar evento manual</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:10px">
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Caballo</label><select id="ev-horse" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></select></div>
+        <div style="display:flex;flex-direction:column;gap:3px;grid-column:1/-1"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Caballos (uno o más)</label><div id="ev-horse-checks" style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0"></div></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Fecha</label><input type="date" id="ev-date" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Tipo</label><input type="text" id="ev-tipo" placeholder="Ej: Veterinario" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Descripción</label><input type="text" id="ev-desc" placeholder="Detalle opcional" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
@@ -849,12 +849,13 @@ function renderCalendar(){
   sel.innerHTML='<option value="">Todos los caballos</option>'+horses.map(h=>`<option value="${h}">${h}</option>`).join('');
   if(cur)sel.value=cur;
 
-  // Update ev-horse select
-  const evHorse=document.getElementById('ev-horse');
-  if(evHorse){
-    const curEv=evHorse.value;
-    evHorse.innerHTML=horses.map(h=>`<option value="${h}">${h}</option>`).join('');
-    if(curEv)evHorse.value=curEv;
+  // Update ev-horse checkboxes
+  const evChecks=document.getElementById('ev-horse-checks');
+  if(evChecks){
+    const checked=Array.from(evChecks.querySelectorAll('input:checked')).map(i=>i.value);
+    evChecks.innerHTML=horses.map(h=>`<label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 8px">
+      <input type="checkbox" value="${h}" ${checked.includes(h)?'checked':''} style="cursor:pointer"> ${h}
+    </label>`).join('');
   }
 }
 
@@ -886,19 +887,23 @@ function renderEventsList(events){
 
 async function addManualEvent(){
   if(!isAdmin){toast('Sin permisos','err');return;}
-  const horse=document.getElementById('ev-horse').value;
+  const horses=Array.from(document.querySelectorAll('#ev-horse-checks input:checked')).map(i=>i.value);
   const fecha=document.getElementById('ev-date').value;
   const tipo=document.getElementById('ev-tipo').value.trim();
   const desc=document.getElementById('ev-desc').value.trim();
-  if(!horse||!fecha||!tipo){toast('Completa caballo, fecha y tipo','err');return;}
+  if(!horses.length||!fecha||!tipo){toast('Selecciona al menos un caballo, fecha y tipo','err');return;}
   try{
-    const res=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha,tipo,descripcion:desc})});
-    allEvents=[...allEvents,...res];
+    for(const horse of horses){
+      const res=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha,tipo,descripcion:desc})});
+      allEvents=[...allEvents,...res];
+    }
     document.getElementById('ev-date').value='';
     document.getElementById('ev-tipo').value='';
     document.getElementById('ev-desc').value='';
+    // Uncheck all
+    document.querySelectorAll('#ev-horse-checks input').forEach(i=>i.checked=false);
     renderCalendar();
-    toast('✓ Evento agregado');
+    toast('✓ '+horses.length+' evento(s) agregado(s)');
   }catch(e){toast('Error: '+e.message,'err');}
 }
 
