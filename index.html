@@ -156,6 +156,10 @@ select:focus,input:focus{border-color:var(--accent)}
   </div>
   <div class="section" id="tab-ingresar">
     <div class="section-header"><h2>Ingresar costo</h2><p>Abre año → caballo → mes para registrar</p></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <input type="number" id="new-year-input" placeholder="Ej: 2027" min="2024" max="2040" style="width:120px;height:36px;padding:0 10px;font-size:13px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none">
+      <button class="btn btn-primary" onclick="addNewYear()">+ Agregar año</button>
+    </div>
     <div id="exp-blocks"></div>
   </div>
   <div class="section" id="tab-caballos">
@@ -574,6 +578,33 @@ async function addHorse(){
     toast('Caballo '+nombre+' agregado');
   }catch(e){toast('Error: '+e.message,'err');}
   btn.innerHTML='Agregar caballo';btn.disabled=false;
+}
+
+function addNewYear(){
+  const input=document.getElementById('new-year-input');
+  const year=+input.value;
+  if(!year||year<2024||year>2040){toast('Ingresa un año válido (ej: 2027)','err');return;}
+  const years=getYears();
+  if(years.includes(year)){toast('El año '+year+' ya existe','err');return;}
+  // Add a placeholder so the year appears
+  const horses=sortedActive();
+  const container=document.getElementById('exp-blocks');
+  const ye=[];
+  const yhorsesForYear=horses.filter(h=>horseStartYear(h)<=year);
+  const newBlock=document.createElement('div');
+  newBlock.className='exp-block';
+  newBlock.id='expblock'+year;
+  newBlock.innerHTML=`
+    <div class="exp-y-hdr" onclick="tog('eyh${year}','eyb${year}','eya${year}')" id="eyh${year}">
+      <span class="year-title">📅 ${year}</span>
+      <span style="display:flex;align-items:center;gap:12px"><span class="year-total" id="eyt${year}"></span><span class="year-arrow" id="eya${year}">▼</span></span>
+    </div>
+    <div class="exp-y-body" id="eyb${year}">
+      ${yhorsesForYear.map(h=>buildExpHorse(h,year,ye)).join('')}
+    </div>`;
+  container.insertBefore(newBlock,container.firstChild);
+  input.value='';
+  toast('Año '+year+' agregado');
 }
 
 function showTab(name){
