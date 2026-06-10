@@ -5,127 +5,146 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Costos SSR — Caballos</title>
 <style>
-  :root{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1917;--text-soft:#6b6860;--accent:#2b5fa6;--accent-light:#e8eef8;--green:#1a7a4a;--red:#c0392b;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.07)}
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:10}
-  .logo{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
-  .logo-badge{background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px}
-  .conn-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft)}
-  .conn-dot{width:7px;height:7px;border-radius:50%;background:#ccc}
-  .conn-dot.ok{background:var(--green)}.conn-dot.err{background:var(--red)}
-  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:2px;overflow-x:auto}
-  .nav-tab{padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-soft);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
-  .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-  main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
-  .section{display:none}.section.active{display:block}
-  .section-header{margin-bottom:16px}
-  .section-header h2{font-size:18px;font-weight:600;margin-bottom:2px}
-  .section-header p{font-size:13px;color:var(--text-soft)}
+:root{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1917;--text-soft:#6b6860;--accent:#2b5fa6;--accent-light:#e8eef8;--green:#1a7a4a;--red:#c0392b;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.07)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:10}
+.logo{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.logo-badge{background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px}
+.conn-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft)}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:#ccc}
+.conn-dot.ok{background:var(--green)}.conn-dot.err{background:var(--red)}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:2px;overflow-x:auto}
+.nav-tab{padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-soft);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
+.section{display:none}.section.active{display:block}
+.section-header{margin-bottom:16px}
+.section-header h2{font-size:18px;font-weight:600;margin-bottom:2px}
+.section-header p{font-size:13px;color:var(--text-soft)}
 
-  /* HORSE LIST */
-  .horse-list{display:flex;flex-direction:column;gap:4px;margin-bottom:24px}
-  .horse-list-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
-  .horse-list-header{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;user-select:none}
-  .horse-list-header:hover{background:var(--accent-light)}
-  .horse-list-name{font-size:13px;font-weight:700}
-  .horse-list-age{font-size:12px;color:var(--text-soft)}
-  .horse-list-arrow{font-size:10px;color:var(--text-soft);transition:transform .2s}
-  .horse-list-arrow.open{transform:rotate(180deg)}
-  .horse-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:2px 6px;border-radius:4px}
-  .horse-del:hover{color:var(--red);background:#fdecea}
-  .horse-detail{display:none;border-top:1px solid var(--border)}
-  .horse-detail.open{display:block}
-  .horse-detail img{width:100%;max-height:320px;object-fit:contain;background:#f5f5f5}
-  .horse-detail-info{padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px}
-  .horse-detail-row{font-size:12px;color:var(--text-soft)}
-  .horse-detail-row span{font-weight:500;color:var(--text)}
+/* HORSE LIST RESUMEN */
+.horse-list{display:flex;flex-direction:column;gap:4px;margin-bottom:24px}
+.horse-list-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
+.horse-list-header{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;user-select:none}
+.horse-list-header:hover{background:var(--accent-light)}
+.horse-list-name{font-size:13px;font-weight:700}
+.horse-list-age{font-size:12px;color:var(--text-soft)}
+.horse-list-arrow{font-size:10px;color:var(--text-soft);transition:transform .2s}
+.horse-list-arrow.open{transform:rotate(180deg)}
+.horse-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:2px 6px;border-radius:4px}
+.horse-del:hover{color:var(--red);background:#fdecea}
+.horse-detail{display:none;border-top:1px solid var(--border)}
+.horse-detail.open{display:block}
+.horse-imgs{position:relative;background:#f5f5f5}
+.horse-imgs img{width:100%;max-height:300px;object-fit:contain;display:block}
+.add-photo-btn{position:absolute;bottom:8px;right:8px;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:4px}
+.add-photo-btn:hover{background:#234e8a}
+.extra-imgs{display:flex;gap:4px;flex-wrap:wrap;padding:4px;background:#f5f5f5;border-top:1px solid var(--border)}
+.extra-imgs img{height:60px;width:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border)}
+.horse-detail-info{padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px}
+.horse-detail-row{font-size:12px;color:var(--text-soft)}
+.horse-detail-row span{font-weight:500;color:var(--text)}
+.photo-input{display:none}
 
-  /* YEAR BLOCKS */
-  .year-block{margin-bottom:10px}
-  .year-header{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;cursor:pointer;box-shadow:var(--shadow);user-select:none}
-  .year-header:hover{background:var(--accent-light)}
-  .year-header.open{border-radius:var(--radius) var(--radius) 0 0;border-bottom-color:transparent}
-  .year-title{font-size:15px;font-weight:600}
-  .year-total{font-size:14px;font-weight:600;color:var(--accent)}
-  .year-arrow{font-size:10px;color:var(--text-soft);transition:transform .2s}
-  .year-arrow.open{transform:rotate(180deg)}
-  .year-body{display:none;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);overflow-x:auto}
-  .year-body.open{display:block}
-  .year-table{width:100%;border-collapse:collapse;font-size:12px}
-  .year-table th{font-size:10px;font-weight:600;color:var(--text-soft);text-transform:uppercase;padding:7px 8px;border-bottom:1px solid var(--border);background:#fafaf8;text-align:right;white-space:nowrap}
-  .year-table th:first-child{text-align:left}
-  .year-table td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .year-table td:first-child{text-align:left;font-weight:600;color:var(--text)}
-  .year-table tr:last-child td{border-bottom:none;font-weight:700;background:#f7f6f3;color:var(--accent)}
-  .year-table tbody tr:hover:not(:last-child) td{background:var(--accent-light)}
-  .cell-empty{color:#ddd}
+/* YEAR BLOCKS RESUMEN */
+.year-block{margin-bottom:10px}
+.year-header{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;cursor:pointer;box-shadow:var(--shadow);user-select:none}
+.year-header:hover{background:var(--accent-light)}
+.year-header.open{border-radius:var(--radius) var(--radius) 0 0;border-bottom-color:transparent}
+.year-title{font-size:15px;font-weight:600}
+.year-total{font-size:14px;font-weight:600;color:var(--accent)}
+.year-arrow{font-size:10px;color:var(--text-soft);transition:transform .2s}
+.year-arrow.open{transform:rotate(180deg)}
+.year-body{display:none;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);overflow-x:auto}
+.year-body.open{display:block}
+.year-table{width:100%;border-collapse:collapse;font-size:12px}
+.year-table th{font-size:10px;font-weight:600;color:var(--text-soft);text-transform:uppercase;padding:7px 8px;border-bottom:1px solid var(--border);background:#fafaf8;text-align:right;white-space:nowrap}
+.year-table th:first-child{text-align:left}
+.year-table td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.year-table td:first-child{text-align:left;font-weight:600;color:var(--text)}
+.year-table tr:last-child td{border-bottom:none;font-weight:700;background:#f7f6f3;color:var(--accent)}
+.year-table tbody tr:hover:not(:last-child) td{background:var(--accent-light)}
+.cell-empty{color:#ddd}
 
-  /* INGRESAR - EXPENSE TABLE */
-  .exp-year-block{margin-bottom:10px}
-  .exp-year-header{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;cursor:pointer;box-shadow:var(--shadow);user-select:none}
-  .exp-year-header:hover{background:var(--accent-light)}
-  .exp-year-header.open{border-radius:var(--radius) var(--radius) 0 0;border-bottom-color:transparent}
-  .exp-year-body{display:none;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);background:var(--surface)}
-  .exp-year-body.open{display:block}
-  .exp-horse-block{border-bottom:1px solid var(--border)}
-  .exp-horse-block:last-child{border-bottom:none}
-  .exp-horse-header{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;cursor:pointer;background:#fafaf8;user-select:none}
-  .exp-horse-header:hover{background:var(--accent-light)}
-  .exp-horse-name{font-size:13px;font-weight:600}
-  .exp-horse-total{font-size:13px;font-weight:600;color:var(--accent)}
-  .exp-horse-arrow{font-size:10px;color:var(--text-soft);transition:transform .2s}
-  .exp-horse-arrow.open{transform:rotate(180deg)}
-  .exp-horse-body{display:none;padding:0}
-  .exp-horse-body.open{display:block}
-  .exp-table{width:100%;border-collapse:collapse;font-size:12px}
-  .exp-table th{font-size:10px;font-weight:600;color:var(--text-soft);text-transform:uppercase;padding:6px 12px;border-bottom:1px solid var(--border);background:#f7f6f3;text-align:left;white-space:nowrap}
-  .exp-table th:last-child{text-align:right}
-  .exp-table td{padding:6px 12px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
-  .exp-table tr:last-child td{border-bottom:none}
-  .exp-table tbody tr:hover td{background:var(--accent-light)}
-  .exp-table .td-r{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
-  .exp-table .td-soft{color:var(--text-soft);font-size:11px}
+/* INGRESAR - 3 NIVELES */
+.exp-block{margin-bottom:10px}
+/* Nivel 1: año */
+.exp-y-hdr{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;cursor:pointer;box-shadow:var(--shadow);user-select:none}
+.exp-y-hdr:hover{background:var(--accent-light)}
+.exp-y-hdr.open{border-radius:var(--radius) var(--radius) 0 0;border-bottom-color:transparent}
+.exp-y-body{display:none;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius)}
+.exp-y-body.open{display:block}
+/* Nivel 2: caballo */
+.exp-h-block{border-bottom:1px solid var(--border)}
+.exp-h-block:last-child{border-bottom:none}
+.exp-h-hdr{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;cursor:pointer;background:#fafaf8;user-select:none}
+.exp-h-hdr:hover{background:var(--accent-light)}
+.exp-h-name{font-size:13px;font-weight:600}
+.exp-h-total{font-size:13px;font-weight:600;color:var(--accent)}
+.exp-h-arrow{font-size:10px;color:var(--text-soft);transition:transform .2s}
+.exp-h-arrow.open{transform:rotate(180deg)}
+.exp-h-body{display:none}
+.exp-h-body.open{display:block}
+/* Nivel 3: mes */
+.exp-m-block{border-bottom:1px solid var(--border)}
+.exp-m-block:last-child{border-bottom:none}
+.exp-m-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;cursor:pointer;background:#fff;user-select:none}
+.exp-m-hdr:hover{background:var(--accent-light)}
+.exp-m-name{font-size:12px;font-weight:600;color:var(--text-soft)}
+.exp-m-total{font-size:12px;font-weight:600;color:var(--accent)}
+.exp-m-arrow{font-size:9px;color:var(--text-soft);transition:transform .2s}
+.exp-m-arrow.open{transform:rotate(180deg)}
+.exp-m-body{display:none;background:#fafffe}
+.exp-m-body.open{display:block}
+/* Items de costo */
+.cat-row{display:flex;align-items:center;padding:7px 24px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
+.cat-row:last-child{border-bottom:none}
+.cat-name{font-size:12px;color:var(--text-soft);flex:1;min-width:160px}
+.cat-val{font-size:13px;font-weight:500;color:var(--text);min-width:90px;text-align:right}
+.cat-note{font-size:11px;color:var(--text-soft);flex:1}
+.cat-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:1px 5px;border-radius:3px}
+.cat-del:hover{color:var(--red);background:#fdecea}
+/* Fila agregar por categoría */
+.add-cat-section{padding:8px 24px 10px;border-top:1px solid var(--border);background:#f0f4fb}
+.add-cat-title{font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;margin-bottom:6px}
+.cat-add-rows{display:flex;flex-direction:column;gap:5px}
+.cat-add-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cat-add-row .cat-label{font-size:12px;color:var(--text);width:200px;flex-shrink:0}
+.cat-add-row input{height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--text);outline:none;width:110px}
+.cat-add-row input:focus{border-color:var(--accent)}
+.cat-add-row .note-in{width:140px}
+.btn-save-cat{height:28px;padding:0 10px;font-size:11px;font-weight:600;border-radius:5px;border:none;background:var(--accent);color:#fff;cursor:pointer}
+.btn-save-cat:hover{background:#234e8a}
 
-  /* QUICK ADD ROW */
-  .quick-add-row{display:flex;gap:6px;align-items:center;padding:8px 12px;background:#f0f4fb;border-top:1px solid var(--border);flex-wrap:wrap}
-  .quick-add-row select,.quick-add-row input{height:30px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--text);outline:none}
-  .quick-add-row select:focus,.quick-add-row input:focus{border-color:var(--accent)}
-  .quick-add-row .qa-cat{min-width:160px;flex:1}
-  .quick-add-row .qa-mes{width:90px}
-  .quick-add-row .qa-amt{width:110px}
-  .quick-add-row .qa-note{flex:1;min-width:100px}
-  .btn-add{height:30px;padding:0 12px;font-size:12px;font-weight:600;border-radius:5px;border:none;background:var(--accent);color:#fff;cursor:pointer;white-space:nowrap}
-  .btn-add:hover{background:#234e8a}
-  .btn-add:disabled{opacity:.6;cursor:not-allowed}
-
-  /* MISC */
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
-  .card-title{font-size:13px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
-  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
-  .form-field{display:flex;flex-direction:column;gap:5px}
-  .form-field label{font-size:12px;font-weight:500;color:var(--text-soft)}
-  .form-field input,.form-field select{width:100%}
-  select,input{height:36px;padding:0 10px;font-size:13px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none}
-  select:focus,input:focus{border-color:var(--accent)}
-  .btn{height:36px;padding:0 18px;font-size:13px;font-weight:500;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .btn-primary:disabled{opacity:.6;cursor:not-allowed}
-  .del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:2px 5px;border-radius:4px}
-  .del-btn:hover{color:var(--red);background:#fdecea}
-  .empty{text-align:center;padding:30px;color:var(--text-soft);font-size:13px}
-  #toast{position:fixed;bottom:24px;right:24px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;display:none;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15)}
-  #toast.ok{background:var(--green);color:#fff}#toast.err{background:var(--red);color:#fff}
-  .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .horses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px}
-  .horse-card-full{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:var(--shadow)}
-  .horse-name{font-size:14px;font-weight:600;margin-bottom:3px}
-  .horse-meta{font-size:12px;color:var(--text-soft);display:flex;flex-direction:column;gap:2px}
-  .horse-total{font-size:14px;font-weight:600;color:var(--accent);text-align:right}
-  .horse-cnt{font-size:11px;color:var(--text-soft);text-align:right;margin-top:2px}
-  .badge{display:inline-block;font-size:11px;font-weight:500;padding:2px 7px;border-radius:4px;background:var(--accent-light);color:var(--accent)}
-  @media(max-width:600px){header{padding:0 14px}main{padding:16px 12px 60px}nav{padding:0 8px}.nav-tab{padding:12px 10px;font-size:12px}}
+/* MISC */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-title{font-size:13px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.form-field label{font-size:12px;font-weight:500;color:var(--text-soft)}
+.form-field input,.form-field select{width:100%}
+select,input{height:36px;padding:0 10px;font-size:13px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none}
+select:focus,input:focus{border-color:var(--accent)}
+.btn{height:36px;padding:0 18px;font-size:13px;font-weight:500;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:2px 5px;border-radius:4px}
+.del-btn:hover{color:var(--red);background:#fdecea}
+.empty{text-align:center;padding:20px;color:var(--text-soft);font-size:12px}
+#toast{position:fixed;bottom:24px;right:24px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;display:none;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+#toast.ok{background:var(--green);color:#fff}#toast.err{background:var(--red);color:#fff}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.horses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px}
+.horse-card-full{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:var(--shadow)}
+.horse-card-full.inactive{opacity:.5}
+.horse-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.horse-meta{font-size:12px;color:var(--text-soft);display:flex;flex-direction:column;gap:2px}
+.horse-total{font-size:14px;font-weight:600;color:var(--accent);text-align:right}
+.horse-cnt{font-size:11px;color:var(--text-soft);text-align:right;margin-top:2px}
+.badge-inactive{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;background:#eee;color:#999;margin-left:6px}
+@media(max-width:600px){header{padding:0 14px}main{padding:16px 12px 60px}nav{padding:0 8px}.nav-tab{padding:12px 10px;font-size:12px}}
 </style>
 </head>
 <body>
@@ -139,47 +158,17 @@
   <button class="nav-tab" onclick="showTab('caballos')">Caballos</button>
 </nav>
 <main>
-
-  <!-- RESUMEN -->
   <div class="section active" id="tab-resumen">
-    <div class="section-header"><h2>Resumen</h2><p>Caballos y gastos por año</p></div>
+    <div class="section-header"><h2>Resumen</h2><p>Caballos activos y gastos por año</p></div>
     <div class="horse-list" id="horse-list"></div>
     <div id="year-blocks"></div>
   </div>
-
-  <!-- INGRESAR -->
   <div class="section" id="tab-ingresar">
-    <div class="section-header"><h2>Ingresar costo</h2><p>Registra un nuevo gasto o edita desde la tabla</p></div>
-    <div class="card">
-      <div class="form-grid">
-        <div class="form-field"><label>Caballo</label><select id="inp-horse"></select></div>
-        <div class="form-field"><label>Año</label><input type="number" id="inp-year" min="2020" max="2040" value="2026"></div>
-        <div class="form-field"><label>Mes</label>
-          <select id="inp-month">
-            <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
-            <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
-            <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
-            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
-          </select>
-        </div>
-        <div class="form-field"><label>Categoría</label>
-          <select id="inp-cat">
-            <option>Trabajo + Pesebrera</option><option>Fardos</option><option>Alimento</option>
-            <option>Vitaminas / Antiparasitario / Hormonas</option><option>Herraje</option>
-            <option>Veterinario</option><option>Flete</option><option>Inscripción</option><option>Otros</option>
-          </select>
-        </div>
-        <div class="form-field"><label>Monto (CLP)</label><input type="number" id="inp-amount" placeholder="0" min="0"></div>
-        <div class="form-field"><label>Nota (opcional)</label><input type="text" id="inp-note" placeholder="Descripción breve"></div>
-      </div>
-      <button class="btn btn-primary" id="save-btn" onclick="addEntry()">Guardar registro</button>
-    </div>
-    <div id="exp-year-blocks"></div>
+    <div class="section-header"><h2>Ingresar costo</h2><p>Abre año → caballo → mes para registrar gastos</p></div>
+    <div id="exp-blocks"></div>
   </div>
-
-  <!-- CABALLOS -->
   <div class="section" id="tab-caballos">
-    <div class="section-header"><h2>Caballos</h2><p>Ficha completa</p></div>
+    <div class="section-header"><h2>Caballos</h2><p>Ficha completa — activos e inactivos</p></div>
     <div class="horses-grid" id="horses-grid"></div>
     <div class="card">
       <div class="card-title">Agregar caballo</div>
@@ -193,9 +182,9 @@
       <button class="btn btn-primary" onclick="addHorse()">Agregar caballo</button>
     </div>
   </div>
-
 </main>
 <div id="toast"></div>
+<input type="file" id="photo-input" class="photo-input" accept="image/*" multiple>
 <script>
 const GEO={"COSCACHITA": {"numero": "236328", "padre": "FANTASTICO (A:1997)", "madre": "FICHA (A:1990)"}, "COLCHAGUINA": {"numero": "326022", "padre": "REVOLTOSO (A:2011)", "madre": "COSCACHITA (A:2011)"}, "SUREÑO": {"numero": "316204", "padre": "MEDIO A MEDIO T.E. (A:2010)", "madre": "COSCACHITA (A:2011)"}, "ESPUELA": {"numero": "196650", "padre": "ACERO (A:1992)", "madre": "AMOROCHA (A:1988)"}, "MITI MOTA": {"numero": "298036", "padre": "ERMITAÑO (A:1996)", "madre": "QUINCHA (A:1994)"}, "RECINTO": {"numero": "334788", "padre": "REVOLTOSO (A:2011)", "madre": "COSCACHITA (A:2011)"}};
 const IMGS={
@@ -209,10 +198,13 @@ const IMGS={
 
 const SUPABASE_URL='https://crucumklrdzapohiupzn.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNydWN1bWtscmR6YXBvaGl1cHpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzAwOTEsImV4cCI6MjA5NjYwNjA5MX0.ad4O-GlnIhT1bTWQRAOk0ToognUagkRpl_u-WGDaYP4';
-const MONTHS=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MONTHS_S=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const MONTHS_F=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const CATS=['Trabajo + Pesebrera','Fardos','Alimento','Vitaminas / Antiparasitario / Hormonas','Herraje','Veterinario','Flete','Inscripción','Otros'];
 let allEntries=[],allHorses=[];
+// Extra photos stored in memory per horse
+const extraPhotos={};
+let photoTargetHorse=null;
 
 function clp(n){return n?'$'+Math.round(n).toLocaleString('es-CL'):'';}
 function calcAge(dob){
@@ -225,13 +217,29 @@ function calcAge(dob){
   if(m>0)return m+' meses '+d+' días';
   return d+' días';
 }
-function sortedHorses(){
-  return getHorseNames().sort((a,b)=>{
-    const ia=allHorses.find(h=>h.nombre===a),ib=allHorses.find(h=>h.nombre===b);
-    const da=ia&&ia.fecha_nacimiento?new Date(ia.fecha_nacimiento):new Date();
-    const db=ib&&ib.fecha_nacimiento?new Date(ib.fecha_nacimiento):new Date();
+function activeHorses(){
+  return allHorses.filter(h=>h.activo!==false).sort((a,b)=>{
+    const da=a.fecha_nacimiento?new Date(a.fecha_nacimiento):new Date();
+    const db=b.fecha_nacimiento?new Date(b.fecha_nacimiento):new Date();
     return da-db;
   });
+}
+function sortedHorseNames(onlyActive=true){
+  const list=onlyActive?activeHorses():allHorses.sort((a,b)=>{
+    const da=a.fecha_nacimiento?new Date(a.fecha_nacimiento):new Date();
+    const db=b.fecha_nacimiento?new Date(b.fecha_nacimiento):new Date();
+    return da-db;
+  });
+  // Include horses that have entries but may not be in caballos table
+  const names=list.map(h=>h.nombre);
+  if(onlyActive){
+    // Also add from entries if not in inactive list
+    const inactive=allHorses.filter(h=>h.activo===false).map(h=>h.nombre);
+    [...new Set(allEntries.map(e=>e.horse))].forEach(n=>{
+      if(!names.includes(n)&&!inactive.includes(n))names.push(n);
+    });
+  }
+  return names;
 }
 async function sbFetch(path,opts={}){
   const res=await fetch(SUPABASE_URL+'/rest/v1/'+path,{
@@ -256,44 +264,37 @@ async function loadAll(){
     dot.className='conn-dot ok';
     lbl.textContent='Conectado · '+allEntries.length+' registros';
   }catch(e){dot.className='conn-dot err';lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
-  populateSelects();renderResumen();renderExpTable();
-}
-function getHorseNames(){
-  return[...new Set([...allHorses.map(h=>h.nombre),...allEntries.map(e=>e.horse)])];
-}
-function getYears(){return[...new Set(allEntries.map(e=>e.year))].sort((a,b)=>b-a);}
-function populateSelects(){
-  const horses=sortedHorses();
-  ['inp-horse'].forEach(id=>{
-    const el=document.getElementById(id);if(!el)return;
-    const cur=el.value;
-    el.innerHTML=horses.map(h=>`<option>${h}</option>`).join('');
-    if(cur)el.value=cur;
-  });
+  renderResumen();renderExpBlocks();
 }
 
-// ---- RESUMEN ----
+// ======= RESUMEN =======
 function renderResumen(){
-  const horses=sortedHorses();
+  const horses=sortedHorseNames(true);
   document.getElementById('horse-list').innerHTML=horses.map(nombre=>{
     const info=allHorses.find(h=>h.nombre===nombre);
     const edad=info?calcAge(info.fecha_nacimiento):'—';
     const geo=GEO[nombre]||{};
-    const img=IMGS[nombre]?`<img src="${IMGS[nombre]}" alt="${nombre}">`:'<div style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen</div>';
+    const mainImg=IMGS[nombre]?`<img src="${IMGS[nombre]}" alt="${nombre}">`:'<div style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen</div>';
     const dob=info&&info.fecha_nacimiento?new Date(info.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
     const numero=(info&&info.numero)||(geo.numero||'—');
     const padre=geo.padre||'—',madre=geo.madre||'—';
     const sid=nombre.replace(/[^a-zA-Z0-9]/g,'_');
+    const extras=(extraPhotos[nombre]||[]).map(src=>`<img src="${src}">`).join('');
+    const extrasHtml=extras?`<div class="extra-imgs">${extras}</div>`:'';
     return `<div class="horse-list-item">
       <div class="horse-list-header" onclick="toggleHorse('${sid}')">
         <div><div class="horse-list-name">${nombre}</div><div class="horse-list-age">${edad}</div></div>
         <div style="display:flex;align-items:center;gap:8px">
-          <button class="horse-del" onclick="event.stopPropagation();deleteHorse('${nombre.replace(/'/g,"\\'")}','${sid}')" title="Eliminar">×</button>
+          <button class="horse-del" onclick="event.stopPropagation();deactivateHorse('${nombre.replace(/'/g,"\\'")}','${sid}')" title="Desactivar">×</button>
           <span class="horse-list-arrow" id="arr-${sid}">▼</span>
         </div>
       </div>
       <div class="horse-detail" id="det-${sid}">
-        ${img}
+        <div class="horse-imgs">
+          ${mainImg}
+          ${extrasHtml}
+          <button class="add-photo-btn" onclick="openPhotoUpload('${nombre.replace(/'/g,"\\'")}','${sid}')">📷 Agregar foto</button>
+        </div>
         <div class="horse-detail-info">
           <div class="horse-detail-row">Número: <span>${numero}</span></div>
           <div class="horse-detail-row">Nacimiento: <span>${dob}</span></div>
@@ -304,7 +305,8 @@ function renderResumen(){
     </div>`;
   }).join('');
 
-  const years=getYears();
+  // Year blocks
+  const years=[...new Set(allEntries.map(e=>e.year))].sort((a,b)=>b-a);
   document.getElementById('year-blocks').innerHTML=years.map(year=>{
     const ye=allEntries.filter(e=>e.year===year);
     const yt=ye.reduce((s,e)=>s+Number(e.amount),0);
@@ -312,18 +314,18 @@ function renderResumen(){
     const am=[...new Set(ye.map(e=>e.month))].sort((a,b)=>a-b);
     const rows=yh.map(h=>{
       const cells=am.map(m=>ye.filter(e=>e.horse===h&&e.month===m).reduce((s,e)=>s+Number(e.amount),0));
-      return{h,cells,rowTotal:cells.reduce((s,v)=>s+v,0)};
+      return{h,cells,rt:cells.reduce((s,v)=>s+v,0)};
     });
     const colT=am.map(m=>ye.filter(e=>e.month===m).reduce((s,e)=>s+Number(e.amount),0));
     return `<div class="year-block">
-      <div class="year-header" onclick="toggleYear('r${year}')" id="yhr${year}">
+      <div class="year-header" onclick="tog('yhr${year}','ybr${year}','yar${year}')" id="yhr${year}">
         <span class="year-title">📅 ${year}</span>
         <span style="display:flex;align-items:center;gap:12px"><span class="year-total">${clp(yt)}</span><span class="year-arrow" id="yar${year}">▼</span></span>
       </div>
       <div class="year-body" id="ybr${year}">
-        <table class="year-table"><thead><tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS[m]}</th>`).join('')}<th>Total</th></tr></thead>
+        <table class="year-table"><thead><tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
         <tbody>
-          ${rows.map(r=>`<tr><td>${r.h}</td>${r.cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${clp(r.rowTotal)}</strong></td></tr>`).join('')}
+          ${rows.map(r=>`<tr><td>${r.h}</td>${r.cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${clp(r.rt)}</strong></td></tr>`).join('')}
           <tr><td>TOTAL</td>${colT.map(v=>`<td>${clp(v)}</td>`).join('')}<td>${clp(yt)}</td></tr>
         </tbody></table>
       </div>
@@ -331,195 +333,264 @@ function renderResumen(){
   }).join('');
 }
 
-// ---- EXP TABLE (Ingresar) ----
-function renderExpTable(){
-  const horses=sortedHorses();
-  const years=getYears();
-  document.getElementById('exp-year-blocks').innerHTML=years.map(year=>{
+// ======= INGRESAR =======
+function renderExpBlocks(){
+  const horses=sortedHorseNames(true);
+  const years=[...new Set(allEntries.map(e=>e.year))].sort((a,b)=>b-a);
+  // Add current year if not present
+  const curYear=new Date().getFullYear();
+  if(!years.includes(curYear))years.unshift(curYear);
+
+  document.getElementById('exp-blocks').innerHTML=years.map(year=>{
     const ye=allEntries.filter(e=>e.year===year);
     const yt=ye.reduce((s,e)=>s+Number(e.amount),0);
-    const yh=horses.filter(h=>ye.some(e=>e.horse===h)||true);
-    return `<div class="exp-year-block">
-      <div class="exp-year-header" onclick="toggleExpYear('${year}')" id="eyh${year}">
+    return `<div class="exp-block">
+      <div class="exp-y-hdr" onclick="tog('eyh${year}','eyb${year}','eya${year}')" id="eyh${year}">
         <span class="year-title">📅 ${year}</span>
-        <span style="display:flex;align-items:center;gap:12px"><span class="year-total">${clp(yt)}</span><span class="year-arrow" id="eya${year}">▼</span></span>
+        <span style="display:flex;align-items:center;gap:12px"><span class="year-total">${yt?clp(yt):''}</span><span class="year-arrow" id="eya${year}">▼</span></span>
       </div>
-      <div class="exp-year-body" id="eyb${year}">
-        ${horses.map(h=>buildHorseBlock(h,year,ye)).join('')}
+      <div class="exp-y-body" id="eyb${year}">
+        ${horses.map(h=>buildExpHorse(h,year,ye)).join('')}
       </div>
     </div>`;
   }).join('');
 }
 
-function buildHorseBlock(horse,year,ye){
+function buildExpHorse(horse,year,ye){
   const he=ye.filter(e=>e.horse===horse);
   const ht=he.reduce((s,e)=>s+Number(e.amount),0);
   const sid=horse.replace(/[^a-zA-Z0-9]/g,'_')+'_'+year;
-  const rows=he.map(e=>`<tr>
-    <td>${MONTHS_F[e.month]}</td>
-    <td><span class="badge">${e.cat}</span></td>
-    <td class="td-r">${clp(e.amount)}</td>
-    <td class="td-soft">${e.note||'—'}</td>
-    <td><button class="del-btn" onclick="deleteEntryExp(${e.id},'${year}')">×</button></td>
-  </tr>`).join('');
+  // Group by month
+  const months=[...new Set(he.map(e=>e.month))].sort((a,b)=>a-b);
+  // Also add current month
+  const curM=new Date().getMonth()+1;
+  if(!months.includes(curM))months.push(curM);
+  months.sort((a,b)=>a-b);
 
-  const catOpts=CATS.map(c=>`<option>${c}</option>`).join('');
-  const mesOpts=MONTHS_F.slice(1).map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
-  const curMonth=new Date().getMonth()+1;
+  const monthBlocks=months.map(m=>buildExpMonth(horse,year,m,he,sid)).join('');
 
-  return `<div class="exp-horse-block" id="ehb${sid}">
-    <div class="exp-horse-header" onclick="toggleExpHorse('${sid}')">
-      <span class="exp-horse-name">${horse}</span>
-      <span style="display:flex;align-items:center;gap:10px">
-        <span class="exp-horse-total">${ht?clp(ht):''}</span>
-        <span class="exp-horse-arrow" id="eha${sid}">▼</span>
-      </span>
+  return `<div class="exp-h-block" id="ehb${sid}">
+    <div class="exp-h-hdr" onclick="tog('ehh${sid}','ehbd${sid}','eha${sid}')">
+      <span class="exp-h-name">${horse}</span>
+      <span style="display:flex;align-items:center;gap:8px"><span class="exp-h-total">${ht?clp(ht):''}</span><span class="exp-h-arrow" id="eha${sid}">▼</span></span>
     </div>
-    <div class="exp-horse-body" id="ehbd${sid}">
-      <table class="exp-table">
-        <thead><tr><th>Mes</th><th>Categoría</th><th style="text-align:right">Monto</th><th>Nota</th><th></th></tr></thead>
-        <tbody id="eht${sid}">${rows||'<tr><td colspan="5" class="empty" style="padding:12px">Sin registros</td></tr>'}</tbody>
-      </table>
-      <div class="quick-add-row">
-        <select class="qa-mes" id="qm${sid}" onchange="">${mesOpts}</select>
-        <select class="qa-cat" id="qc${sid}">${catOpts}</select>
-        <input class="qa-amt" type="number" id="qa${sid}" placeholder="Monto" min="0">
-        <input class="qa-note" type="text" id="qn${sid}" placeholder="Nota">
-        <button class="btn-add" onclick="quickAdd('${horse.replace(/'/g,"\\'")}',${year},'${sid}')">+ Agregar</button>
+    <div class="exp-h-body" id="ehbd${sid}">${monthBlocks}</div>
+  </div>`;
+}
+
+function buildExpMonth(horse,year,month,he,parentSid){
+  const me=he.filter(e=>e.month===month);
+  const mt=me.reduce((s,e)=>s+Number(e.amount),0);
+  const msid=parentSid+'_m'+month;
+
+  // Existing entries
+  const existingRows=me.map(e=>`<div class="cat-row" id="cr${e.id}">
+    <span class="cat-name">${e.cat}</span>
+    <span class="cat-val">${clp(e.amount)}</span>
+    <span class="cat-note">${e.note||''}</span>
+    <button class="cat-del" onclick="delCatEntry(${e.id},'${parentSid}',${year})">×</button>
+  </div>`).join('');
+
+  // Add rows per category
+  const addRows=CATS.map(cat=>{
+    const cid=(cat+msid).replace(/[^a-zA-Z0-9]/g,'_');
+    return `<div class="cat-add-row">
+      <span class="cat-label">${cat}</span>
+      <input type="number" id="amt_${cid}" placeholder="Monto" min="0">
+      <input type="text" id="note_${cid}" class="note-in" placeholder="Nota">
+      <button class="btn-save-cat" onclick="saveCatEntry('${horse.replace(/'/g,"\\'")}',${year},${month},'${cat.replace(/'/g,"\\'")}','${cid}','${parentSid}')">✓</button>
+    </div>`;
+  }).join('');
+
+  return `<div class="exp-m-block" id="emb${msid}">
+    <div class="exp-m-hdr" onclick="tog('emh${msid}','embd${msid}','ema${msid}')">
+      <span class="exp-m-name">${MONTHS_F[month]}</span>
+      <span style="display:flex;align-items:center;gap:8px"><span class="exp-m-total">${mt?clp(mt):''}</span><span class="exp-m-arrow" id="ema${msid}">▼</span></span>
+    </div>
+    <div class="exp-m-body" id="embd${msid}">
+      <div id="erows${msid}">${existingRows||''}</div>
+      <div class="add-cat-section">
+        <div class="add-cat-title">Agregar gasto</div>
+        <div class="cat-add-rows">${addRows}</div>
       </div>
     </div>
   </div>`;
 }
 
-function toggleExpYear(year){
-  const b=document.getElementById('eyb'+year),a=document.getElementById('eya'+year),h=document.getElementById('eyh'+year);
-  const o=b.classList.contains('open');
-  b.classList.toggle('open',!o);a.classList.toggle('open',!o);h.classList.toggle('open',!o);
-}
-function toggleExpHorse(sid){
-  const b=document.getElementById('ehbd'+sid),a=document.getElementById('eha'+sid);
-  const o=b.classList.contains('open');
-  b.classList.toggle('open',!o);a.classList.toggle('open',!o);
-}
-
-async function quickAdd(horse,year,sid){
-  const month=+document.getElementById('qm'+sid).value;
-  const cat=document.getElementById('qc'+sid).value;
-  const amount=+document.getElementById('qa'+sid).value;
-  const note=document.getElementById('qn'+sid).value.trim();
+async function saveCatEntry(horse,year,month,cat,cid,parentSid){
+  const amount=+document.getElementById('amt_'+cid).value;
+  const note=document.getElementById('note_'+cid).value.trim();
   if(!amount){toast('Ingresa el monto','err');return;}
-  const btn=document.querySelector(`#ehbd${sid} .btn-add`);
-  btn.textContent='...';btn.disabled=true;
   try{
     const res=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount,note})});
     allEntries=[...res,...allEntries];
-    document.getElementById('qa'+sid).value='';
-    document.getElementById('qn'+sid).value='';
-    // Rebuild this horse block
-    const ye=allEntries.filter(e=>e.year===year);
-    const parent=document.getElementById('ehb'+sid);
-    const wasOpen=document.getElementById('ehbd'+sid).classList.contains('open');
-    parent.outerHTML=buildHorseBlock(horse,year,ye);
-    if(wasOpen){
-      const newSid=horse.replace(/[^a-zA-Z0-9]/g,'_')+'_'+year;
-      document.getElementById('ehbd'+newSid).classList.add('open');
-      document.getElementById('eha'+newSid).classList.add('open');
+    document.getElementById('amt_'+cid).value='';
+    document.getElementById('note_'+cid).value='';
+    // Add row to existing list
+    const msid=parentSid+'_m'+month;
+    const rowsEl=document.getElementById('erows'+msid);
+    const e=res[0];
+    if(rowsEl){
+      const div=document.createElement('div');
+      div.className='cat-row';div.id='cr'+e.id;
+      div.innerHTML=`<span class="cat-name">${e.cat}</span><span class="cat-val">${clp(e.amount)}</span><span class="cat-note">${e.note||''}</span><button class="cat-del" onclick="delCatEntry(${e.id},'${parentSid}',${year})">×</button>`;
+      rowsEl.appendChild(div);
     }
+    // Update month total
+    const mt=allEntries.filter(en=>en.horse===horse&&en.year===year&&en.month===month).reduce((s,en)=>s+Number(en.amount),0);
+    const mtEl=document.querySelector('#emb'+msid+' .exp-m-total');
+    if(mtEl)mtEl.textContent=clp(mt);
+    // Update horse total
+    const ht=allEntries.filter(en=>en.horse===horse&&en.year===year).reduce((s,en)=>s+Number(en.amount),0);
+    const htEl=document.querySelector('#ehb'+parentSid+' .exp-h-total');
+    if(htEl)htEl.textContent=clp(ht);
     // Update year total
-    const yt=ye.reduce((s,e)=>s+Number(e.amount),0);
-    const ytEl=document.querySelector(`#eyh${year} .year-total`);
+    const yt=allEntries.filter(en=>en.year===year).reduce((s,en)=>s+Number(en.amount),0);
+    const ytEl=document.querySelector('#eyh'+year+' .year-total');
     if(ytEl)ytEl.textContent=clp(yt);
     toast('✓ Guardado');
   }catch(e){toast('Error: '+e.message,'err');}
-  btn.textContent='+ Agregar';btn.disabled=false;
 }
 
-async function deleteEntryExp(id,year){
-  if(!confirm('¿Eliminar este registro?'))return;
+async function delCatEntry(id,parentSid,year){
+  if(!confirm('¿Eliminar?'))return;
+  const entry=allEntries.find(e=>e.id===id);
   try{
     await sbFetch('costos?id=eq.'+id,{method:'DELETE',headers:{'Prefer':''}});
     allEntries=allEntries.filter(e=>e.id!==id);
-    // Rebuild year
-    const horses=sortedHorses();
-    const ye=allEntries.filter(e=>e.year==year);
-    const yt=ye.reduce((s,e)=>s+Number(e.amount),0);
-    const body=document.getElementById('eyb'+year);
-    if(body)body.innerHTML=horses.map(h=>buildHorseBlock(h,year,ye)).join('');
-    const ytEl=document.querySelector('#eyh'+year+' .year-total');
-    if(ytEl)ytEl.textContent=clp(yt);
-    toast('Registro eliminado');
+    const el=document.getElementById('cr'+id);
+    if(el)el.remove();
+    // Update totals
+    if(entry){
+      const msid=parentSid+'_m'+entry.month;
+      const mt=allEntries.filter(e=>e.horse===entry.horse&&e.year===entry.year&&e.month===entry.month).reduce((s,e)=>s+Number(e.amount),0);
+      const mtEl=document.querySelector('#emb'+msid+' .exp-m-total');
+      if(mtEl)mtEl.textContent=mt?clp(mt):'';
+      const ht=allEntries.filter(e=>e.horse===entry.horse&&e.year===entry.year).reduce((s,e)=>s+Number(e.amount),0);
+      const htEl=document.querySelector('#ehb'+parentSid+' .exp-h-total');
+      if(htEl)htEl.textContent=ht?clp(ht):'';
+      const yt=allEntries.filter(e=>e.year===entry.year).reduce((s,e)=>s+Number(e.amount),0);
+      const ytEl=document.querySelector('#eyh'+entry.year+' .year-total');
+      if(ytEl)ytEl.textContent=yt?clp(yt):'';
+    }
+    toast('Eliminado');
   }catch(e){toast('Error','err');}
 }
 
-function toggleHorse(sid){
-  const d=document.getElementById('det-'+sid),a=document.getElementById('arr-'+sid);
-  const o=d.classList.contains('open');d.classList.toggle('open',!o);a.classList.toggle('open',!o);
+// Toggle helper
+function tog(hdrId,bodyId,arrId){
+  const b=document.getElementById(bodyId),a=document.getElementById(arrId),h=document.getElementById(hdrId);
+  const o=b.classList.contains('open');
+  b.classList.toggle('open',!o);
+  if(a)a.classList.toggle('open',!o);
+  if(h)h.classList.toggle('open',!o);
 }
-function toggleYear(id){
-  const b=document.getElementById('yb'+id),a=document.getElementById('ya'+id),h=document.getElementById('yh'+id);
-  const o=b.classList.contains('open');b.classList.toggle('open',!o);a.classList.toggle('open',!o);h.classList.toggle('open',!o);
+function toggleHorse(sid){tog('',`det-${sid}`,`arr-${sid}`);}
+
+// Photo upload
+function openPhotoUpload(nombre,sid){
+  photoTargetHorse={nombre,sid};
+  document.getElementById('photo-input').click();
 }
-async function deleteHorse(nombre,sid){
-  if(!confirm('¿Eliminar '+nombre+'?'))return;
+document.getElementById('photo-input').addEventListener('change',function(){
+  if(!photoTargetHorse)return;
+  const {nombre,sid}=photoTargetHorse;
+  const files=Array.from(this.files);
+  if(!extraPhotos[nombre])extraPhotos[nombre]=[];
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      extraPhotos[nombre].push(e.target.result);
+      // Update extra imgs display
+      const extDiv=document.querySelector(`#det-${sid} .extra-imgs`);
+      const horseImgs=document.querySelector(`#det-${sid} .horse-imgs`);
+      const newImg=document.createElement('img');
+      newImg.src=e.target.result;
+      if(extDiv){extDiv.appendChild(newImg);}
+      else{
+        const div=document.createElement('div');
+        div.className='extra-imgs';
+        div.appendChild(newImg);
+        const btn=horseImgs.querySelector('.add-photo-btn');
+        horseImgs.insertBefore(div,btn);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  this.value='';
+  toast('Foto agregada');
+});
+
+// Deactivate horse
+async function deactivateHorse(nombre,sid){
+  if(!confirm('¿Desactivar '+nombre+'? No aparecerá en Resumen pero se conservan todos sus datos.'))return;
   const info=allHorses.find(h=>h.nombre===nombre);
-  if(info){try{await sbFetch('caballos?id=eq.'+info.id,{method:'DELETE',headers:{'Prefer':''}});}catch(e){}}
-  allHorses=allHorses.filter(h=>h.nombre!==nombre);
+  if(info){
+    try{await sbFetch('caballos?id=eq.'+info.id,{method:'PATCH',body:JSON.stringify({activo:false})});}
+    catch(e){toast('Error al desactivar','err');return;}
+    info.activo=false;
+  }
   const el=document.getElementById('det-'+sid);
   if(el)el.closest('.horse-list-item').remove();
-  toast(nombre+' eliminado');
+  toast(nombre+' desactivado — aparece en pestaña Caballos');
 }
+
+// Caballos tab
 function renderCaballos(){
-  const horses=sortedHorses();
-  document.getElementById('horses-grid').innerHTML=horses.map(nombre=>{
-    const info=allHorses.find(h=>h.nombre===nombre);
-    const total=allEntries.filter(e=>e.horse===nombre).reduce((s,e)=>s+Number(e.amount),0);
-    const cnt=allEntries.filter(e=>e.horse===nombre).length;
-    const edad=info?calcAge(info.fecha_nacimiento):'—';
-    const dob=info&&info.fecha_nacimiento?new Date(info.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
-    const geo=GEO[nombre]||{};
-    const numero=(info&&info.numero)||(geo.numero||'—');
-    return `<div class="horse-card-full">
-      <div><div class="horse-name">${nombre}</div>
-      <div class="horse-meta"><span>📋 ${numero}</span><span>🎂 ${dob}</span><span>⏱ ${edad}</span></div></div>
+  const all=[...allHorses].sort((a,b)=>{
+    const da=a.fecha_nacimiento?new Date(a.fecha_nacimiento):new Date();
+    const db=b.fecha_nacimiento?new Date(b.fecha_nacimiento):new Date();
+    return da-db;
+  });
+  document.getElementById('horses-grid').innerHTML=all.map(h=>{
+    const total=allEntries.filter(e=>e.horse===h.nombre).reduce((s,e)=>s+Number(e.amount),0);
+    const cnt=allEntries.filter(e=>e.horse===h.nombre).length;
+    const edad=calcAge(h.fecha_nacimiento);
+    const dob=h.fecha_nacimiento?new Date(h.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
+    const geo=GEO[h.nombre]||{};
+    const numero=h.numero||(geo.numero||'—');
+    const inactive=h.activo===false;
+    return `<div class="horse-card-full${inactive?' inactive':''}">
+      <div>
+        <div class="horse-name">${h.nombre}${inactive?'<span class="badge-inactive">inactivo</span>':''}</div>
+        <div class="horse-meta"><span>📋 ${numero}</span><span>🎂 ${dob}</span><span>⏱ ${edad}</span></div>
+        ${inactive?`<button style="margin-top:6px;font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer" onclick="reactivateHorse('${h.nombre.replace(/'/g,"\\'")}',${h.id})">Reactivar</button>`:''}
+      </div>
       <div><div class="horse-total">${clp(total)}</div><div class="horse-cnt">${cnt} registros</div></div>
     </div>`;
   }).join('');
 }
-async function addEntry(){
-  const horse=document.getElementById('inp-horse').value,year=+document.getElementById('inp-year').value;
-  const month=+document.getElementById('inp-month').value,cat=document.getElementById('inp-cat').value;
-  const amount=+document.getElementById('inp-amount').value,note=document.getElementById('inp-note').value.trim();
-  if(!horse||!year||!month||!cat||!amount){toast('Completa todos los campos','err');return;}
-  const btn=document.getElementById('save-btn');
-  btn.innerHTML='<span class="spinner"></span> Guardando...';btn.disabled=true;
+
+async function reactivateHorse(nombre,id){
   try{
-    const res=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount,note})});
-    allEntries=[...res,...allEntries];
-    document.getElementById('inp-amount').value='';document.getElementById('inp-note').value='';
-    renderExpTable();toast('✓ Registro guardado');
-  }catch(e){toast('Error: '+e.message,'err');}
-  btn.innerHTML='Guardar registro';btn.disabled=false;
+    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({activo:true})});
+    const h=allHorses.find(h=>h.id===id);
+    if(h)h.activo=true;
+    renderCaballos();
+    toast(nombre+' reactivado');
+  }catch(e){toast('Error','err');}
 }
+
 async function addHorse(){
   const nombre=document.getElementById('new-horse-name').value.trim().toUpperCase();
   const numero=document.getElementById('new-horse-num').value.trim();
   const dob=document.getElementById('new-horse-dob').value;
   if(!nombre){toast('Ingresa el nombre','err');return;}
   try{
-    const res=await sbFetch('caballos',{method:'POST',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null})});
+    const res=await sbFetch('caballos',{method:'POST',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,activo:true})});
     allHorses=[...allHorses,...res];
     ['new-horse-name','new-horse-num','new-horse-dob','new-horse-padre','new-horse-madre'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    populateSelects();renderCaballos();toast('Caballo agregado');
+    renderCaballos();toast('Caballo agregado');
   }catch(e){toast('Error: '+e.message,'err');}
 }
+
 function showTab(name){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach((btn,i)=>{btn.classList.toggle('active',['resumen','ingresar','caballos'][i]===name);});
   document.getElementById('tab-'+name).classList.add('active');
-  if(name==='resumen'){populateSelects();renderResumen();}
-  if(name==='ingresar'){populateSelects();renderExpTable();}
+  if(name==='resumen')renderResumen();
+  if(name==='ingresar')renderExpBlocks();
   if(name==='caballos')renderCaballos();
 }
-document.getElementById('inp-month').value=new Date().getMonth()+1;
 loadAll();
 </script></body></html>
