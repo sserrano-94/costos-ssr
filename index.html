@@ -23,7 +23,7 @@
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 10; }
   .logo { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
-  .logo-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.5px; }
+  .logo-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
   .conn-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-soft); }
   .conn-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; transition: background .3s; }
   .conn-dot.ok { background: var(--green); }
@@ -32,13 +32,44 @@
   .nav-tab { padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text-soft); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; white-space: nowrap; }
   .nav-tab:hover { color: var(--text); }
   .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  main { max-width: 960px; margin: 0 auto; padding: 28px 20px 60px; }
+  main { max-width: 1000px; margin: 0 auto; padding: 28px 20px 60px; }
   .section { display: none; }
   .section.active { display: block; }
-  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
-  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
-  .metric-label { font-size: 11px; font-weight: 500; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-  .metric-value { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
+  .section-header { margin-bottom: 20px; }
+  .section-header h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 2px; }
+  .section-header p { font-size: 13px; color: var(--text-soft); }
+
+  /* FICHAS CABALLOS */
+  .horses-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .horse-card-mini { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+  .hcm-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .hcm-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-soft); margin-bottom: 3px; }
+  .hcm-row span:last-child { font-weight: 500; color: var(--text); }
+  .hcm-age { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--accent); }
+
+  /* AÑOS COLAPSABLES */
+  .year-block { margin-bottom: 12px; }
+  .year-header { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; cursor: pointer; box-shadow: var(--shadow); user-select: none; transition: background .15s; }
+  .year-header:hover { background: var(--accent-light); }
+  .year-header.open { border-radius: var(--radius) var(--radius) 0 0; border-bottom-color: transparent; }
+  .year-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .year-total { font-size: 15px; font-weight: 600; color: var(--accent); }
+  .year-arrow { font-size: 12px; color: var(--text-soft); transition: transform .2s; }
+  .year-arrow.open { transform: rotate(180deg); }
+  .year-body { display: none; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); overflow-x: auto; }
+  .year-body.open { display: block; }
+  .year-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .year-table th { font-size: 11px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.3px; padding: 8px 10px; border-bottom: 1px solid var(--border); background: #fafaf8; white-space: nowrap; text-align: right; }
+  .year-table th:first-child { text-align: left; }
+  .year-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: right; font-variant-numeric: tabular-nums; }
+  .year-table td:first-child { text-align: left; font-weight: 500; color: var(--text-soft); white-space: nowrap; }
+  .year-table tr:last-child td { border-bottom: none; font-weight: 700; background: #f7f6f3; }
+  .year-table tr:hover:not(:last-child) td { background: var(--accent-light); }
+  .cell-val { color: var(--text); }
+  .cell-empty { color: #ccc; }
+  .cell-total-row { color: var(--accent); }
+
+  /* OTROS */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
   .card-title { font-size: 13px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
   .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: flex-end; }
@@ -53,9 +84,8 @@
   .btn { height: 36px; padding: 0 18px; font-size: 13px; font-weight: 500; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; transition: background .15s; display: inline-flex; align-items: center; gap: 6px; }
   .btn:hover { background: var(--bg); }
   .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .btn-primary:hover { background: #234e8a; border-color: #234e8a; }
+  .btn-primary:hover { background: #234e8a; }
   .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-  .btn-sm { height: 30px; padding: 0 12px; font-size: 12px; }
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { font-size: 11px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.4px; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -65,24 +95,20 @@
   .td-right { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
   .td-soft { color: var(--text-soft); font-size: 12px; }
   .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px; background: var(--accent-light); color: var(--accent); white-space: nowrap; }
-  .badge-green { background: #e6f4ed; color: var(--green); }
-  .del-btn { background: none; border: none; cursor: pointer; color: #ccc; font-size: 17px; padding: 2px 6px; border-radius: 4px; transition: color .15s, background .15s; }
+  .del-btn { background: none; border: none; cursor: pointer; color: #ccc; font-size: 17px; padding: 2px 6px; border-radius: 4px; transition: color .15s; }
   .del-btn:hover { color: var(--red); background: #fdecea; }
-  .chart-wrap { position:relative; height: 240px; }
   .empty { text-align: center; padding: 40px 20px; color: var(--text-soft); font-size: 13px; }
   #toast { position: fixed; bottom: 24px; right: 24px; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
   #toast.ok { background: var(--green); color: #fff; }
   #toast.err { background: var(--red); color: #fff; }
   .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .section-header { margin-bottom: 20px; }
-  .section-header h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 2px; }
-  .section-header p { font-size: 13px; color: var(--text-soft); }
-  .horse-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: var(--shadow); }
-  .horse-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
-  .horse-meta { font-size: 12px; color: var(--text-soft); display: flex; gap: 12px; flex-wrap: wrap; }
-  .horse-total { font-size: 14px; font-weight: 600; color: var(--accent); white-space: nowrap; }
   .horses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .horse-card-full { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: var(--shadow); }
+  .horse-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .horse-meta { font-size: 12px; color: var(--text-soft); display: flex; flex-direction: column; gap: 3px; }
+  .horse-total { font-size: 15px; font-weight: 600; color: var(--accent); white-space: nowrap; text-align: right; }
+  .horse-cnt { font-size: 11px; color: var(--text-soft); text-align: right; margin-top: 2px; }
   @media (max-width: 600px) {
     header { padding: 0 14px; }
     main { padding: 16px 12px 60px; }
@@ -94,10 +120,7 @@
 <body>
 
 <header>
-  <div class="logo">
-    <span class="logo-badge">SSR</span>
-    Costos Caballos
-  </div>
+  <div class="logo"><span class="logo-badge">SSR</span>Costos Caballos</div>
   <div class="conn-status">
     <div class="conn-dot" id="conn-dot"></div>
     <span id="conn-label">Conectando...</span>
@@ -115,20 +138,13 @@
 
   <!-- RESUMEN -->
   <div class="section active" id="tab-resumen">
-    <div class="section-header"><h2>Resumen</h2><p>Totales y gráficos por año y caballo</p></div>
-    <div class="filters">
-      <div class="filter-group"><label>Año</label><select id="f-year" onchange="renderResumen()"></select></div>
-      <div class="filter-group"><label>Caballo</label><select id="f-horse" onchange="renderResumen()"><option value="">Todos</option></select></div>
-    </div>
-    <div class="metrics" id="metrics"><div class="metric"><div class="metric-label">Cargando</div><div class="metric-value">—</div></div></div>
-    <div class="card">
-      <div class="card-title">Gasto mensual</div>
-      <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Gasto por caballo</div>
-      <div class="chart-wrap" id="chart-horses-wrap"><canvas id="chart-horses"></canvas></div>
-    </div>
+    <div class="section-header"><h2>Resumen</h2><p>Fichas de caballos y gastos por año</p></div>
+
+    <!-- Fichas caballos -->
+    <div class="horses-cards" id="horses-cards"></div>
+
+    <!-- Bloques por año -->
+    <div id="year-blocks"></div>
   </div>
 
   <!-- INGRESAR -->
@@ -180,47 +196,44 @@
 
   <!-- CABALLOS -->
   <div class="section" id="tab-caballos">
-    <div class="section-header"><h2>Caballos</h2><p>Ficha y gastos por caballo</p></div>
+    <div class="section-header"><h2>Caballos</h2><p>Ficha y gastos totales</p></div>
     <div class="horses-grid" id="horses-grid"></div>
     <div class="card">
       <div class="card-title">Agregar caballo</div>
       <div class="form-grid">
         <div class="form-field"><label>Nombre</label><input type="text" id="new-horse-name" placeholder="NOMBRE"></div>
+        <div class="form-field"><label>Número</label><input type="text" id="new-horse-num" placeholder="Ej: 316204"></div>
         <div class="form-field"><label>Fecha nacimiento</label><input type="date" id="new-horse-dob"></div>
         <div class="form-field"><label>Raza</label><input type="text" id="new-horse-raza" placeholder="Opcional"></div>
-        <div class="form-field"><label>Color</label><input type="text" id="new-horse-color" placeholder="Opcional"></div>
       </div>
       <button class="btn btn-primary" onclick="addHorse()">Agregar caballo</button>
     </div>
   </div>
 
 </main>
-
 <div id="toast"></div>
 
 <script>
 const SUPABASE_URL = 'https://crucumklrdzapohiupzn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNydWN1bWtscmR6YXBvaGl1cHpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzAwOTEsImV4cCI6MjA5NjYwNjA5MX0.ad4O-GlnIhT1bTWQRAOk0ToognUagkRpl_u-WGDaYP4';
 const MONTHS = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const COLORS = ['#2b5fa6','#1a7a4a','#c0392b','#7b5ea7','#c87941','#2980b9','#16a085','#8e44ad','#d35400'];
 
-let allEntries = [];
-let allHorses = [];
+let allEntries = [], allHorses = [];
 
-function clp(n) { return '$' + Math.round(n).toLocaleString('es-CL'); }
+function clp(n) { return n ? '$' + Math.round(n).toLocaleString('es-CL') : ''; }
 
 function calcAge(dob) {
   if (!dob) return '—';
-  const birth = new Date(dob);
+  const birth = new Date(dob + 'T12:00:00');
   const now = new Date();
-  let years = now.getFullYear() - birth.getFullYear();
-  let months = now.getMonth() - birth.getMonth();
-  let days = now.getDate() - birth.getDate();
-  if (days < 0) { months--; days += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
-  if (months < 0) { years--; months += 12; }
-  if (years > 0) return `${years} años ${months} meses`;
-  if (months > 0) return `${months} meses ${days} días`;
-  return `${days} días`;
+  let y = now.getFullYear() - birth.getFullYear();
+  let m = now.getMonth() - birth.getMonth();
+  let d = now.getDate() - birth.getDate();
+  if (d < 0) { m--; d += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+  if (m < 0) { y--; m += 12; }
+  if (y > 0) return `${y} años ${m} meses`;
+  if (m > 0) return `${m} meses ${d} días`;
+  return `${d} días`;
 }
 
 async function sbFetch(path, opts = {}) {
@@ -261,26 +274,24 @@ async function loadAll() {
 function getHorseNames() {
   const fromDb = allHorses.map(h => h.nombre);
   const fromEntries = [...new Set(allEntries.map(e => e.horse))];
-  const all = [...new Set([...fromDb, ...fromEntries])].sort();
-  return all;
+  return [...new Set([...fromDb, ...fromEntries])].sort();
 }
 
 function getYears() {
   const ys = new Set(allEntries.map(e => e.year));
-  ys.add(2025); ys.add(2026);
   return [...ys].sort((a, b) => b - a);
 }
 
 function populateSelects() {
   const years = getYears();
   const horses = getHorseNames();
-  ['f-year', 'h-year'].forEach(id => {
+  ['h-year'].forEach(id => {
     const el = document.getElementById(id);
     const cur = el.value;
     el.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
     if (cur && years.includes(+cur)) el.value = cur;
   });
-  ['f-horse', 'h-horse', 'inp-horse'].forEach(id => {
+  ['h-horse', 'inp-horse'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     const cur = el.value;
@@ -291,54 +302,98 @@ function populateSelects() {
   document.getElementById('h-cat').innerHTML = '<option value="">Todas</option>' + cats.map(c => `<option>${c}</option>`).join('');
 }
 
-function getFiltered(year, horse, cat) {
-  return allEntries.filter(e => {
-    if (year && e.year != year) return false;
-    if (horse && e.horse != horse) return false;
-    if (cat && e.cat != cat) return false;
-    return true;
-  });
+function renderResumen() {
+  const horses = getHorseNames();
+  const years = getYears();
+
+  // FICHAS CABALLOS
+  document.getElementById('horses-cards').innerHTML = horses.map(nombre => {
+    const info = allHorses.find(h => h.nombre === nombre);
+    const dob = info && info.fecha_nacimiento ? new Date(info.fecha_nacimiento + 'T12:00:00').toLocaleDateString('es-CL') : '—';
+    const edad = info ? calcAge(info.fecha_nacimiento) : '—';
+    const numero = info && info.numero ? info.numero : '—';
+    return `<div class="horse-card-mini">
+      <div class="hcm-name">${nombre}</div>
+      <div class="hcm-row"><span>Número</span><span>${numero}</span></div>
+      <div class="hcm-row"><span>Nacimiento</span><span>${dob}</span></div>
+      <div class="hcm-age">⏱ ${edad}</div>
+    </div>`;
+  }).join('');
+
+  // BLOQUES POR AÑO
+  const container = document.getElementById('year-blocks');
+  container.innerHTML = years.map(year => {
+    const yearEntries = allEntries.filter(e => e.year === year);
+    const yearTotal = yearEntries.reduce((s, e) => s + Number(e.amount), 0);
+    const activeHorses = horses.filter(h => yearEntries.some(e => e.horse === h));
+
+    // Tabla: filas = meses, columnas = caballos
+    const rows = MONTHS.slice(1).map((mesNombre, mi) => {
+      const month = mi + 1;
+      const cells = activeHorses.map(h => {
+        const val = yearEntries.filter(e => e.horse === h && e.month === month).reduce((s, e) => s + Number(e.amount), 0);
+        return val;
+      });
+      const rowTotal = cells.reduce((s, v) => s + v, 0);
+      return { mesNombre, cells, rowTotal };
+    }).filter(r => r.rowTotal > 0);
+
+    // Fila total por caballo
+    const horseTotals = activeHorses.map(h => yearEntries.filter(e => e.horse === h).reduce((s, e) => s + Number(e.amount), 0));
+
+    const tableHTML = `<table class="year-table">
+      <thead><tr>
+        <th>Mes</th>
+        ${activeHorses.map(h => `<th>${h}</th>`).join('')}
+        <th>Total</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r => `<tr>
+          <td>${r.mesNombre}</td>
+          ${r.cells.map(v => `<td>${v ? '<span class="cell-val">'+clp(v)+'</span>' : '<span class="cell-empty">—</span>'}</td>`).join('')}
+          <td><strong>${clp(r.rowTotal)}</strong></td>
+        </tr>`).join('')}
+        <tr>
+          <td>TOTAL</td>
+          ${horseTotals.map(v => `<td class="cell-total-row">${clp(v)}</td>`).join('')}
+          <td class="cell-total-row">${clp(yearTotal)}</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+    return `<div class="year-block">
+      <div class="year-header" onclick="toggleYear(this)" id="yh-${year}">
+        <span class="year-title">📅 ${year}</span>
+        <span style="display:flex;align-items:center;gap:12px">
+          <span class="year-total">${clp(yearTotal)}</span>
+          <span class="year-arrow">▼</span>
+        </span>
+      </div>
+      <div class="year-body" id="yb-${year}">${tableHTML}</div>
+    </div>`;
+  }).join('');
 }
 
-let chartMonthly = null, chartHorses = null;
-
-function renderResumen() {
-  const year = +document.getElementById('f-year').value;
-  const horse = document.getElementById('f-horse').value;
-  const entries = getFiltered(year, horse, '');
-  const total = entries.reduce((s, e) => s + Number(e.amount), 0);
-  const activeMonths = new Set(entries.map(e => e.month)).size;
-  const activeHorses = new Set(entries.map(e => e.horse)).size;
-  const monthTotals = Array.from({ length: 12 }, (_, i) => entries.filter(e => e.month === i + 1).reduce((s, e) => s + Number(e.amount), 0));
-  const maxM = Math.max(...monthTotals, 0);
-  document.getElementById('metrics').innerHTML = `
-    <div class="metric"><div class="metric-label">Total año ${year}</div><div class="metric-value">${clp(total)}</div></div>
-    <div class="metric"><div class="metric-label">Promedio mensual</div><div class="metric-value">${activeMonths ? clp(total / activeMonths) : clp(0)}</div></div>
-    <div class="metric"><div class="metric-label">Mes más alto</div><div class="metric-value">${clp(maxM)}</div></div>
-    <div class="metric"><div class="metric-label">Caballos activos</div><div class="metric-value">${activeHorses}</div></div>
-  `;
-  if (chartMonthly) chartMonthly.destroy();
-  chartMonthly = new Chart(document.getElementById('chart-monthly'), {
-    type: 'bar',
-    data: { labels: MONTHS.slice(1), datasets: [{ label: 'Gasto', data: monthTotals, backgroundColor: '#2b5fa6', borderRadius: 5 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => '$' + Math.round(v / 1000) + 'k' }, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 } }, grid: { display: false } } } }
-  });
-  const horses = getHorseNames();
-  const horsePairs = horses.map(h => ({ h, v: getFiltered(year, h, '').reduce((s, e) => s + Number(e.amount), 0) })).filter(p => p.v > 0);
-  if (chartHorses) chartHorses.destroy();
-  document.getElementById('chart-horses-wrap').style.height = Math.max(160, horsePairs.length * 46 + 40) + 'px';
-  chartHorses = new Chart(document.getElementById('chart-horses'), {
-    type: 'bar',
-    data: { labels: horsePairs.map(p => p.h), datasets: [{ label: 'Gasto', data: horsePairs.map(p => p.v), backgroundColor: COLORS.slice(0, horsePairs.length), borderRadius: 5 }] },
-    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: v => '$' + Math.round(v / 1000) + 'k' }, grid: { color: 'rgba(0,0,0,0.05)' } }, y: { ticks: { font: { size: 12 } }, grid: { display: false } } } }
-  });
+function toggleYear(header) {
+  const yearId = header.id.replace('yh-', '');
+  const body = document.getElementById('yb-' + yearId);
+  const arrow = header.querySelector('.year-arrow');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  header.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
 }
 
 function renderHistorial() {
   const year = document.getElementById('h-year').value;
   const horse = document.getElementById('h-horse').value;
   const cat = document.getElementById('h-cat').value;
-  const entries = getFiltered(year ? +year : '', horse, cat);
+  const entries = allEntries.filter(e => {
+    if (year && e.year != year) return false;
+    if (horse && e.horse != horse) return false;
+    if (cat && e.cat != cat) return false;
+    return true;
+  });
   const tbody = document.getElementById('hist-body');
   if (!entries.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty">No hay registros</td></tr>`; return; }
   tbody.innerHTML = entries.map(e => `<tr>
@@ -351,26 +406,26 @@ function renderHistorial() {
 }
 
 function renderCaballos() {
-  const grid = document.getElementById('horses-grid');
   const horses = getHorseNames();
-  grid.innerHTML = horses.map(nombre => {
+  document.getElementById('horses-grid').innerHTML = horses.map(nombre => {
     const info = allHorses.find(h => h.nombre === nombre);
     const total = allEntries.filter(e => e.horse === nombre).reduce((s, e) => s + Number(e.amount), 0);
     const cnt = allEntries.filter(e => e.horse === nombre).length;
     const edad = info ? calcAge(info.fecha_nacimiento) : '—';
-    const dob = info && info.fecha_nacimiento ? new Date(info.fecha_nacimiento).toLocaleDateString('es-CL') : '—';
-    return `<div class="horse-card">
+    const dob = info && info.fecha_nacimiento ? new Date(info.fecha_nacimiento + 'T12:00:00').toLocaleDateString('es-CL') : '—';
+    const numero = info && info.numero ? info.numero : '—';
+    return `<div class="horse-card-full">
       <div>
         <div class="horse-name">${nombre}</div>
         <div class="horse-meta">
+          <span>📋 ${numero}</span>
           <span>🎂 ${dob}</span>
           <span>⏱ ${edad}</span>
-          <span>📋 ${cnt} registros</span>
         </div>
       </div>
-      <div style="text-align:right">
+      <div>
         <div class="horse-total">${clp(total)}</div>
-        <div style="font-size:11px;color:var(--text-soft);margin-top:2px">total gastado</div>
+        <div class="horse-cnt">${cnt} registros</div>
       </div>
     </div>`;
   }).join('');
@@ -409,17 +464,17 @@ async function deleteEntry(id) {
 
 async function addHorse() {
   const nombre = document.getElementById('new-horse-name').value.trim().toUpperCase();
+  const numero = document.getElementById('new-horse-num').value.trim();
   const dob = document.getElementById('new-horse-dob').value;
   const raza = document.getElementById('new-horse-raza').value.trim();
-  const color = document.getElementById('new-horse-color').value.trim();
   if (!nombre) { toast('Ingresa el nombre del caballo', 'err'); return; }
   try {
-    const res = await sbFetch('caballos', { method: 'POST', body: JSON.stringify({ nombre, fecha_nacimiento: dob || null, raza, color }) });
+    const res = await sbFetch('caballos', { method: 'POST', body: JSON.stringify({ nombre, numero, fecha_nacimiento: dob || null, raza }) });
     allHorses = [...allHorses, ...res];
     document.getElementById('new-horse-name').value = '';
+    document.getElementById('new-horse-num').value = '';
     document.getElementById('new-horse-dob').value = '';
     document.getElementById('new-horse-raza').value = '';
-    document.getElementById('new-horse-color').value = '';
     populateSelects();
     renderCaballos();
     toast('Caballo agregado');
