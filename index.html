@@ -1045,12 +1045,14 @@ async function addRodeo(){
 async function deleteRodeo(id){
   if(!confirm('¿Eliminar este rodeo y sus costos?'))return;
   try{
+    // Delete costs first, then rodeo
+    await sbFetch('rodeos_costos?rodeo_id=eq.'+id,{method:'DELETE',headers:{'Prefer':''}});
     await sbFetch('rodeos?id=eq.'+id,{method:'DELETE',headers:{'Prefer':''}});
     allRodeos=allRodeos.filter(r=>r.id!==id);
     allRodeosCostos=allRodeosCostos.filter(c=>c.rodeo_id!==id);
     renderRodeos();
     toast('Rodeo eliminado');
-  }catch(e){toast('Error','err');}
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 async function saveRodeoCosto(rodeoId, cat, inputId, noteId){
