@@ -1046,8 +1046,8 @@ async function deleteRodeo(id){
   if(!confirm('¿Eliminar este rodeo y sus costos?'))return;
   try{
     // Delete costs first, then rodeo
-    await sbFetch('rodeos_costos?rodeo_id=eq.'+id,{method:'DELETE',headers:{'Prefer':''}});
-    await sbFetch('rodeos?id=eq.'+id,{method:'DELETE',headers:{'Prefer':''}});
+    await sbFetch('rodeos_costos?rodeo_id=eq.'+id,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    await sbFetch('rodeos?id=eq.'+id,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
     allRodeos=allRodeos.filter(r=>r.id!==id);
     allRodeosCostos=allRodeosCostos.filter(c=>c.rodeo_id!==id);
     renderRodeos();
@@ -1093,7 +1093,7 @@ async function saveRodeoCosto(rodeoId, cat, inputId, noteId){
 async function deleteRodeoCosto(id,rodeoId){
   if(!confirm('¿Eliminar?'))return;
   try{
-    await sbFetch('rodeos_costos?id=eq.'+id,{method:'DELETE',headers:{'Prefer':''}});
+    await sbFetch('rodeos_costos?id=eq.'+id,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
     allRodeosCostos=allRodeosCostos.filter(c=>c.id!==id);
     const el=document.getElementById('rc'+id);if(el)el.remove();
     const total=allRodeosCostos.filter(c=>c.rodeo_id===rodeoId).reduce((s,c)=>s+Number(c.monto),0);
