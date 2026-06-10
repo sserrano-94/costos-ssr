@@ -264,8 +264,7 @@ let allEntries=[],allHorses=[];
 const extraPhotos={},newHorsePhotos={};
 let photoTargetHorse=null;
 
-function clp(n){return n?'$'+Math.round(n).toLocaleString('es-CL'):'';}
-function calcAge(dob){
+function clp(n){return n?'$'+Math.round(n).toLocaleString('es-CL'):'';}function calcAge(dob){
   if(!dob)return'—';
   const b=new Date(dob+'T12:00:00'),now=new Date();
   let y=now.getFullYear()-b.getFullYear(),m=now.getMonth()-b.getMonth(),d=now.getDate()-b.getDate();
