@@ -357,7 +357,7 @@ async function loadAll(){
       sbFetch('caballos?select=*&order=nombre.asc')
     ]);
     dot.className='conn-dot ok';
-    lbl.textContent='Conectado · '+allEntries.length+' registros';
+    lbl.textContent='Conectado';
   }catch(e){dot.className='conn-dot err';lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
   renderResumen();renderExpBlocks();
 }
@@ -693,7 +693,7 @@ function renderCaballos(){
         <div class="horse-meta"><span>📋 ${numero}</span><span>🎂 ${dob}</span><span>⏱ ${edad}</span></div>
         ${reactivateBtn}
       </div>
-      <div><div class="horse-total">${clp(total)}</div><div class="horse-cnt">${cnt} registros</div></div>
+      <div><div class="horse-total">${clp(total)}</div></div>
     </div>`;
   }).join('');
 }
