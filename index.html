@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Costos SSR — Caballos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --border: #e2e0db;
+    --text: #1a1917;
+    --text-soft: #6b6860;
+    --accent: #2b5fa6;
+    --accent-light: #e8eef8;
+    --green: #1a7a4a;
+    --red: #c0392b;
+    --radius: 10px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 10; }
+  .logo { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
+  .logo-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.5px; }
+  .conn-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-soft); }
+  .conn-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; transition: background .3s; }
+  .conn-dot.ok { background: var(--green); }
+  .conn-dot.err { background: var(--red); }
+
+  /* NAV TABS */
+  nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 2px; }
+  .nav-tab { padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text-soft); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; white-space: nowrap; }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* MAIN */
+  main { max-width: 960px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* METRICS */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+  .metric-label { font-size: 11px; font-weight: 500; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .metric-value { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
+
+  /* CARD */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+
+  /* FILTERS */
+  .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: flex-end; }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-group label { font-size: 11px; font-weight: 500; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.4px; }
+  select, input[type="text"], input[type="number"] { height: 36px; padding: 0 10px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); outline: none; transition: border-color .15s; }
+  select:focus, input:focus { border-color: var(--accent); }
+
+  /* FORM GRID */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .form-field { display: flex; flex-direction: column; gap: 5px; }
+  .form-field label { font-size: 12px; font-weight: 500; color: var(--text-soft); }
+  .form-field input, .form-field select { width: 100%; }
+
+  /* BUTTONS */
+  .btn { height: 36px; padding: 0 18px; font-size: 13px; font-weight: 500; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; transition: background .15s, border-color .15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #234e8a; border-color: #234e8a; }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { font-size: 11px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.4px; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg); }
+  .td-right { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .td-soft { color: var(--text-soft); font-size: 12px; }
+
+  /* BADGE */
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px; background: var(--accent-light); color: var(--accent); white-space: nowrap; }
+
+  /* DEL BTN */
+  .del-btn { background: none; border: none; cursor: pointer; color: #ccc; font-size: 17px; padding: 2px 6px; border-radius: 4px; line-height: 1; transition: color .15s, background .15s; }
+  .del-btn:hover { color: var(--red); background: #fdecea; }
+
+  /* CHART */
+  .chart-wrap { position: relative; height: 240px; }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-soft); font-size: 13px; }
+
+  /* TOAST */
+  #toast { position: fixed; bottom: 24px; right: 24px; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  #toast.ok { background: var(--green); color: #fff; }
+  #toast.err { background: var(--red); color: #fff; }
+
+  /* SPINNER */
+  .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SECTION TITLE */
+  .section-header { margin-bottom: 20px; }
+  .section-header h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 2px; }
+  .section-header p { font-size: 13px; color: var(--text-soft); }
+
+  @media (max-width: 600px) {
+    header { padding: 0 14px; }
+    main { padding: 16px 12px 60px; }
+    nav { padding: 0 8px; overflow-x: auto; }
+    .nav-tab { padding: 12px 10px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-badge">SSR</span>
+    Costos Caballos
+  </div>
+  <div class="conn-status">
+    <div class="conn-dot" id="conn-dot"></div>
+    <span id="conn-label">Conectando...</span>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-tab active" onclick="showTab('resumen')">Resumen</button>
+  <button class="nav-tab" onclick="showTab('ingresar')">Ingresar costo</button>
+  <button class="nav-tab" onclick="showTab('historial')">Historial</button>
+  <button class="nav-tab" onclick="showTab('caballos')">Caballos</button>
+</nav>
+
+<main>
+
+  <!-- RESUMEN -->
+  <div class="section active" id="tab-resumen">
+    <div class="section-header">
+      <h2>Resumen</h2>
+      <p>Totales y gráficos por año y caballo</p>
+    </div>
+    <div class="filters">
+      <div class="filter-group"><label>Año</label><select id="f-year" onchange="renderResumen()"></select></div>
+      <div class="filter-group"><label>Caballo</label><select id="f-horse" onchange="renderResumen()"><option value="">Todos</option></select></div>
+    </div>
+    <div class="metrics" id="metrics">
+      <div class="metric"><div class="metric-label">Total</div><div class="metric-value">—</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Gasto mensual</div>
+      <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Gasto por caballo</div>
+      <div class="chart-wrap" id="chart-horses-wrap"><canvas id="chart-horses"></canvas></div>
+    </div>
+  </div>
+
+  <!-- INGRESAR -->
+  <div class="section" id="tab-ingresar">
+    <div class="section-header">
+      <h2>Ingresar costo</h2>
+      <p>Registra un nuevo gasto</p>
+    </div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="form-field"><label>Caballo</label><select id="inp-horse"></select></div>
+        <div class="form-field"><label>Año</label><input type="number" id="inp-year" min="2020" max="2040" value="2026"></div>
+        <div class="form-field"><label>Mes</label>
+          <select id="inp-month">
+            <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+            <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+            <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Categoría</label>
+          <select id="inp-cat">
+            <option>Trabajo + Pesebrera</option><option>Fardos</option><option>Alimento</option>
+            <option>Vitaminas / Antiparasitario / Hormonas</option><option>Herraje</option>
+            <option>Veterinario</option><option>Flete</option><option>Inscripción</option><option>Otros</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Monto (CLP)</label><input type="number" id="inp-amount" placeholder="0" min="0"></div>
+        <div class="form-field"><label>Nota (opcional)</label><input type="text" id="inp-note" placeholder="Descripción breve"></div>
+      </div>
+      <button class="btn btn-primary" id="save-btn" onclick="addEntry()">Guardar registro</button>
+    </div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="section" id="tab-historial">
+    <div class="section-header">
+      <h2>Historial</h2>
+      <p>Todos los registros</p>
+    </div>
+    <div class="filters">
+      <div class="filter-group"><label>Año</label><select id="h-year" onchange="renderHistorial()"></select></div>
+      <div class="filter-group"><label>Caballo</label><select id="h-horse" onchange="renderHistorial()"><option value="">Todos</option></select></div>
+      <div class="filter-group"><label>Categoría</label><select id="h-cat" onchange="renderHistorial()"><option value="">Todas</option></select></div>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Año</th><th>Mes</th><th>Caballo</th><th>Categoría</th><th>Monto</th><th>Nota</th><th></th></tr></thead>
+          <tbody id="hist-body"><tr><td colspan="7" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CABALLOS -->
+  <div class="section" id="tab-caballos">
+    <div class="section-header">
+      <h2>Caballos</h2>
+      <p>Gestiona el listado</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Agregar caballo</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="form-field"><label>Nombre</label><input type="text" id="new-horse" placeholder="Nombre" style="width:200px"></div>
+        <button class="btn btn-primary" onclick="addHorse()">Agregar</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Caballo</th><th>Registros</th><th>Total gastado</th><th></th></tr></thead>
+          <tbody id="horses-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://crucumklrdzapohiupzn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNydWN1bWtscmR6YXBvaGl1cHpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzAwOTEsImV4cCI6MjA5NjYwNjA5MX0.ad4O-GlnIhT1bTWQRAOk0ToognUagkRpl_u-WGDaYP4';
+
+const MONTHS = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const COLORS = ['#2b5fa6','#1a7a4a','#c0392b','#7b5ea7','#c87941','#2980b9','#16a085','#8e44ad','#d35400'];
+
+let allEntries = [];
+let horses = ['SUREÑO','MITI MOTA','RECINTO','ON CHIRIPA','ESPUELA','COSCACHITA','COLCHAGUINA','JACINTA'];
+let chartMonthly = null, chartHorses = null;
+let currentTab = 'resumen';
+
+function clp(n) { return '$' + Math.round(n).toLocaleString('es-CL'); }
+
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...(opts.headers || {})
+    },
+    ...opts
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : [];
+}
+
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = type; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+async function loadEntries() {
+  const dot = document.getElementById('conn-dot');
+  const lbl = document.getElementById('conn-label');
+  try {
+    allEntries = await sbFetch('costos?select=*&order=year.desc,month.desc&limit=2000');
+    dot.className = 'conn-dot ok';
+    lbl.textContent = 'Conectado · ' + allEntries.length + ' registros';
+    const dbHorses = [...new Set(allEntries.map(e => e.horse))];
+    dbHorses.forEach(h => { if (!horses.includes(h)) horses.push(h); });
+  } catch (e) {
+    dot.className = 'conn-dot err';
+    lbl.textContent = 'Sin conexión';
+    toast('Error conectando a Supabase: ' + e.message, 'err');
+  }
+  populateSelects();
+  renderResumen();
+}
+
+function getYears() {
+  const ys = new Set(allEntries.map(e => e.year));
+  ys.add(2025); ys.add(2026);
+  return [...ys].sort((a, b) => b - a);
+}
+
+function populateSelects() {
+  const years = getYears();
+  ['f-year', 'h-year'].forEach(id => {
+    const el = document.getElementById(id);
+    const cur = el.value;
+    el.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+    if (cur && years.includes(+cur)) el.value = cur;
+  });
+  ['f-horse', 'h-horse', 'inp-horse'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cur = el.value;
+    el.innerHTML = (id === 'inp-horse' ? '' : '<option value="">Todos</option>') + horses.map(h => `<option>${h}</option>`).join('');
+    if (cur) el.value = cur;
+  });
+  const cats = [...new Set(allEntries.map(e => e.cat))].sort();
+  document.getElementById('h-cat').innerHTML = '<option value="">Todas</option>' + cats.map(c => `<option>${c}</option>`).join('');
+}
+
+function getFiltered(year, horse, cat) {
+  return allEntries.filter(e => {
+    if (year && e.year != year) return false;
+    if (horse && e.horse != horse) return false;
+    if (cat && e.cat != cat) return false;
+    return true;
+  });
+}
+
+function renderResumen() {
+  const year = +document.getElementById('f-year').value;
+  const horse = document.getElementById('f-horse').value;
+  const entries = getFiltered(year, horse, '');
+  const total = entries.reduce((s, e) => s + Number(e.amount), 0);
+  const activeMonths = new Set(entries.map(e => e.month)).size;
+  const activeHorses = new Set(entries.map(e => e.horse)).size;
+  const monthTotals = Array.from({ length: 12 }, (_, i) => entries.filter(e => e.month === i + 1).reduce((s, e) => s + Number(e.amount), 0));
+  const maxM = Math.max(...monthTotals, 0);
+
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">Total año ${year}</div><div class="metric-value">${clp(total)}</div></div>
+    <div class="metric"><div class="metric-label">Promedio mensual</div><div class="metric-value">${activeMonths ? clp(total / activeMonths) : clp(0)}</div></div>
+    <div class="metric"><div class="metric-label">Mes más alto</div><div class="metric-value">${clp(maxM)}</div></div>
+    <div class="metric"><div class="metric-label">Caballos activos</div><div class="metric-value">${activeHorses}</div></div>
+  `;
+
+  if (chartMonthly) chartMonthly.destroy();
+  chartMonthly = new Chart(document.getElementById('chart-monthly'), {
+    type: 'bar',
+    data: { labels: MONTHS.slice(1), datasets: [{ label: 'Gasto', data: monthTotals, backgroundColor: '#2b5fa6', borderRadius: 5 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => '$' + Math.round(v / 1000) + 'k' }, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 } }, grid: { display: false } } } }
+  });
+
+  const horsePairs = horses.map(h => ({ h, v: getFiltered(year, h, '').reduce((s, e) => s + Number(e.amount), 0) })).filter(p => p.v > 0);
+  if (chartHorses) chartHorses.destroy();
+  document.getElementById('chart-horses-wrap').style.height = Math.max(160, horsePairs.length * 46 + 40) + 'px';
+  chartHorses = new Chart(document.getElementById('chart-horses'), {
+    type: 'bar',
+    data: { labels: horsePairs.map(p => p.h), datasets: [{ label: 'Gasto', data: horsePairs.map(p => p.v), backgroundColor: COLORS.slice(0, horsePairs.length), borderRadius: 5 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: v => '$' + Math.round(v / 1000) + 'k' }, grid: { color: 'rgba(0,0,0,0.05)' } }, y: { ticks: { font: { size: 12 } }, grid: { display: false } } } }
+  });
+}
+
+function renderHistorial() {
+  const year = document.getElementById('h-year').value;
+  const horse = document.getElementById('h-horse').value;
+  const cat = document.getElementById('h-cat').value;
+  const entries = getFiltered(year ? +year : '', horse, cat);
+  const tbody = document.getElementById('hist-body');
+  if (!entries.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty">No hay registros con estos filtros</td></tr>`; return; }
+  tbody.innerHTML = entries.map(e => `<tr>
+    <td>${e.year}</td>
+    <td>${MONTHS[e.month]}</td>
+    <td><strong>${e.horse}</strong></td>
+    <td><span class="badge">${e.cat}</span></td>
+    <td class="td-right">${clp(e.amount)}</td>
+    <td class="td-soft">${e.note || '—'}</td>
+    <td><button class="del-btn" onclick="deleteEntry(${e.id})" title="Eliminar">×</button></td>
+  </tr>`).join('');
+}
+
+function renderCaballos() {
+  document.getElementById('horses-body').innerHTML = horses.map(h => {
+    const total = allEntries.filter(e => e.horse === h).reduce((s, e) => s + Number(e.amount), 0);
+    const cnt = allEntries.filter(e => e.horse === h).length;
+    return `<tr>
+      <td><strong>${h}</strong></td>
+      <td class="td-soft">${cnt} registros</td>
+      <td class="td-right">${clp(total)}</td>
+      <td><button class="del-btn" onclick="deleteHorse('${h}')" title="Eliminar">×</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function addEntry() {
+  const horse = document.getElementById('inp-horse').value;
+  const year = +document.getElementById('inp-year').value;
+  const month = +document.getElementById('inp-month').value;
+  const cat = document.getElementById('inp-cat').value;
+  const amount = +document.getElementById('inp-amount').value;
+  const note = document.getElementById('inp-note').value.trim();
+  if (!horse || !year || !month || !cat || !amount) { toast('Completa todos los campos obligatorios', 'err'); return; }
+  const btn = document.getElementById('save-btn');
+  btn.innerHTML = '<span class="spinner"></span> Guardando...'; btn.disabled = true;
+  try {
+    const res = await sbFetch('costos', { method: 'POST', body: JSON.stringify({ horse, year, month, cat, amount, note }) });
+    allEntries = [...res, ...allEntries];
+    document.getElementById('inp-amount').value = '';
+    document.getElementById('inp-note').value = '';
+    populateSelects();
+    toast('✓ Registro guardado');
+  } catch (e) { toast('Error al guardar: ' + e.message, 'err'); }
+  btn.innerHTML = 'Guardar registro'; btn.disabled = false;
+}
+
+async function deleteEntry(id) {
+  if (!confirm('¿Eliminar este registro?')) return;
+  try {
+    await sbFetch('costos?id=eq.' + id, { method: 'DELETE', headers: { 'Prefer': '' } });
+    allEntries = allEntries.filter(e => e.id !== id);
+    renderHistorial();
+    toast('Registro eliminado');
+  } catch (e) { toast('Error al eliminar', 'err'); }
+}
+
+function addHorse() {
+  const name = document.getElementById('new-horse').value.trim().toUpperCase();
+  if (!name) return;
+  if (horses.includes(name)) { toast('El caballo ya existe', 'err'); return; }
+  horses.push(name);
+  document.getElementById('new-horse').value = '';
+  populateSelects();
+  renderCaballos();
+  toast('Caballo agregado');
+}
+
+function deleteHorse(name) {
+  if (!confirm(`¿Eliminar "${name}"? No se borrarán sus registros existentes.`)) return;
+  horses = horses.filter(h => h !== name);
+  populateSelects();
+  renderCaballos();
+}
+
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', ['resumen', 'ingresar', 'historial', 'caballos'][i] === name);
+  });
+  document.getElementById('tab-' + name).classList.add('active');
+  currentTab = name;
+  if (name === 'resumen') { populateSelects(); renderResumen(); }
+  if (name === 'historial') { populateSelects(); renderHistorial(); }
+  if (name === 'caballos') renderCaballos();
+}
+
+// Set current month on load
+document.getElementById('inp-month').value = new Date().getMonth() + 1;
+loadEntries();
+</script>
+</body>
+</html>
