@@ -419,6 +419,22 @@ async function loadAll(){
       sbFetch('costos?select=*&order=year.desc,month.desc&limit=2000'),
       sbFetch('caballos?select=*&order=nombre.asc')
     ]);
+    // Load saved photos
+    try{
+      const savedPhotos=await sbFetch('fotos_caballos?select=*&order=created_at.asc');
+      savedPhotos.forEach(p=>{
+        if(!extraPhotos[p.horse])extraPhotos[p.horse]=[];
+        if(!extraPhotos[p.horse].includes(p.url))extraPhotos[p.horse].push(p.url);
+      });
+    }catch(e){}
+    // Load extra photos
+    try{
+      const fotos=await sbFetch('fotos_caballos?select=*&order=created_at.asc');
+      fotos.forEach(f=>{
+        if(!extraPhotos[f.horse])extraPhotos[f.horse]=[];
+        extraPhotos[f.horse].push(f.url);
+      });
+    }catch(e){}
     dot.className='conn-dot ok';
     lbl.textContent='Conectado';
   }catch(e){dot.className='conn-dot err';lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
@@ -754,27 +770,39 @@ function openPhotoUpload(nombre,sid){
   photoTargetHorse={nombre,sid};
   document.getElementById('photo-input').click();
 }
-document.getElementById('photo-input').addEventListener('change',function(){
+document.getElementById('photo-input').addEventListener('change',async function(){
   if(!photoTargetHorse)return;
   const{nombre,sid}=photoTargetHorse;
-  if(!extraPhotos[nombre])extraPhotos[nombre]=[];
-  Array.from(this.files).forEach(file=>{
-    const reader=new FileReader();
-    reader.onload=e=>{
-      extraPhotos[nombre].push(e.target.result);
+  const files=Array.from(this.files);
+  this.value='';
+  for(const file of files){
+    try{
+      toast('Subiendo foto...','ok');
+      const ext=file.name.split('.').pop();
+      const fileName=nombre.replace(/[^a-zA-Z0-9]/g,'_')+'_'+Date.now()+'.'+ext;
+      // Upload to Supabase Storage
+      const res=await fetch(SUPABASE_URL+'/storage/v1/object/fotos-caballos/'+fileName,{
+        method:'POST',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':file.type,'x-upsert':'true'},
+        body:file
+      });
+      if(!res.ok){const e=await res.text();throw new Error(e);}
+      const publicUrl=SUPABASE_URL+'/storage/v1/object/public/fotos-caballos/'+fileName;
+      // Save URL to fotos_caballos table
+      await sbFetch('fotos_caballos',{method:'POST',body:JSON.stringify({horse:nombre,url:publicUrl})});
+      // Add to display
+      if(!extraPhotos[nombre])extraPhotos[nombre]=[];
+      extraPhotos[nombre].push(publicUrl);
       const horseImgs=document.querySelector('#det-'+sid+' .horse-imgs');
       let extDiv=document.querySelector('#det-'+sid+' .extra-imgs');
       const newImg=document.createElement('img');
-      newImg.src=e.target.result;
-      newImg.style.cursor='pointer';
-      newImg.title='Ver en grande';
-      newImg.onclick=()=>setMainPhoto(sid,e.target.result);
+      newImg.src=publicUrl;newImg.style.cursor='pointer';newImg.title='Ver en grande';
+      newImg.onclick=()=>setMainPhoto(sid,publicUrl);
       if(extDiv){extDiv.appendChild(newImg);}
       else{extDiv=document.createElement('div');extDiv.className='extra-imgs';extDiv.appendChild(newImg);const btn=horseImgs.querySelector('.add-photo-btn');horseImgs.insertBefore(extDiv,btn);}
-    };
-    reader.readAsDataURL(file);
-  });
-  this.value='';toast('Foto agregada');
+      toast('✓ Foto guardada');
+    }catch(e){toast('Error al subir foto: '+e.message,'err');}
+  }
 });
 
 document.getElementById('new-horse-photo').addEventListener('change',function(){
