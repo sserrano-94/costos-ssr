@@ -37,11 +37,11 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .section-header h2{font-size:18px;font-weight:600;margin-bottom:2px}
 .section-header p{font-size:13px;color:var(--text-soft)}
 .horse-list{display:flex;flex-direction:column;gap:4px;margin-bottom:24px}
-.horse-list-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
-.horse-list-header{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;user-select:none}
+.horse-list-item{background:var(--surface);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow);overflow:hidden}
+.horse-list-header{display:flex;align-items:center;justify-content:space-between;padding:3px 8px;cursor:pointer;user-select:none}
 .horse-list-header:hover{background:var(--accent-light)}
-.horse-list-name{font-size:13px;font-weight:700}
-.horse-list-age{font-size:12px;color:var(--text-soft)}
+.horse-list-name{font-size:10px;font-weight:700}
+.horse-list-age{font-size:9px;color:var(--text-soft)}
 .horse-list-arrow{font-size:10px;color:var(--text-soft);transition:transform .2s}
 .horse-list-arrow.open{transform:rotate(180deg)}
 .horse-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;padding:4px 10px;border-radius:4px}
@@ -84,43 +84,43 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .exp-y-body.open{display:block}
 .exp-h-block{border-bottom:1px solid var(--border)}
 .exp-h-block:last-child{border-bottom:none}
-.exp-h-hdr{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;cursor:pointer;background:#f0f0ee;user-select:none;border-left:3px solid #1a1917}
+.exp-h-hdr{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;cursor:pointer;background:#f0f0ee;user-select:none;border-left:3px solid #1a1917}
 .exp-h-hdr:hover{background:var(--accent-light)}
-.exp-h-name{font-size:13px;font-weight:600}
-.exp-h-total{font-size:13px;font-weight:600;color:var(--green)}
+.exp-h-name{font-size:12px;font-weight:600}
+.exp-h-total{font-size:12px;font-weight:600;color:var(--green)}
 .exp-h-arrow{font-size:10px;color:var(--text-soft);transition:transform .2s}
 .exp-h-arrow.open{transform:rotate(180deg)}
 .exp-h-body{display:none}
 .exp-h-body.open{display:block}
 .exp-m-block{border-bottom:1px solid var(--border)}
 .exp-m-block:last-child{border-bottom:none}
-.exp-m-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;cursor:pointer;background:#fff;user-select:none}
+.exp-m-hdr{display:flex;align-items:center;justify-content:space-between;padding:4px 20px 4px 24px;cursor:pointer;background:#fff;user-select:none}
 .exp-m-hdr:hover{background:var(--accent-light)}
-.exp-m-name{font-size:12px;font-weight:600;color:var(--text-soft)}
-.exp-m-total{font-size:12px;font-weight:600;color:var(--accent)}
+.exp-m-name{font-size:11px;font-weight:500;color:var(--text-soft)}
+.exp-m-total{font-size:11px;font-weight:500;color:var(--accent)}
 .exp-m-arrow{font-size:9px;color:var(--text-soft);transition:transform .2s}
 .exp-m-arrow.open{transform:rotate(180deg)}
 .exp-m-body{display:none;background:#fafffe}
 .exp-m-body.open{display:block}
-.cat-row{display:flex;align-items:center;padding:6px 24px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
+.cat-row{display:flex;align-items:center;padding:2px 24px;border-bottom:1px solid var(--border);gap:6px;flex-wrap:wrap}
 .cat-row:last-child{border-bottom:none}
-.cat-name{font-size:12px;color:var(--text-soft);flex:1;min-width:160px}
-.cat-val{font-size:13px;font-weight:500;color:var(--text);min-width:90px;text-align:right;cursor:pointer}
+.cat-name{font-size:10px;color:var(--text-soft);flex:1;min-width:120px}
+.cat-val{font-size:10px;font-weight:500;color:var(--text);min-width:60px;text-align:right;cursor:pointer}
 .cat-val:hover{color:var(--accent);text-decoration:underline}
-.cat-val-editing{font-size:12px;border:1px solid var(--accent);border-radius:4px;padding:2px 6px;width:100px;outline:none}
-.cat-note{font-size:11px;color:var(--text-soft);flex:1}
-.cat-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:1px 5px;border-radius:3px}
+.cat-val-editing{font-size:9px;border:1px solid var(--accent);border-radius:3px;padding:1px 4px;width:70px;outline:none}
+.cat-note{font-size:9px;color:var(--text-soft);flex:1}
+.cat-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:11px;padding:1px 3px;border-radius:3px}
 .cat-del:hover{color:var(--red);background:#fdecea}
-.add-cat-section{padding:8px 24px 10px;border-top:1px solid var(--border);background:#f0f4fb}
-.add-cat-title{font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;margin-bottom:6px}
-.cat-add-rows{display:flex;flex-direction:column;gap:4px}
-.cat-add-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:2px 0}
-.cat-add-row .cat-label{font-size:12px;color:var(--text);width:220px;flex-shrink:0}
-.cat-add-row input{height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--text);outline:none}
+.add-cat-section{padding:3px 24px 4px;border-top:1px solid var(--border);background:#f0f4fb}
+.add-cat-title{font-size:8px;font-weight:600;color:var(--text-soft);text-transform:uppercase;margin-bottom:1px}
+.cat-add-rows{display:flex;flex-direction:column;gap:0px}
+.cat-add-row{display:flex;gap:3px;align-items:center;flex-wrap:wrap;padding:0}
+.cat-add-row .cat-label{font-size:10px;color:var(--text);width:160px;flex-shrink:0}
+.cat-add-row input{height:18px;padding:0 4px;font-size:9px;border:1px solid var(--border);border-radius:3px;background:#fff;color:var(--text);outline:none;transform:scaleY(0.6);transform-origin:center}
 .cat-add-row input:focus{border-color:var(--accent)}
-.cat-add-row .amt-in{width:110px}
-.cat-add-row .note-in{width:130px}
-.btn-save-cat{height:28px;padding:0 10px;font-size:11px;font-weight:600;border-radius:5px;border:none;background:var(--accent);color:#fff;cursor:pointer;white-space:nowrap}
+.cat-add-row .amt-in{width:80px}
+.cat-add-row .note-in{width:80px}
+.btn-save-cat{height:11px;padding:0 6px;font-size:9px;font-weight:600;border-radius:3px;border:none;background:var(--accent);color:#fff;cursor:pointer;white-space:nowrap}
 .btn-save-cat:hover{background:#234e8a}
 .readonly-msg{background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:10px 14px;font-size:12px;color:#8a6d00;margin-bottom:16px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
@@ -159,10 +159,12 @@ select:focus,input:focus{border-color:var(--accent)}
     <div style="display:flex;justify-content:center;margin-bottom:16px"><div style="font-size:72px;line-height:1;display:inline-block;border:2px solid #1a1917;border-radius:8px;padding:4px 8px;outline:2px solid #1a1917;outline-offset:4px">🐴</div></div>
     <h2 style="font-family:Georgia,serif;font-size:22px;font-weight:700;letter-spacing:2px;color:#1a1917;margin-bottom:4px">COSTOS SSR</h2>
     <p>Ingresa tus credenciales</p>
-    <div class="login-field"><label>Usuario</label><input type="text" id="login-user" placeholder="Usuario" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <div class="login-err" id="login-err">Usuario o contraseña incorrectos</div>
-    <button class="btn btn-primary" style="width:100%;text-align:center;justify-content:center;letter-spacing:1px;font-size:14px" onclick="doLogin()">ENTRAR</button>
+    <form onsubmit="event.preventDefault();doLogin()" autocomplete="on">
+      <div class="login-field"><label>Usuario</label><input type="text" id="login-user" name="username" placeholder="Usuario" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" name="password" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="login-err" id="login-err">Usuario o contraseña incorrectos</div>
+      <button type="submit" class="btn btn-primary" style="width:100%;text-align:center;justify-content:center;letter-spacing:1px;font-size:14px">ENTRAR</button>
+    </form>
   </div>
 </div>
 
@@ -412,12 +414,12 @@ function renderResumen(){
     const padre=geo.padre||'—',madre=geo.madre||'—';
     const sid=nombre.replace(/[^a-zA-Z0-9]/g,'_');
     const extras=(extraPhotos[nombre]||[]).map(src=>`<img src="${src}">`).join('');
-    const adminBtns=isAdmin?`<button class="horse-del" onclick="event.stopPropagation();deactivateHorse('${nombre.replace(/'/g,"\\'")}','${sid}')" title="Desactivar" style="padding:4px 10px;font-size:18px">×</button><span style="width:24px"></span>`:'';
-    return `<div class="horse-list-item">
+    const delBtn=isAdmin?`<button class="horse-del" onclick="deactivateHorse('${nombre.replace(/'/g,"\\'")}','${sid}')" title="Desactivar" style="padding:2px 6px;font-size:14px;margin-left:6px">×</button>`:'';
+    return `<div style="display:flex;align-items:center;gap:4px">
+    <div class="horse-list-item" style="flex:1">
       <div class="horse-list-header" onclick="tog(null,'det-${sid}','arr-${sid}')">
         <div><div class="horse-list-name">${nombre}</div><div class="horse-list-age">${edad}</div></div>
-        <div style="display:flex;align-items:center;gap:20px">
-          ${adminBtns}
+        <div style="display:flex;align-items:center;gap:6px">
           <span class="horse-list-arrow" id="arr-${sid}">▼</span>
         </div>
       </div>
@@ -434,6 +436,8 @@ function renderResumen(){
           <div class="horse-detail-row">Madre: <span>${madre}</span></div>
         </div>
       </div>
+    </div>
+    ${delBtn}
     </div>`;
   }).join('');
 
