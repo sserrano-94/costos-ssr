@@ -890,12 +890,26 @@ function renderCaballos(){
     const geo=GEO[h.nombre]||{};
     const numero=h.numero||(geo.numero||'—');
     const inactive=h.activo===false;
-    const reactivateBtn=isAdmin&&inactive?`<button style="margin-top:6px;font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer" onclick="reactivateHorse('${h.nombre.replace(/'/g,"\\'")}',${h.id})">Reactivar</button>`:'';
+    const padre=(h.padre)||(geo.padre||'');
+    const madre=(h.madre)||(geo.madre||'');
+    const reactivateBtn=isAdmin&&inactive?`<button style="margin-top:4px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer" onclick="reactivateHorse('${h.nombre.replace(/'/g,"\\'")}',${h.id})">Reactivar</button>`:'';
+    const editBtn=isAdmin?`<button onclick="toggleEditHorse(${h.id})" style="margin-top:4px;margin-left:4px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer">✏️ Editar</button>`:'';
     return `<div class="horse-card-full${inactive?' inactive':''}">
-      <div>
+      <div style="flex:1">
         <div class="horse-name">${h.nombre}${inactive?'<span class="badge-inactive">inactivo</span>':''}</div>
-        <div class="horse-meta"><span>📋 ${numero}</span><span>🎂 ${dob}</span><span>⏱ ${edad}</span></div>
-        ${reactivateBtn}
+        <div class="horse-meta"><span>📋 ${numero}</span><span>🎂 ${dob}</span><span>⏱ ${edad}</span>${padre?`<span>♂ ${padre}</span>`:''} ${madre?`<span>♀ ${madre}</span>`:''}</div>
+        <div>${reactivateBtn}${editBtn}</div>
+        <div id="edit-horse-${h.id}" style="display:none;margin-top:8px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
+            <div><label style="font-size:9px;color:var(--text-soft)">Nombre</label><input id="eh-nombre-${h.id}" type="text" value="${h.nombre}" style="width:100%;height:24px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px"></div>
+            <div><label style="font-size:9px;color:var(--text-soft)">Número</label><input id="eh-numero-${h.id}" type="text" value="${h.numero||''}" style="width:100%;height:24px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px"></div>
+            <div><label style="font-size:9px;color:var(--text-soft)">Nacimiento</label><input id="eh-dob-${h.id}" type="date" value="${h.fecha_nacimiento||''}" style="width:100%;height:24px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px"></div>
+            <div><label style="font-size:9px;color:var(--text-soft)">Padre</label><input id="eh-padre-${h.id}" type="text" value="${padre}" style="width:100%;height:24px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px"></div>
+            <div><label style="font-size:9px;color:var(--text-soft)">Madre</label><input id="eh-madre-${h.id}" type="text" value="${madre}" style="width:100%;height:24px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px"></div>
+          </div>
+          <button onclick="saveEditHorse(${h.id})" style="height:24px;padding:0 10px;font-size:10px;font-weight:600;border-radius:4px;border:none;background:var(--accent);color:#fff;cursor:pointer">Guardar</button>
+          <button onclick="toggleEditHorse(${h.id})" style="height:24px;padding:0 10px;font-size:10px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer;margin-left:4px">Cancelar</button>
+        </div>
       </div>
       <div><div class="horse-total">${clp(total)}</div></div>
     </div>`;
