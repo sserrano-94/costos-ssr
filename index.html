@@ -326,10 +326,13 @@ let currentUser=null;
 let supabaseClient=null;
 
 function initSupabase(){
-  supabaseClient=supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  if(!supabaseClient){
+    supabaseClient=window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
 }
 
 async function doLogin(){
+  initSupabase();
   const email=document.getElementById('login-email').value.trim();
   const pass=document.getElementById('login-pass').value;
   const errEl=document.getElementById('login-err');
