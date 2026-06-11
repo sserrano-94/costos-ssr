@@ -326,21 +326,40 @@ let isAdmin=false;
 function doLogin(){
   const u=document.getElementById('login-user').value.trim();
   const p=document.getElementById('login-pass').value;
-  if(u===ADMIN_USER&&p===ADMIN_PASS){isAdmin=true;startApp();}
-  else if(u===GUEST_USER&&p===GUEST_PASS){isAdmin=false;startApp();}
-  else{document.getElementById('login-err').style.display='block';}
+  if(u===ADMIN_USER&&p===ADMIN_PASS){
+    isAdmin=true;
+    localStorage.setItem('ssr_session','admin');
+    startApp();
+  } else if(u===GUEST_USER&&p===GUEST_PASS){
+    isAdmin=false;
+    localStorage.setItem('ssr_session','guest');
+    startApp();
+  } else {
+    document.getElementById('login-err').style.display='block';
+  }
+}
+
+function logout(){
+  localStorage.removeItem('ssr_session');
+  location.reload();
+}
+
+function checkSession(){
+  const session=localStorage.getItem('ssr_session');
+  if(session==='admin'){isAdmin=true;startApp();}
+  else if(session==='guest'){isAdmin=false;startApp();}
 }
 function startApp(){
   document.getElementById('login-screen').style.display='none';
   const badge=document.getElementById('user-badge');
-  if(isAdmin){badge.textContent='✏️ Admin';badge.className='user-badge';}
-  else{badge.textContent='👁 Solo lectura';badge.className='user-badge readonly';}
+  if(isAdmin){badge.textContent='✏️ Admin';badge.className='user-badge';badge.title='Clic para cerrar sesión';badge.onclick=()=>{if(confirm('¿Cerrar sesión?'))logout();};}
+  else{badge.textContent='👁 Solo lectura';badge.className='user-badge readonly';badge.title='Clic para cerrar sesión';badge.onclick=()=>{if(confirm('¿Cerrar sesión?'))logout();};}
   // Hide add-horse card for guests
   if(!isAdmin){
     document.getElementById('add-horse-card').style.display='none';
     document.getElementById('readonly-banner').innerHTML='<div class="readonly-msg">👁 Modo solo lectura — puedes ver todos los datos pero no modificar ni agregar registros.</div>';
   }
-  loadAll();
+  checkSession();
 }
 
 // ===== SUPABASE =====
