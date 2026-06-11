@@ -536,7 +536,8 @@ function renderResumen(){
     const mainImg=imgSrc?`<img class="main-img" src="${imgSrc}" alt="${nombre}" onerror="this.style.display='none'">`:'<div style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen</div>';
     const dob=info&&info.fecha_nacimiento?new Date(info.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
     const numero=(info&&info.numero)||(geo.numero||'—');
-    const padre=geo.padre||'—',madre=geo.madre||'—';
+    const padre=(info&&info.padre)||(geo.padre||'—');
+    const madre=(info&&info.madre)||(geo.madre||'—');
     const sid=nombre.replace(/[^a-zA-Z0-9]/g,'_');
     const extras=(extraPhotos[nombre]||[]).map(src=>`<img src="${src}" onclick="setMainPhoto('${sid}','${src}')" style="cursor:pointer" title="Ver en grande">`).join('');
     const delBtn=isAdmin?`<button class="horse-del" onclick="deactivateHorse('${nombre.replace(/'/g,"\\'")}','${sid}')" title="Desactivar" style="padding:2px 6px;font-size:14px;margin-left:6px">×</button>`:'';
@@ -918,7 +919,15 @@ async function addHorse(){
   const btn=document.getElementById('add-horse-btn');
   btn.innerHTML='<span class="spinner"></span> Guardando...';btn.disabled=true;
   try{
-    const res=await sbFetch('caballos',{method:'POST',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,activo:true,user_id:currentUser?.id})});
+    const res=await sbFetch('caballos',{method:'POST',body:JSON.stringify({
+        nombre,
+        numero,
+        fecha_nacimiento:dob||null,
+        activo:true,
+        user_id:currentUser?.id,
+        padre:document.getElementById('new-horse-padre').value.trim(),
+        madre:document.getElementById('new-horse-madre').value.trim()
+      })});
     allHorses=[...allHorses,...res];
     const photoFile=document.getElementById('new-horse-photo').files[0];
     if(photoFile){
@@ -961,6 +970,28 @@ function setMainPhoto(sid, src){
     const horseImgs=document.querySelector('#det-'+sid+' .horse-imgs');
     horseImgs.insertBefore(origBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
   }
+}
+
+function toggleEditHorse(id){
+  const el=document.getElementById('edit-horse-'+id);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
+
+async function saveEditHorse(id){
+  const nombre=document.getElementById('eh-nombre-'+id).value.trim().toUpperCase();
+  const numero=document.getElementById('eh-numero-'+id).value.trim();
+  const dob=document.getElementById('eh-dob-'+id).value;
+  const padre=document.getElementById('eh-padre-'+id).value.trim();
+  const madre=document.getElementById('eh-madre-'+id).value.trim();
+  if(!nombre){toast('Ingresa el nombre','err');return;}
+  try{
+    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,padre,madre})});
+    const h=allHorses.find(h=>h.id===id);
+    if(h){h.nombre=nombre;h.numero=numero;h.fecha_nacimiento=dob||null;h.padre=padre;h.madre=madre;}
+    renderCaballos();
+    renderResumen();
+    toast('✓ Caballo actualizado');
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 function toggleAddHorse(){
