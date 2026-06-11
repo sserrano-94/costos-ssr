@@ -445,14 +445,6 @@ async function loadAll(){
         if(!extraPhotos[p.horse].includes(p.url))extraPhotos[p.horse].push(p.url);
       });
     }catch(e){}
-    // Load extra photos
-    try{
-      const fotos=await sbFetch('fotos_caballos?select=*&order=created_at.asc');
-      fotos.forEach(f=>{
-        if(!extraPhotos[f.horse])extraPhotos[f.horse]=[];
-        extraPhotos[f.horse].push(f.url);
-      });
-    }catch(e){}
     dot.className='conn-dot ok';
     lbl.textContent='Conectado';
   }catch(e){dot.className='conn-dot err';lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
@@ -510,7 +502,7 @@ function renderResumen(){
     const numero=(info&&info.numero)||(geo.numero||'—');
     const padre=geo.padre||'—',madre=geo.madre||'—';
     const sid=nombre.replace(/[^a-zA-Z0-9]/g,'_');
-    const extras=(extraPhotos[nombre]||[]).map(src=>`<img src="${src}">`).join('');
+    const extras=(extraPhotos[nombre]||[]).map(src=>`<img src="${src}" onclick="setMainPhoto('${sid}','${src}')" style="cursor:pointer" title="Ver en grande">`).join('');
     const delBtn=isAdmin?`<button class="horse-del" onclick="deactivateHorse('${nombre.replace(/'/g,"\\'")}','${sid}')" title="Desactivar" style="padding:2px 6px;font-size:14px;margin-left:6px">×</button>`:'';
     return `<div style="display:flex;align-items:center;gap:4px">
     <div class="horse-list-item" style="flex:1">
