@@ -579,7 +579,16 @@ async function saveEditedVal(input,origEl,id,parentSid,year,month){
   }catch(e){toast('Error al actualizar','err');}
 }
 
-async function saveCatEntry(horse,year,month,cat,cid,parentSid,mnum){
+async function saveCatEntry(btnOrHorse,year,month,cat,cid,parentSid,mnum){
+  let horse=btnOrHorse;
+  if(btnOrHorse && typeof btnOrHorse === 'object'){
+    horse=btnOrHorse.dataset.horse;
+    year=+btnOrHorse.dataset.year;
+    month=+btnOrHorse.dataset.month;
+    cat=btnOrHorse.dataset.cat;
+    cid=btnOrHorse.dataset.cid;
+    parentSid=btnOrHorse.dataset.psid;
+  }
   if(!isAdmin){toast('Sin permisos','err');return;}
   const amount=+document.getElementById('amt_'+cid).value;
   const note=document.getElementById('note_'+cid).value.trim();
@@ -982,7 +991,16 @@ async function deleteEvent(id){
 }
 
 // Auto-prompt date when saving Herraje or Vitaminas
-async function saveCatEntryWithDate(horse,year,month,cat,cid,parentSid,mnum){
+async function saveCatEntryWithDate(btnOrHorse,year,month,cat,cid,parentSid,mnum){
+  let horse=btnOrHorse;
+  if(btnOrHorse && typeof btnOrHorse === 'object'){
+    horse=btnOrHorse.dataset.horse;
+    year=+btnOrHorse.dataset.year;
+    month=+btnOrHorse.dataset.month;
+    cat=btnOrHorse.dataset.cat;
+    cid=btnOrHorse.dataset.cid;
+    parentSid=btnOrHorse.dataset.psid;
+  }
   if(!isAdmin){toast('Sin permisos','err');return;}
   const amount=+document.getElementById('amt_'+cid).value;
   const note=document.getElementById('note_'+cid).value.trim();
