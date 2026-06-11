@@ -344,7 +344,12 @@ async function doLogin(){
     if(error)throw error;
     currentUser=data.user;
     // Check role
-    const {data:perfil}=await supabaseClient.from('perfiles').select('rol').eq('id',currentUser.id).single();
+    let {data:perfil}=await supabaseClient.from('perfiles').select('rol').eq('id',currentUser.id).single();
+    // Auto-create profile if not exists
+    if(!perfil){
+      await supabaseClient.from('perfiles').insert({id:currentUser.id,email:currentUser.email,rol:'admin',nombre:currentUser.email.split('@')[0]});
+      perfil={rol:'admin'};
+    }
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
     startApp();
   }catch(e){
@@ -365,7 +370,12 @@ async function checkSession(){
   const {data:{session}}=await supabaseClient.auth.getSession();
   if(session){
     currentUser=session.user;
-    const {data:perfil}=await supabaseClient.from('perfiles').select('rol').eq('id',currentUser.id).single();
+    let {data:perfil}=await supabaseClient.from('perfiles').select('rol').eq('id',currentUser.id).single();
+    // Auto-create profile if not exists
+    if(!perfil){
+      await supabaseClient.from('perfiles').insert({id:currentUser.id,email:currentUser.email,rol:'admin',nombre:currentUser.email.split('@')[0]});
+      perfil={rol:'admin'};
+    }
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
     startApp();
   }
