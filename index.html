@@ -136,6 +136,8 @@ select:focus,input:focus{border-color:var(--accent)}
 .btn-primary:disabled{opacity:.6;cursor:not-allowed}
 .empty{text-align:center;padding:20px;color:var(--text-soft);font-size:12px}
 #toast{position:fixed;bottom:24px;right:24px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;display:none;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(10px)}}
 #toast.ok{background:var(--green);color:#fff}#toast.err{background:var(--red);color:#fff}
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -182,6 +184,7 @@ select:focus,input:focus{border-color:var(--accent)}
   <button class="nav-tab" onclick="showTab('calendario')">📅 CALENDARIO</button>
   <button class="nav-tab" onclick="showTab('rodeos')">🐎 RODEOS</button>
 </nav>
+<div id="breadcrumb" style="display:none;background:#f0f4fb;border-bottom:1px solid var(--border);padding:6px 24px;font-size:11px;color:var(--text-soft)"></div>
 <main>
   <div class="section active" id="tab-resumen">
     <div class="section-header"><h2>Resumen</h2><p>Caballos activos y gastos por año</p></div>
@@ -280,6 +283,36 @@ select:focus,input:focus{border-color:var(--accent)}
     <!-- Year blocks -->
     <div id="rodeos-blocks"></div>
   </div>
+
+<!-- MODAL AGREGAR COSTO -->
+<div id="cost-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:var(--radius);padding:20px;width:90%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600" id="modal-title">Agregar gasto</div>
+      <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-soft)">×</button>
+    </div>
+    <div class="form-field" style="margin-bottom:10px">
+      <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Categoría</label>
+      <select id="modal-cat" style="width:100%;height:36px;font-size:13px">
+        <option>Trabajo + Pesebrera</option><option>Fardos</option><option>Alimento</option>
+        <option>Vitaminas / Antiparasitario / Hormonas</option><option>Herraje</option>
+        <option>Veterinario</option><option>Flete</option><option>Inscripción</option><option>Otros</option>
+      </select>
+    </div>
+    <div class="form-field" style="margin-bottom:10px">
+      <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Monto</label>
+      <input type="number" id="modal-amt" placeholder="0" min="0" style="width:100%">
+    </div>
+    <div class="form-field" style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Nota (opcional)</label>
+      <input type="text" id="modal-note" placeholder="Descripción breve" style="width:100%">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeModal()" class="btn" style="flex:1">Cancelar</button>
+      <button onclick="saveModalCost()" class="btn btn-primary" id="modal-save-btn" style="flex:1">Guardar</button>
+    </div>
+  </div>
+</div>
 </main>
 <div id="toast"></div>
 <input type="file" id="photo-input" class="photo-input" accept="image/*" multiple>
@@ -372,8 +405,12 @@ async function sbFetch(path,opts={}){
 }
 function toast(msg,type='ok'){
   const el=document.getElementById('toast');
-  el.textContent=msg;el.className=type;el.style.display='block';
-  setTimeout(()=>el.style.display='none',3000);
+  el.textContent=msg;el.className=type;
+  el.style.display='block';
+  el.style.animation='none';
+  el.offsetHeight; // reflow
+  el.style.animation='toastIn 0.3s ease';
+  setTimeout(()=>{el.style.animation='toastOut 0.3s ease';setTimeout(()=>el.style.display='none',300);},2700);
 }
 async function loadAll(){
   const dot=document.getElementById('conn-dot'),lbl=document.getElementById('conn-label');
@@ -394,6 +431,32 @@ function tog(hdrId,bodyId,arrId){
   b.classList.toggle('open',!o);
   if(a)a.classList.toggle('open',!o);
   if(h)h.classList.toggle('open',!o);
+  updateBreadcrumb();
+}
+function updateBreadcrumb(){
+  const bc=document.getElementById('breadcrumb');if(!bc)return;
+  const tab=document.querySelector('.nav-tab.active');
+  const tabName=tab?tab.textContent.trim():'';
+  if(tabName!=='COSTOS'){bc.style.display='none';return;}
+  // Find open year, horse, month
+  const parts=[tabName];
+  const openYear=document.querySelector('.exp-y-body.open');
+  if(openYear){
+    const yid=openYear.id.replace('eyb','');
+    parts.push(yid);
+    const openHorse=openYear.querySelector('.exp-h-body.open');
+    if(openHorse){
+      const hname=openHorse.previousElementSibling?.querySelector('.exp-h-name')?.textContent;
+      if(hname)parts.push(hname);
+      const openMonth=openHorse.querySelector('.exp-m-body.open');
+      if(openMonth){
+        const mname=openMonth.previousElementSibling?.querySelector('.exp-m-name')?.textContent;
+        if(mname)parts.push(mname);
+      }
+    }
+  }
+  if(parts.length>1){bc.style.display='block';bc.textContent=parts.join(' › ');}
+  else{bc.style.display='none';}
 }
 
 // ===== RESUMEN =====
@@ -523,22 +586,15 @@ function buildExpMonth(horse,year,month,he,parentSid){
 
   // Only show add row for categories not yet entered this month
   const usedCats=me.map(e=>e.cat);
-  const addSection=isAdmin?`<div class="add-cat-section">
-    <div class="add-cat-title">Agregar gasto</div>
-    <div class="cat-add-rows">${CATS.filter(cat=>!usedCats.includes(cat)).map(cat=>{
-      const cid=(cat+msid).replace(/[^a-zA-Z0-9]/g,'_');
-      return `<div class="cat-add-row" id="addrow_${cid}">
-        <span class="cat-label">${cat}</span>
-        <input class="amt-in" type="number" id="amt_${cid}" placeholder="Monto" min="0">
-        <input class="note-in" type="text" id="note_${cid}" placeholder="Nota">
-        <button class="btn-save-cat" data-horse="${horse}" data-year="${year}" data-month="${month}" data-cat="${cat}" data-cid="${cid}" data-psid="${parentSid}" onclick="handleSaveCat(this)">✓</button>
-      </div>`;
-    }).join('')}</div>
+  const addSection=isAdmin&&usedCats.length<CATS.length?`<div style="padding:4px 24px 6px;border-top:1px solid var(--border);background:#f0f4fb">
+    <button onclick="openCostModal('${horse}',${year},${month},'${parentSid}')" style="height:20px;padding:0 10px;font-size:9px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar gasto</button>
   </div>`:'';
 
+  const isCurrentMonth=(month===new Date().getMonth()+1&&year===new Date().getFullYear());
+  const mhdrStyle=isCurrentMonth?'background:#e8f0fe;border-left:3px solid var(--accent);':'';
   return `<div class="exp-m-block" id="emb${msid}">
-    <div class="exp-m-hdr" onclick="tog('emh${msid}','embd${msid}','ema${msid}')">
-      <span class="exp-m-name">${MONTHS_F[month]}</span>
+    <div class="exp-m-hdr" style="${mhdrStyle}" onclick="tog('emh${msid}','embd${msid}','ema${msid}')">
+      <span class="exp-m-name" style="${isCurrentMonth?'color:var(--accent);font-weight:700;':''}">${MONTHS_F[month]}</span>
       <span style="display:flex;align-items:center;gap:8px"><span class="exp-m-total" id="emt${msid}">${mt?clp(mt):'$0'}</span><span class="exp-m-arrow" id="ema${msid}">▼</span></span>
     </div>
     <div class="exp-m-body" id="embd${msid}">
@@ -607,6 +663,9 @@ async function saveCatEntry(horse,year,month,cat,cid,parentSid,mnum){
     allEntries=[...res,...allEntries];
     document.getElementById('amt_'+cid).value='';
     document.getElementById('note_'+cid).value='';
+    // Flash button green
+    const savedBtn=document.querySelector(`[data-cid="${cid}"]`);
+    if(savedBtn){savedBtn.style.background='var(--green)';setTimeout(()=>savedBtn.style.background='var(--accent)',1200);}
     const e=res[0];
     const msid=parentSid+'_m'+month;
     const rowsEl=document.getElementById('erows'+msid);
@@ -842,7 +901,7 @@ function showTab(name){
   if(name==='resumen')renderResumen();
   if(name==='ingresar'){renderExpBlocks();const curY=new Date().getFullYear();setTimeout(()=>{const b=document.getElementById('eyb'+curY);const a=document.getElementById('eya'+curY);const h=document.getElementById('eyh'+curY);if(b&&!b.classList.contains('open')){b.classList.add('open');if(a)a.classList.add('open');if(h)h.classList.add('open');}},50);}
   if(name==='caballos')renderCaballos();
-  if(name==='calendario'){loadEvents().then(()=>{renderCalendar();});}
+  if(name==='calendario'){loadEvents().then(()=>{calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();});}
   if(name==='rodeos'){loadRodeos().then(()=>{renderRodeos();});}
 }
 
@@ -856,9 +915,16 @@ const EVENT_COLORS = {
   'Vitaminas / Antiparasitario / Hormonas': {bg:'#e8f7ee',border:'#1a7a4a',dot:'#1a7a4a',text:'#0f4a2c'},
   'default': {bg:'#f3eeff',border:'#7b5ea7',dot:'#7b5ea7',text:'#4a2d7a'}
 };
+const EVENT_COLORS_PAST = {
+  'Herraje': {bg:'#f0f0f0',border:'#aaa',dot:'#aaa',text:'#888'},
+  'Vitaminas / Antiparasitario / Hormonas': {bg:'#f0f0f0',border:'#aaa',dot:'#aaa',text:'#888'},
+  'default': {bg:'#f0f0f0',border:'#aaa',dot:'#aaa',text:'#888'}
+};
 
-function getEventColor(tipo){
-  return EVENT_COLORS[tipo] || EVENT_COLORS['default'];
+function getEventColor(tipo, fecha){
+  const isPast = fecha && new Date(fecha+'T12:00:00') < new Date();
+  const colors = isPast ? EVENT_COLORS_PAST : EVENT_COLORS;
+  return colors[tipo] || colors['default'];
 }
 
 async function loadEvents(){
@@ -921,7 +987,7 @@ function renderCalendar(){
     cell.appendChild(dayNum);
 
     dayEvents.forEach(ev=>{
-      const c=getEventColor(ev.tipo);
+      const c=getEventColor(ev.tipo, ev.fecha);
       const tipoCorto=ev.tipo==='Vitaminas / Antiparasitario / Hormonas'?'Vitaminas':ev.tipo;
       const tag=document.createElement('div');
       tag.style.cssText=`font-size:9px;padding:2px 5px;border-radius:4px;margin-bottom:3px;background:${c.bg};border:1px solid ${c.border};color:${c.text};white-space:normal;word-break:break-word;line-height:1.3;`;
@@ -977,7 +1043,7 @@ function renderEventsList(events){
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:4px 8px;margin-bottom:4px">
         <div style="font-size:10px;font-weight:600;margin-bottom:3px">${horse}</div>
         ${evs.map(ev=>{
-          const c=getEventColor(ev.tipo);
+          const c=getEventColor(ev.tipo, ev.fecha);
           const fecha=new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-CL');
           const delBtn=isAdmin?`<button onclick="deleteEvent(${ev.id})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:11px;padding:0 3px">×</button>`:'';
           return `<div style="display:flex;align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--border)">
@@ -1253,6 +1319,83 @@ function renderRodeos(){
     </div>`;
   }).join('');
 }
+
+
+// ===== MODAL =====
+let modalContext = null;
+function openCostModal(horse, year, month, parentSid){
+  if(!isAdmin){toast('Sin permisos','err');return;}
+  modalContext={horse,year,month,parentSid};
+  document.getElementById('modal-title').textContent='Agregar gasto — '+horse+' '+month+'/'+year;
+  // Filter out already-used cats
+  const msid=parentSid+'_m'+month;
+  const usedCats=allEntries.filter(e=>e.horse===horse&&e.year===year&&e.month===month).map(e=>e.cat);
+  const sel=document.getElementById('modal-cat');
+  sel.innerHTML=['Trabajo + Pesebrera','Fardos','Alimento','Vitaminas / Antiparasitario / Hormonas','Herraje','Veterinario','Flete','Inscripción','Otros']
+    .filter(c=>!usedCats.includes(c))
+    .map(c=>`<option>${c}</option>`).join('');
+  document.getElementById('modal-amt').value='';
+  document.getElementById('modal-note').value='';
+  const modal=document.getElementById('cost-modal');
+  modal.style.display='flex';
+  setTimeout(()=>document.getElementById('modal-amt').focus(),100);
+}
+function closeModal(){
+  document.getElementById('cost-modal').style.display='none';
+  modalContext=null;
+}
+async function saveModalCost(){
+  if(!modalContext)return;
+  const {horse,year,month,parentSid}=modalContext;
+  const cat=document.getElementById('modal-cat').value;
+  const amount=+document.getElementById('modal-amt').value;
+  const note=document.getElementById('modal-note').value.trim();
+  if(!amount){toast('Ingresa el monto','err');return;}
+  const btn=document.getElementById('modal-save-btn');
+  btn.textContent='Guardando...';btn.disabled=true;
+  // Check if needs date
+  const needsDate=cat==='Herraje'||cat==='Vitaminas / Antiparasitario / Hormonas';
+  let eventDate=null;
+  if(needsDate){
+    const rawDate=prompt('📅 Fecha para '+cat+' de '+horse+' (DD-MM-AAAA):');
+    if(rawDate){
+      if(/^\d{2}-\d{2}-\d{4}$/.test(rawDate)){
+        const parts=rawDate.split('-');
+        eventDate=parts[2]+'-'+parts[1]+'-'+parts[0];
+      }else{toast('Formato inválido. Usa DD-MM-AAAA','err');btn.textContent='Guardar';btn.disabled=false;return;}
+    }
+  }
+  try{
+    const res=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount,note})});
+    allEntries=[...res,...allEntries];
+    if(needsDate&&eventDate){
+      const evRes=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha:eventDate,tipo:cat,descripcion:note||''})});
+      allEvents=[...allEvents,...evRes];
+      toast('✓ Guardado + evento en calendario');
+    }else{toast('✓ Guardado');}
+    const e=res[0];
+    const msid=parentSid+'_m'+month;
+    const rowsEl=document.getElementById('erows'+msid);
+    if(rowsEl){
+      const div=document.createElement('div');div.className='cat-row';div.id='cr'+e.id;
+      const valEl=`<span class="cat-val" onclick="editCatVal(this,${e.id},'${parentSid}',${year},${month})" title="Clic para editar">${clp(e.amount)}</span>`;
+      div.innerHTML=`<span class="cat-name">${e.cat}</span>${valEl}<span class="cat-note">${e.note||''}</span><button class="cat-del" onclick="delCatEntry(${e.id},'${parentSid}',${year},${month})">×</button>`;
+      rowsEl.appendChild(div);
+    }
+    const addRowEl=document.getElementById('addrow_'+(cat+msid).replace(/[^a-zA-Z0-9]/g,'_'));
+    if(addRowEl)addRowEl.style.display='none';
+    const mt=allEntries.filter(en=>en.horse===horse&&en.year===year&&en.month===month).reduce((s,en)=>s+Number(en.amount),0);
+    const mtEl=document.getElementById('emt'+msid);if(mtEl)mtEl.textContent=clp(mt);
+    const ht=allEntries.filter(en=>en.horse===horse&&en.year===year).reduce((s,en)=>s+Number(en.amount),0);
+    const htEl=document.getElementById('eht'+parentSid);if(htEl)htEl.textContent=clp(ht);
+    const yt=allEntries.filter(en=>en.year===year).reduce((s,en)=>s+Number(en.amount),0);
+    const ytEl=document.getElementById('eyt'+year);if(ytEl)ytEl.textContent=clp(yt);
+    closeModal();
+  }catch(err){toast('Error: '+err.message,'err');}
+  btn.textContent='Guardar';btn.disabled=false;
+}
+// Close modal on backdrop click
+document.getElementById('cost-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
 </script>
 </body>
