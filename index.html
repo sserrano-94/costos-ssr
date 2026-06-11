@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Costos SSR — Caballos</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1917;--text-soft:#6b6860;--accent:#2b5fa6;--accent-light:#e8eef8;--green:#1a7a4a;--red:#c0392b;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.07)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -162,10 +163,11 @@ select:focus,input:focus{border-color:var(--accent)}
     <h2 style="font-family:Georgia,serif;font-size:22px;font-weight:700;letter-spacing:2px;color:#1a1917;margin-bottom:4px">COSTOS SSR</h2>
     <p>Ingresa tus credenciales</p>
     <form onsubmit="event.preventDefault();doLogin()" autocomplete="on">
-      <div class="login-field"><label>Usuario</label><input type="text" id="login-user" name="username" placeholder="Usuario" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" name="password" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="login-err" id="login-err">Usuario o contraseña incorrectos</div>
-      <button type="submit" class="btn btn-primary" style="width:100%;text-align:center;justify-content:center;letter-spacing:1px;font-size:14px">ENTRAR</button>
+      <div class="login-field"><label>Email</label><input type="email" id="login-email" name="email" placeholder="tu@email.com" autocomplete="email"></div>
+      <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" name="password" placeholder="Contraseña" autocomplete="current-password"></div>
+      <div class="login-err" id="login-err">Email o contraseña incorrectos</div>
+      <button type="submit" class="btn btn-primary" style="width:100%;text-align:center;justify-content:center;letter-spacing:1px;font-size:14px;margin-bottom:8px">ENTRAR</button>
+      <div id="login-loading" style="display:none;font-size:12px;color:var(--text-soft);text-align:center">Iniciando sesión...</div>
     </form>
   </div>
 </div>
@@ -319,41 +321,60 @@ select:focus,input:focus{border-color:var(--accent)}
 
 <script>
 // ===== AUTH =====
-const ADMIN_USER='SergioSerrano', ADMIN_PASS='Sasr1994';
-const GUEST_USER='invitado', GUEST_PASS='ver';
 let isAdmin=false;
+let currentUser=null;
+let supabaseClient=null;
 
-function doLogin(){
-  const u=document.getElementById('login-user').value.trim();
-  const p=document.getElementById('login-pass').value;
-  if(u===ADMIN_USER&&p===ADMIN_PASS){
-    isAdmin=true;
-    localStorage.setItem('ssr_session','admin');
+function initSupabase(){
+  supabaseClient=supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const errEl=document.getElementById('login-err');
+  const loadEl=document.getElementById('login-loading');
+  errEl.style.display='none';
+  loadEl.style.display='block';
+  try{
+    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password:pass});
+    if(error)throw error;
+    currentUser=data.user;
+    // Check role
+    const {data:perfil}=await supabaseClient.from('perfiles').select('rol').eq('id',currentUser.id).single();
+    isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
     startApp();
-  } else if(u===GUEST_USER&&p===GUEST_PASS){
-    isAdmin=false;
-    localStorage.setItem('ssr_session','guest');
-    startApp();
-  } else {
-    document.getElementById('login-err').style.display='block';
+  }catch(e){
+    loadEl.style.display='none';
+    errEl.textContent=e.message==='Invalid login credentials'?'Email o contraseña incorrectos':e.message;
+    errEl.style.display='block';
   }
 }
 
-function logout(){
-  localStorage.removeItem('ssr_session');
+async function logout(){
+  await supabaseClient.auth.signOut();
+  currentUser=null;
   location.reload();
 }
 
-function checkSession(){
-  const session=localStorage.getItem('ssr_session');
-  if(session==='admin'){isAdmin=true;startApp();}
-  else if(session==='guest'){isAdmin=false;startApp();}
+async function checkSession(){
+  initSupabase();
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(session){
+    currentUser=session.user;
+    const {data:perfil}=await supabaseClient.from('perfiles').select('rol').eq('id',currentUser.id).single();
+    isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
+    startApp();
+  }
 }
 function startApp(){
   document.getElementById('login-screen').style.display='none';
   const badge=document.getElementById('user-badge');
-  if(isAdmin){badge.textContent='✏️ Admin';badge.className='user-badge';badge.title='Clic para cerrar sesión';badge.onclick=()=>{if(confirm('¿Cerrar sesión?'))logout();};}
-  else{badge.textContent='👁 Solo lectura';badge.className='user-badge readonly';badge.title='Clic para cerrar sesión';badge.onclick=()=>{if(confirm('¿Cerrar sesión?'))logout();};}
+  const badgeLabel=isAdmin?'✏️ '+( currentUser?.email?.split('@')[0]||'Admin'):'👁 '+( currentUser?.email?.split('@')[0]||'Invitado');
+  badge.textContent=badgeLabel;
+  badge.className=isAdmin?'user-badge':'user-badge readonly';
+  badge.title='Clic para cerrar sesión';
+  badge.onclick=()=>{if(confirm('¿Cerrar sesión?'))logout();};
   if(!isAdmin){
     document.getElementById('add-horse-card').style.display='none';
     document.getElementById('readonly-banner').innerHTML='<div class="readonly-msg">👁 Modo solo lectura — puedes ver todos los datos pero no modificar ni agregar registros.</div>';
@@ -414,7 +435,9 @@ function horseStartYear(nombre){
   return new Date().getFullYear();
 }
 async function sbFetch(path,opts={}){
-  const baseHeaders={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+  const session=supabaseClient?(await supabaseClient.auth.getSession()).data.session:null;
+  const token=session?session.access_token:SUPABASE_KEY;
+  const baseHeaders={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation'};
   const mergedHeaders={...baseHeaders,...(opts.headers||{})};
   const {headers:_,...restOpts}=opts;
   const res=await fetch(SUPABASE_URL+'/rest/v1/'+path,{headers:mergedHeaders,...restOpts});
