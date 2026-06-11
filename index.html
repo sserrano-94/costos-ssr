@@ -469,13 +469,15 @@ function toast(msg,type='ok'){
 async function loadAll(){
   const dot=document.getElementById('conn-dot'),lbl=document.getElementById('conn-label');
   try{
+    const uid=currentUser?.id;
+    const userFilter=uid?`&user_id=eq.${uid}`:'';
     [allEntries,allHorses]=await Promise.all([
-      sbFetch('costos?select=*&order=year.desc,month.desc&limit=2000'),
-      sbFetch('caballos?select=*&order=nombre.asc')
+      sbFetch('costos?select=*&order=year.desc,month.desc&limit=2000'+userFilter),
+      sbFetch('caballos?select=*&order=nombre.asc'+userFilter)
     ]);
     // Load saved photos
     try{
-      const savedPhotos=await sbFetch('fotos_caballos?select=*&order=created_at.asc');
+      const uid3=currentUser?.id;const fotFilter=uid3?`&user_id=eq.${uid3}`:'';const savedPhotos=await sbFetch('fotos_caballos?select=*&order=created_at.asc'+fotFilter);
       savedPhotos.forEach(p=>{
         if(!extraPhotos[p.horse])extraPhotos[p.horse]=[];
         if(!extraPhotos[p.horse].includes(p.url))extraPhotos[p.horse].push(p.url);
@@ -894,11 +896,12 @@ function renderCaballos(){
     const madre=(h.madre)||(geo.madre||'');
     const reactivateBtn=isAdmin&&inactive?`<button style="margin-top:4px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer" onclick="reactivateHorse('${h.nombre.replace(/'/g,"\\'")}',${h.id})">Reactivar</button>`:'';
     const editBtn=isAdmin?`<button onclick="toggleEditHorse(${h.id})" style="margin-top:4px;margin-left:4px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer">✏️ Editar</button>`:'';
-    return `<div class="horse-card-full${inactive?' inactive':''}">
+    return `<div class="horse-card-full${inactive?' inactive':''}" style="position:relative">
+      ${isAdmin?`<button onclick="toggleEditHorse(${h.id})" style="position:absolute;top:4px;right:4px;background:none;border:none;cursor:pointer;font-size:11px;color:#ccc;padding:2px 4px;border-radius:3px" title="Editar">✏️</button>`:''}
       <div style="flex:1">
         <div class="horse-name">${h.nombre}${inactive?'<span class="badge-inactive">inactivo</span>':''}</div>
         <div class="horse-meta"><span>📋 ${numero}</span><span>🎂 ${dob}</span><span>⏱ ${edad}</span>${padre?`<span>♂ ${padre}</span>`:''} ${madre?`<span>♀ ${madre}</span>`:''}</div>
-        <div>${reactivateBtn}${editBtn}</div>
+        <div>${reactivateBtn}</div>
         <div id="edit-horse-${h.id}" style="display:none;margin-top:8px">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
             <div><label style="font-size:9px;color:var(--text-soft)">Nombre</label><input id="eh-nombre-${h.id}" type="text" value="${h.nombre}" style="width:100%;height:24px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px"></div>
@@ -1048,7 +1051,7 @@ function getEventColor(tipo, fecha){
 
 async function loadEvents(){
   try{
-    allEvents = await sbFetch('eventos?select=*&order=fecha.asc&limit=500');
+    const uid2=currentUser?.id;const evFilter=uid2?`&user_id=eq.${uid2}`:'';allEvents = await sbFetch('eventos?select=*&order=fecha.asc&limit=500'+evFilter);
   }catch(e){ allEvents=[]; }
 }
 
@@ -1272,8 +1275,8 @@ const RODEO_CATS = ['Invitación','Flete','Series','Peticero','Otros'];
 
 async function loadRodeos(){
   try{
-    [allRodeos, allRodeosCostos] = await Promise.all([
-      sbFetch('rodeos?select=*&order=fecha.desc'),
+    const uid4=currentUser?.id;const rodFilter=uid4?`&user_id=eq.${uid4}`:'';[allRodeos, allRodeosCostos] = await Promise.all([
+      sbFetch('rodeos?select=*&order=fecha.desc'+rodFilter),
       sbFetch('rodeos_costos?select=*')
     ]);
   }catch(e){ allRodeos=[];allRodeosCostos=[]; }
