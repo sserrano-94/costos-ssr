@@ -711,7 +711,7 @@ async function saveCatEntry(horse,year,month,cat,cid,parentSid,mnum){
   const note=document.getElementById('note_'+cid).value.trim();
   if(!amount){toast('Ingresa el monto','err');return;}
   try{
-    const res=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount,note})});
+    const res=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount,note,user_id:currentUser?.id})});
     allEntries=[...res,...allEntries];
     document.getElementById('amt_'+cid).value='';
     document.getElementById('note_'+cid).value='';
@@ -825,7 +825,7 @@ document.getElementById('photo-input').addEventListener('change',async function(
       if(!res.ok){const e=await res.text();throw new Error(e);}
       const publicUrl=SUPABASE_URL+'/storage/v1/object/public/fotos-caballos/'+fileName;
       // Save URL to fotos_caballos table
-      await sbFetch('fotos_caballos',{method:'POST',body:JSON.stringify({horse:nombre,url:publicUrl})});
+      await sbFetch('fotos_caballos',{method:'POST',body:JSON.stringify({horse:nombre,url:publicUrl,user_id:currentUser?.id})});
       // Add to display
       if(!extraPhotos[nombre])extraPhotos[nombre]=[];
       extraPhotos[nombre].push(publicUrl);
@@ -857,7 +857,7 @@ async function deactivateHorse(nombre,sid){
     catch(e){toast('Error','err');return;}
     info.activo=false;
   } else {
-    try{await sbFetch('caballos',{method:'POST',body:JSON.stringify({nombre,activo:false})});}
+    try{await sbFetch('caballos',{method:'POST',body:JSON.stringify({nombre,activo:false,user_id:currentUser?.id})});}
     catch(e){}
   }
   const el=document.getElementById('det-'+sid);
@@ -908,7 +908,7 @@ async function addHorse(){
   const btn=document.getElementById('add-horse-btn');
   btn.innerHTML='<span class="spinner"></span> Guardando...';btn.disabled=true;
   try{
-    const res=await sbFetch('caballos',{method:'POST',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,activo:true})});
+    const res=await sbFetch('caballos',{method:'POST',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,activo:true,user_id:currentUser?.id})});
     allHorses=[...allHorses,...res];
     const photoFile=document.getElementById('new-horse-photo').files[0];
     if(photoFile){
@@ -1129,7 +1129,7 @@ async function addManualEvent(){
   if(!horses.length||!fecha||!tipo){toast('Selecciona al menos un caballo, fecha y tipo','err');return;}
   try{
     for(const horse of horses){
-      const res=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha,tipo,descripcion:desc})});
+      const res=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha,tipo,descripcion:desc,user_id:currentUser?.id})});
       allEvents=[...allEvents,...res];
     }
     document.getElementById('ev-date').value='';
@@ -1174,14 +1174,14 @@ async function saveCatEntryWithDate(horse,year,month,cat,cid,parentSid,mnum){
   }
 
   try{
-    const res=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount,note})});
+    const res=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount,note,user_id:currentUser?.id})});
     allEntries=[...res,...allEntries];
     document.getElementById('amt_'+cid).value='';
     document.getElementById('note_'+cid).value='';
 
     // Save event if date provided
     if(needsDate && eventDate){
-      const evRes=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha:eventDate,tipo:cat,descripcion:note||''})});
+      const evRes=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha:eventDate,tipo:cat,descripcion:note||'',user_id:currentUser?.id})});
       allEvents=[...allEvents,...evRes];
       toast('✓ Guardado + evento en calendario');
     } else {
@@ -1236,7 +1236,7 @@ async function addRodeo(){
   if(!nombre||!fecha){toast('Ingresa nombre y fecha','err');return;}
   const year=new Date(fecha+'T12:00:00').getFullYear();
   try{
-    const res=await sbFetch('rodeos',{method:'POST',body:JSON.stringify({nombre,fecha,year})});
+    const res=await sbFetch('rodeos',{method:'POST',body:JSON.stringify({nombre,fecha,year,user_id:currentUser?.id})});
     allRodeos=[...res,...allRodeos];
     document.getElementById('new-rodeo-nombre').value='';
     document.getElementById('new-rodeo-fecha').value='';
@@ -1265,7 +1265,7 @@ async function saveRodeoCosto(rodeoId, cat, inputId, noteId){
   const nota=document.getElementById(noteId).value.trim();
   if(!monto){toast('Ingresa el monto','err');return;}
   try{
-    const res=await sbFetch('rodeos_costos',{method:'POST',body:JSON.stringify({rodeo_id:rodeoId,categoria:cat,monto,nota})});
+    const res=await sbFetch('rodeos_costos',{method:'POST',body:JSON.stringify({rodeo_id:rodeoId,categoria:cat,monto,nota,user_id:currentUser?.id})});
     allRodeosCostos=[...allRodeosCostos,...res];
     document.getElementById(inputId).value='';
     document.getElementById(noteId).value='';
@@ -1430,10 +1430,10 @@ async function saveModalCost(){
     }
   }
   try{
-    const res=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount,note})});
+    const res=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount,note,user_id:currentUser?.id})});
     allEntries=[...res,...allEntries];
     if(needsDate&&eventDate){
-      const evRes=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha:eventDate,tipo:cat,descripcion:note||''})});
+      const evRes=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha:eventDate,tipo:cat,descripcion:note||'',user_id:currentUser?.id})});
       allEvents=[...allEvents,...evRes];
       toast('✓ Guardado + evento en calendario');
     }else{toast('✓ Guardado');}
