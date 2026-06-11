@@ -223,7 +223,7 @@ select:focus,input:focus{border-color:var(--accent)}
   <div class="section" id="tab-calendario">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
       <div class="section-header" style="margin-bottom:0"><h2>Calendario</h2><p>Herrajes, vitaminas y eventos por caballo</p></div>
-      <button onclick="toggleAddEvent()" style="height:32px;padding:0 16px;font-size:12px;font-weight:500;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;flex-shrink:0">+ Agregar evento</button>
+      <button onclick="toggleAddEvent()" id="btn-add-event" style="height:32px;padding:0 16px;font-size:12px;font-weight:500;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;flex-shrink:0">+ Agregar evento</button>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
       <div style="display:flex;align-items:center;gap:8px">
@@ -319,7 +319,7 @@ const BASE_URL='https://raw.githubusercontent.com/sserrano-94/costos-ssr/main/';
 const GEO={
   'COSCACHITA':{numero:'236328',padre:'FANTASTICO (A:1997)',madre:'FICHA (A:1990)',img:BASE_URL+'COSCACHITA.jpeg'},
   'COLCHAGUINA':{numero:'326022',padre:'REVOLTOSO (A:2011)',madre:'COSCACHITA (A:2011)',img:BASE_URL+'COLCHAGUINA.jpeg'},
-  'SUREÑO':{numero:'316204',padre:'MEDIO A MEDIO T.E. (A:2010)',madre:'COSCACHITA (A:2011)',img:BASE_URL+'SURE%C3%B1O.jpeg'},
+  'SUREÑO':{numero:'316204',padre:'MEDIO A MEDIO T.E. (A:2010)',madre:'COSCACHITA (A:2011)',img:BASE_URL+'SURENO.jpeg'},
   'ESPUELA':{numero:'196650',padre:'ACERO (A:1992)',madre:'AMOROCHA (A:1988)',img:BASE_URL+'ESPUELA.jpeg'},
   'MITI MOTA':{numero:'298036',padre:'ERMITAÑO (A:1996)',madre:'QUINCHA (A:1994)',img:BASE_URL+'MITI%20MOTA.jpeg'},
   'RECINTO':{numero:'334788',padre:'REVOLTOSO (A:2011)',madre:'COSCACHITA (A:2011)',img:BASE_URL+'RECINTO.jpeg'},
@@ -664,7 +664,11 @@ document.getElementById('photo-input').addEventListener('change',function(){
       extraPhotos[nombre].push(e.target.result);
       const horseImgs=document.querySelector('#det-'+sid+' .horse-imgs');
       let extDiv=document.querySelector('#det-'+sid+' .extra-imgs');
-      const newImg=document.createElement('img');newImg.src=e.target.result;
+      const newImg=document.createElement('img');
+      newImg.src=e.target.result;
+      newImg.style.cursor='pointer';
+      newImg.title='Ver en grande';
+      newImg.onclick=()=>setMainPhoto(sid,e.target.result);
       if(extDiv){extDiv.appendChild(newImg);}
       else{extDiv=document.createElement('div');extDiv.className='extra-imgs';extDiv.appendChild(newImg);const btn=horseImgs.querySelector('.add-photo-btn');horseImgs.insertBefore(extDiv,btn);}
     };
@@ -760,6 +764,29 @@ async function addHorse(){
 function toggleAddEvent(){
   const card=document.getElementById('add-event-card');
   card.style.display=card.style.display==='none'?'block':'none';
+}
+
+function setMainPhoto(sid, src){
+  // Show clicked photo in main slot, keep original stored
+  const mainImg=document.querySelector('#det-'+sid+' .main-img');
+  if(!mainImg)return;
+  // Store original src if not already stored
+  if(!mainImg.dataset.original) mainImg.dataset.original=mainImg.src;
+  mainImg.src=src;
+  // Add "ver original" button if not exists
+  let origBtn=document.getElementById('orig-btn-'+sid);
+  if(!origBtn){
+    origBtn=document.createElement('button');
+    origBtn.id='orig-btn-'+sid;
+    origBtn.textContent='Ver foto original';
+    origBtn.style.cssText='margin:4px 8px;background:none;border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text-soft)';
+    origBtn.onclick=()=>{
+      mainImg.src=mainImg.dataset.original;
+      origBtn.remove();
+    };
+    const horseImgs=document.querySelector('#det-'+sid+' .horse-imgs');
+    horseImgs.insertBefore(origBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
+  }
 }
 
 function toggleAddHorse(){
