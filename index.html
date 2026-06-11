@@ -354,12 +354,11 @@ function startApp(){
   const badge=document.getElementById('user-badge');
   if(isAdmin){badge.textContent='✏️ Admin';badge.className='user-badge';badge.title='Clic para cerrar sesión';badge.onclick=()=>{if(confirm('¿Cerrar sesión?'))logout();};}
   else{badge.textContent='👁 Solo lectura';badge.className='user-badge readonly';badge.title='Clic para cerrar sesión';badge.onclick=()=>{if(confirm('¿Cerrar sesión?'))logout();};}
-  // Hide add-horse card for guests
   if(!isAdmin){
     document.getElementById('add-horse-card').style.display='none';
     document.getElementById('readonly-banner').innerHTML='<div class="readonly-msg">👁 Modo solo lectura — puedes ver todos los datos pero no modificar ni agregar registros.</div>';
   }
-  checkSession();
+  loadAll();
 }
 
 // ===== SUPABASE =====
