@@ -315,6 +315,33 @@ select:focus,input:focus{border-color:var(--accent)}
     </div>
   </div>
 </div>
+
+<!-- MODAL GENERALES -->
+<div id="gen-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:var(--radius);padding:20px;width:90%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600">Agregar gasto general</div>
+      <button onclick="closeGenModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-soft)">×</button>
+    </div>
+    <div class="form-field" style="margin-bottom:10px">
+      <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Categoría</label>
+      <select id="gen-modal-cat" style="width:100%;height:36px;font-size:13px" onchange="document.getElementById('gen-modal-custom').style.display=this.value==='__custom__'?'block':'none'"></select>
+      <input type="text" id="gen-modal-custom" placeholder="Nombre de categoría personalizada" style="display:none;width:100%;margin-top:6px;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px">
+    </div>
+    <div class="form-field" style="margin-bottom:10px">
+      <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Monto</label>
+      <input type="number" id="gen-modal-amt" placeholder="0" min="0" style="width:100%">
+    </div>
+    <div class="form-field" style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Nota (opcional)</label>
+      <input type="text" id="gen-modal-note" placeholder="Descripción breve" style="width:100%">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeGenModal()" class="btn" style="flex:1">Cancelar</button>
+      <button onclick="saveGenModal()" class="btn btn-primary" id="gen-modal-save-btn" style="flex:1">Guardar</button>
+    </div>
+  </div>
+</div>
 </main>
 <div id="toast"></div>
 <input type="file" id="photo-input" class="photo-input" accept="image/*" multiple>
@@ -401,6 +428,8 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const MONTHS_S=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const MONTHS_F=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const CATS=['Trabajo + Pesebrera','Fardos','Alimento','Vitaminas / Antiparasitario / Hormonas','Herraje','Veterinario','Flete','Inscripción','Otros'];
+const CATS_GEN=['Arreglador','Peticero','Luz / Agua','Viruta / Camas','Veterinario General'];
+let allGenerales=[];
 const BASE_URL='https://raw.githubusercontent.com/sserrano-94/costos-ssr/main/';
 const GEO={
   'COSCACHITA':{numero:'236328',padre:'FANTASTICO (A:1997)',madre:'FICHA (A:1990)',img:BASE_URL+'COSCACHITA.jpeg'},
@@ -471,9 +500,10 @@ async function loadAll(){
   try{
     const uid=currentUser?.id;
     const userFilter=uid?`&user_id=eq.${uid}`:'';
-    [allEntries,allHorses]=await Promise.all([
+    [allEntries,allHorses,allGenerales]=await Promise.all([
       sbFetch('costos?select=*&order=year.desc,month.desc&limit=2000'+userFilter),
-      sbFetch('caballos?select=*&order=nombre.asc'+userFilter)
+      sbFetch('caballos?select=*&order=nombre.asc'+userFilter),
+      sbFetch('costos_generales?select=*&order=year.desc,month.desc&limit=2000'+userFilter)
     ]);
     // Load saved photos
     try{
@@ -603,18 +633,75 @@ function renderExpBlocks(){
   const years=getYears();
   document.getElementById('exp-blocks').innerHTML=years.map(year=>{
     const ye=allEntries.filter(e=>e.year===year);
+    const yg=allGenerales.filter(e=>e.year===year);
     const yt=ye.reduce((s,e)=>s+Number(e.amount),0);
+    const ygt=yg.reduce((s,e)=>s+Number(e.monto),0);
+    const ytotal=yt+ygt;
     const yhorsesForYear=horses.filter(h=>horseStartYear(h)<=year);
     return `<div class="exp-block">
       <div class="exp-y-hdr" onclick="tog('eyh${year}','eyb${year}','eya${year}')" id="eyh${year}">
         <span class="year-title">📅 ${year}</span>
-        <span style="display:flex;align-items:center;gap:12px"><span class="year-total" id="eyt${year}">${yt?clp(yt):''}</span><span class="year-arrow" id="eya${year}">▼</span></span>
+        <span style="display:flex;align-items:center;gap:12px"><span class="year-total" id="eyt${year}">${ytotal?clp(ytotal):''}</span><span class="year-arrow" id="eya${year}">▼</span></span>
       </div>
       <div class="exp-y-body" id="eyb${year}">
-        ${yhorsesForYear.map(h=>buildExpHorse(h,year,ye)).join('')}
+        <!-- GENERALES section -->
+        <div class="exp-h-block">
+          <div class="exp-h-hdr" onclick="tog('gen-h${year}','gen-b${year}','gen-a${year}')">
+            <span class="exp-h-name">📋 GENERALES</span>
+            <span style="display:flex;align-items:center;gap:8px"><span class="exp-h-total" id="eygt${year}">${ygt?clp(ygt):'$0'}</span><span class="exp-h-arrow" id="gen-a${year}">▼</span></span>
+          </div>
+          <div class="exp-h-body" id="gen-b${year}">
+            ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>buildExpGenMonth(year,m,yg)).join('')}
+          </div>
+        </div>
+        <!-- CABALLOS section -->
+        <div class="exp-h-block">
+          <div class="exp-h-hdr" onclick="tog('cab-h${year}','cab-b${year}','cab-a${year}')">
+            <span class="exp-h-name">🐴 CABALLOS</span>
+            <span style="display:flex;align-items:center;gap:8px"><span class="exp-h-total" id="eyct${year}">${yt?clp(yt):'$0'}</span><span class="exp-h-arrow" id="cab-a${year}">▼</span></span>
+          </div>
+          <div class="exp-h-body" id="cab-b${year}">
+            ${yhorsesForYear.map(h=>buildExpHorse(h,year,ye)).join('')}
+          </div>
+        </div>
       </div>
     </div>`;
   }).join('');
+}
+
+function buildExpGenMonth(year,month,yg){
+  const me=yg.filter(e=>e.month===month);
+  const mt=me.reduce((s,e)=>s+Number(e.monto),0);
+  const msid='gen_'+year+'_m'+month;
+  const usedCats=me.map(e=>e.categoria);
+
+  const existingRows=me.map(e=>{
+    const valEl=isAdmin?`<span class="cat-val" onclick="editGenVal(this,${e.id},'${msid}',${year},${month})" title="Clic para editar">${clp(e.monto)}</span>`:`<span class="cat-val" style="cursor:default">${clp(e.monto)}</span>`;
+    const delBtn=isAdmin?`<button class="cat-del" onclick="delGenEntry(${e.id},'${msid}',${year},${month})">×</button>`:'';
+    return `<div class="cat-row" id="gcr${e.id}">
+      <span class="cat-name">${e.categoria}</span>
+      ${valEl}
+      <span class="cat-note">${e.nota||''}</span>
+      ${delBtn}
+    </div>`;
+  }).join('');
+
+  const addBtn=isAdmin?`<div style="padding:3px 24px 4px;border-top:1px solid var(--border);background:#f0f4fb">
+    <button onclick="openGenModal(${year},${month},'${msid}')" style="height:20px;padding:0 10px;font-size:9px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar gasto</button>
+  </div>`:'';
+
+  const isCurrentMonth=(month===new Date().getMonth()+1&&year===new Date().getFullYear());
+  const mhdrStyle=isCurrentMonth?'background:#e8f0fe;border-left:3px solid var(--accent);':'';
+  return `<div class="exp-m-block" id="emb${msid}">
+    <div class="exp-m-hdr" style="${mhdrStyle}" onclick="tog('emh${msid}','embd${msid}','ema${msid}')">
+      <span class="exp-m-name" style="${isCurrentMonth?'color:var(--accent);font-weight:700;':''}">${MONTHS_F[month]}</span>
+      <span style="display:flex;align-items:center;gap:8px"><span class="exp-m-total" id="emt${msid}">${mt?clp(mt):'$0'}</span><span class="exp-m-arrow" id="ema${msid}">▼</span></span>
+    </div>
+    <div class="exp-m-body" id="embd${msid}">
+      <div id="grows${msid}">${existingRows}</div>
+      ${addBtn}
+    </div>
+  </div>`;
 }
 
 function buildExpHorse(horse,year,ye){
@@ -896,9 +983,9 @@ function renderCaballos(){
     const madre=(h.madre)||(geo.madre||'');
     const reactivateBtn=isAdmin&&inactive?`<button style="margin-top:4px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer" onclick="reactivateHorse('${h.nombre.replace(/'/g,"\\'")}',${h.id})">Reactivar</button>`:'';
     const editBtn=isAdmin?`<button onclick="toggleEditHorse(${h.id})" style="margin-top:4px;margin-left:4px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer">✏️ Editar</button>`:'';
-    return `<div class="horse-card-full${inactive?' inactive':''}" style="position:relative">
+    return `<div class="horse-card-full${inactive?' inactive':''}" style="position:relative;flex-direction:column">
       ${isAdmin?`<button onclick="toggleEditHorse(${h.id})" style="position:absolute;top:4px;right:4px;background:none;border:none;cursor:pointer;font-size:11px;color:#ccc;padding:2px 4px;border-radius:3px" title="Editar">✏️</button>`:''}
-      <div style="flex:1">
+      <div style="flex:1;width:100%">
         <div class="horse-name">${h.nombre}${inactive?'<span class="badge-inactive">inactivo</span>':''}</div>
         <div class="horse-meta"><span>📋 ${numero}</span><span>🎂 ${dob}</span><span>⏱ ${edad}</span>${padre?`<span>♂ ${padre}</span>`:''} ${madre?`<span>♀ ${madre}</span>`:''}</div>
         <div>${reactivateBtn}</div>
@@ -914,7 +1001,7 @@ function renderCaballos(){
           <button onclick="toggleEditHorse(${h.id})" style="height:24px;padding:0 10px;font-size:10px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer;margin-left:4px">Cancelar</button>
         </div>
       </div>
-      <div><div class="horse-total">${clp(total)}</div></div>
+      <div style="width:100%;text-align:right;margin-top:6px;border-top:1px solid var(--border);padding-top:4px"><div class="horse-total">${clp(total)}</div></div>
     </div>`;
   }).join('');
 }
@@ -1442,6 +1529,104 @@ function renderRodeos(){
   }).join('');
 }
 
+
+// ===== GENERALES MODAL =====
+let genModalContext=null;
+
+function openGenModal(year,month,msid){
+  if(!isAdmin){toast('Sin permisos','err');return;}
+  genModalContext={year,month,msid};
+  const me=allGenerales.filter(e=>e.year===year&&e.month===month);
+  const usedCats=me.map(e=>e.categoria);
+  const modal=document.getElementById('gen-modal');
+  const sel=document.getElementById('gen-modal-cat');
+  // Populate with fixed cats + custom option
+  sel.innerHTML=CATS_GEN.filter(c=>!usedCats.includes(c)).map(c=>`<option>${c}</option>`).join('')+'<option value="__custom__">Otra (personalizada)...</option>';
+  document.getElementById('gen-modal-custom').style.display='none';
+  document.getElementById('gen-modal-custom').value='';
+  document.getElementById('gen-modal-amt').value='';
+  document.getElementById('gen-modal-note').value='';
+  modal.style.display='flex';
+  setTimeout(()=>document.getElementById('gen-modal-amt').focus(),100);
+}
+
+async function saveGenModal(){
+  if(!genModalContext)return;
+  const {year,month,msid}=genModalContext;
+  let cat=document.getElementById('gen-modal-cat').value;
+  if(cat==='__custom__'){
+    cat=document.getElementById('gen-modal-custom').value.trim();
+    if(!cat){toast('Ingresa el nombre de la categoría','err');return;}
+  }
+  const monto=+document.getElementById('gen-modal-amt').value;
+  const nota=document.getElementById('gen-modal-note').value.trim();
+  if(!monto){toast('Ingresa el monto','err');return;}
+  const btn=document.getElementById('gen-modal-save-btn');
+  btn.textContent='Guardando...';btn.disabled=true;
+  try{
+    const res=await sbFetch('costos_generales',{method:'POST',body:JSON.stringify({year,month,categoria:cat,monto,nota,user_id:currentUser?.id})});
+    allGenerales=[...allGenerales,...res];
+    const e=res[0];
+    const rowsEl=document.getElementById('grows'+msid);
+    if(rowsEl){
+      const div=document.createElement('div');div.className='cat-row';div.id='gcr'+e.id;
+      const valEl=`<span class="cat-val" onclick="editGenVal(this,${e.id},'${msid}',${year},${month})" title="Clic para editar">${clp(e.monto)}</span>`;
+      div.innerHTML=`<span class="cat-name">${e.categoria}</span>${valEl}<span class="cat-note">${e.nota||''}</span><button class="cat-del" onclick="delGenEntry(${e.id},'${msid}',${year},${month})">×</button>`;
+      rowsEl.appendChild(div);
+    }
+    const mt=allGenerales.filter(en=>en.year===year&&en.month===month).reduce((s,en)=>s+Number(en.monto),0);
+    const mtEl=document.getElementById('emt'+msid);if(mtEl)mtEl.textContent=clp(mt);
+    const ygt=allGenerales.filter(en=>en.year===year).reduce((s,en)=>s+Number(en.monto),0);
+    const ygtEl=document.getElementById('eygt'+year);if(ygtEl)ygtEl.textContent=clp(ygt);
+    const yt=allEntries.filter(en=>en.year===year).reduce((s,en)=>s+Number(en.amount),0);
+    const ytEl=document.getElementById('eyt'+year);if(ytEl)ytEl.textContent=clp(yt+ygt);
+    closeGenModal();toast('✓ Guardado');
+  }catch(e){toast('Error: '+e.message,'err');}
+  btn.textContent='Guardar';btn.disabled=false;
+}
+
+function closeGenModal(){
+  document.getElementById('gen-modal').style.display='none';
+  genModalContext=null;
+}
+
+function editGenVal(el,id,msid,year,month){
+  const entry=allGenerales.find(e=>e.id===id);
+  if(!entry)return;
+  const input=document.createElement('input');
+  input.type='number';input.value=entry.monto;input.className='cat-val-editing';
+  input.onblur=async()=>{
+    const newMonto=+input.value;
+    input.remove();el.style.display='';
+    if(!newMonto||isNaN(newMonto))return;
+    if(newMonto===entry.monto)return;
+    try{
+      await sbFetch('costos_generales?id=eq.'+id,{method:'PATCH',body:JSON.stringify({monto:newMonto}),headers:{'Prefer':'return=minimal'}});
+      entry.monto=newMonto;el.textContent=clp(newMonto);
+      const mt=allGenerales.filter(e=>e.year===year&&e.month===month).reduce((s,e)=>s+Number(e.monto),0);
+      const mtEl=document.getElementById('emt'+msid);if(mtEl)mtEl.textContent=clp(mt);
+      toast('✓ Actualizado');
+    }catch(e){toast('Error','err');}
+  };
+  input.onkeydown=e=>{if(e.key==='Enter')input.blur();if(e.key==='Escape'){el.style.display='';input.remove();}};
+  el.style.display='none';
+  el.parentNode.insertBefore(input,el.nextSibling);
+  input.focus();input.select();
+}
+
+async function delGenEntry(id,msid,year,month){
+  if(!confirm('¿Eliminar?'))return;
+  try{
+    await sbFetch('costos_generales?id=eq.'+id,{method:'DELETE'});
+    allGenerales=allGenerales.filter(e=>e.id!==id);
+    const el=document.getElementById('gcr'+id);if(el)el.remove();
+    const mt=allGenerales.filter(e=>e.year===year&&e.month===month).reduce((s,e)=>s+Number(e.monto),0);
+    const mtEl=document.getElementById('emt'+msid);if(mtEl)mtEl.textContent=mt?clp(mt):'$0';
+    const ygt=allGenerales.filter(e=>e.year===year).reduce((s,e)=>s+Number(e.monto),0);
+    const ygtEl=document.getElementById('eygt'+year);if(ygtEl)ygtEl.textContent=clp(ygt);
+    toast('Eliminado');
+  }catch(e){toast('Error','err');}
+}
 
 // ===== MODAL =====
 let modalContext = null;
