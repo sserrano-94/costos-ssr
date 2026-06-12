@@ -1010,7 +1010,7 @@ function renderCaballos(){
       ${isAdmin?`<button onclick="toggleEditHorse(${h.id})" style="position:absolute;top:4px;right:4px;background:none;border:none;cursor:pointer;font-size:11px;color:#ccc;padding:2px 4px;border-radius:3px" title="Editar">✏️</button>`:''}
       <div style="flex:1;width:100%">
         <div class="horse-name">${h.nombre}${inactive?'<span class="badge-inactive">inactivo</span>':''}</div>
-        <div class="horse-meta"><span>📋 ${numero}</span><span>🎂 ${dob}</span><span>⏱ ${edad}</span>${padre?`<span>♂ ${padre}</span>`:''} ${madre?`<span>♀ ${madre}</span>`:''}</div>
+        <div class="horse-meta"><span>📋 ${numero}</span><span>🎂 ${dob}</span><span>⏱ ${edad}</span>${padre?`<span>♂ ${padre}</span>`:''} ${madre?`<span>♀ ${madre}</span>`:''} ${h.estado?`<span style="background:#e8f0fe;color:var(--accent);border-radius:3px;padding:1px 5px;font-size:9px">${h.estado}</span>`:''}</div>
         <div>${reactivateBtn}</div>
         <div id="edit-horse-${h.id}" style="display:none;margin-top:8px">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
@@ -1019,10 +1019,24 @@ function renderCaballos(){
             <div><label style="font-size:9px;color:var(--text-soft)">Nacimiento</label><input id="eh-dob-${h.id}" type="date" value="${h.fecha_nacimiento||''}" style="width:100%;height:24px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px"></div>
             <div><label style="font-size:9px;color:var(--text-soft)">Padre</label><input id="eh-padre-${h.id}" type="text" value="${padre}" style="width:100%;height:24px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px"></div>
             <div><label style="font-size:9px;color:var(--text-soft)">Madre</label><input id="eh-madre-${h.id}" type="text" value="${madre}" style="width:100%;height:24px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px"></div>
+          <div><label style="font-size:9px;color:var(--text-soft)">Estado</label>
+            <select id="eh-estado-${h.id}" style="width:100%;height:24px;font-size:10px;padding:0 4px;border:1px solid var(--border);border-radius:4px">
+              <option value="">— Sin estado —</option>
+              <option value="Potrillo/Potranca" ${(h.estado||'')==='Potrillo/Potranca'?'selected':''}>Potrillo/Potranca</option>
+              <option value="Manso de montura" ${(h.estado||'')==='Manso de montura'?'selected':''}>Manso de montura</option>
+              <option value="Topeando" ${(h.estado||'')==='Topeando'?'selected':''}>Topeando</option>
+              <option value="Corriendo en la casa" ${(h.estado||'')==='Corriendo en la casa'?'selected':''}>Corriendo en la casa</option>
+              <option value="Corriendo" ${(h.estado||'')==='Corriendo'?'selected':''}>Corriendo</option>
+              <option value="Reproducción" ${(h.estado||'')==='Reproducción'?'selected':''}>Reproducción</option>
+            </select>
+          </div>
           <div style="grid-column:1/-1"><label style="font-size:9px;color:var(--text-soft)">📷 Agregar foto</label><input type="file" id="eh-photo-${h.id}" accept="image/*" style="font-size:10px;margin-top:2px;display:block"></div>
           </div>
-          <button onclick="saveEditHorse(${h.id})" style="height:24px;padding:0 10px;font-size:10px;font-weight:600;border-radius:4px;border:none;background:var(--accent);color:#fff;cursor:pointer">Guardar</button>
-          <button onclick="toggleEditHorse(${h.id})" style="height:24px;padding:0 10px;font-size:10px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer;margin-left:4px">Cancelar</button>
+          <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
+            <button onclick="saveEditHorse(${h.id})" style="height:24px;padding:0 10px;font-size:10px;font-weight:600;border-radius:4px;border:none;background:var(--accent);color:#fff;cursor:pointer">Guardar</button>
+            <button onclick="toggleEditHorse(${h.id})" style="height:24px;padding:0 10px;font-size:10px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer">Cancelar</button>
+            ${!inactive?`<button onclick="deactivateHorseFromEdit('${h.nombre.replace(/'/g,"\'")}',${h.id})" style="height:24px;padding:0 10px;font-size:10px;border-radius:4px;border:1px solid var(--red);color:var(--red);background:#fff;cursor:pointer;margin-left:auto">Desactivar caballo</button>`:''}
+          </div>
         </div>
       </div>
       <div style="width:100%;text-align:right;margin-top:6px;border-top:1px solid var(--border);padding-top:4px"><div class="horse-total">${clp(total)}</div></div>
@@ -1100,6 +1114,16 @@ function setMainPhoto(sid, src){
   }
 }
 
+async function deactivateHorseFromEdit(nombre,id){
+  if(!confirm('¿Desactivar '+nombre+'? Sus datos se conservan y puede reactivarlo desde CABALLOS.'))return;
+  try{
+    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({activo:false})});
+    const h=allHorses.find(h=>h.id===id);if(h)h.activo=false;
+    renderCaballos();renderResumen();
+    toast(nombre+' desactivado');
+  }catch(e){toast('Error','err');}
+}
+
 function toggleEditHorse(id){
   const el=document.getElementById('edit-horse-'+id);
   if(el)el.style.display=el.style.display==='none'?'block':'none';
@@ -1113,9 +1137,10 @@ async function saveEditHorse(id){
   const madre=document.getElementById('eh-madre-'+id).value.trim();
   if(!nombre){toast('Ingresa el nombre','err');return;}
   try{
-    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,padre,madre})});
+    const estado=document.getElementById('eh-estado-'+id)?.value||'';
+    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,padre,madre,estado})});
     const h=allHorses.find(h=>h.id===id);
-    if(h){h.nombre=nombre;h.numero=numero;h.fecha_nacimiento=dob||null;h.padre=padre;h.madre=madre;}
+    const estado2=document.getElementById('eh-estado-'+id)?.value||'';if(h){h.nombre=nombre;h.numero=numero;h.fecha_nacimiento=dob||null;h.padre=padre;h.madre=madre;h.estado=estado2;}
     // Upload photo if selected
     const photoInput=document.getElementById('eh-photo-'+id);
     if(photoInput&&photoInput.files&&photoInput.files[0]){
