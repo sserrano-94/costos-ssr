@@ -444,6 +444,7 @@ const MONTHS_F=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Ago
 const CATS=['Trabajo + Pesebrera','Fardos','Alimento','Vitaminas / Antiparasitario / Hormonas','Herraje','Veterinario','Flete','Inscripción','Otros'];
 const CATS_GEN=['Arreglador','Peticero','Luz / Agua','Viruta / Camas','Veterinario General'];
 let allGenerales=[];
+let allInventario=[];
 const BASE_URL='https://raw.githubusercontent.com/sserrano-94/costos-ssr/main/';
 const GEO={
   'COSCACHITA':{numero:'236328',padre:'FANTASTICO (A:1997)',madre:'FICHA (A:1990)',img:BASE_URL+'COSCACHITA.jpeg'},
@@ -541,7 +542,7 @@ async function loadAll(){
     lbl.textContent='Conectado';
   }catch(e){dot.className='conn-dot err';lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
   renderResumen();renderExpBlocks();
-  setTimeout(populateExportYears, 100);
+  
 }
 function tog(hdrId,bodyId,arrId){
   const b=document.getElementById(bodyId);if(!b)return;
@@ -1195,7 +1196,7 @@ function showTab(name){
   document.querySelectorAll('.nav-tab').forEach((btn,i)=>{btn.classList.toggle('active',['resumen','ingresar','caballos','calendario','inventario'][i]===name);});
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='resumen')renderResumen();
-  if(name==='ingresar'){renderExpBlocks();populateExportYears();const curY=new Date().getFullYear();setTimeout(()=>{const b=document.getElementById('eyb'+curY);const a=document.getElementById('eya'+curY);const h=document.getElementById('eyh'+curY);if(b&&!b.classList.contains('open')){b.classList.add('open');if(a)a.classList.add('open');if(h)h.classList.add('open');}},50);}
+  if(name==='ingresar'){renderExpBlocks();const curY=new Date().getFullYear();setTimeout(()=>{const b=document.getElementById('eyb'+curY);const a=document.getElementById('eya'+curY);const h=document.getElementById('eyh'+curY);if(b&&!b.classList.contains('open')){b.classList.add('open');if(a)a.classList.add('open');if(h)h.classList.add('open');}},50);}
   if(name==='caballos')renderCaballos();
   if(name==='calendario'){loadEvents().then(()=>{calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();});}
   if(name==='inventario'){loadInventario().then(()=>renderInvBlocks());}
