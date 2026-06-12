@@ -1991,12 +1991,11 @@ function generarPDF(year,month){
 
   // SECCIÓN 2: COSTOS
   checkY(15);
+  const nomMes=MESES_F[month-1];
   doc.setTextColor(43,95,166);doc.setFontSize(13);doc.setFont('helvetica','bold');
   doc.text('2. Costos — '+nomMes+' '+year,ML,y);y+=6;
   doc.setDrawColor(43,95,166);doc.line(ML,y,ML+CW,y);y+=5;
   doc.setTextColor(30,30,30);doc.setFontSize(10);
-  const MESES_F2=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const nomMes=MESES_F2[month-1];
   const ye=allEntries.filter(e=>e.year===year&&e.month===month);
   const yg=allGenerales.filter(e=>e.year===year&&e.month===month);
   const yr2=allRodeos.filter(r=>r.year===year);
