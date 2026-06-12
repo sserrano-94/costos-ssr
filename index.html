@@ -1054,7 +1054,8 @@ function renderCaballos(){
           <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
             <button onclick="saveEditHorse(${h.id})" style="height:24px;padding:0 10px;font-size:10px;font-weight:600;border-radius:4px;border:none;background:var(--accent);color:#fff;cursor:pointer">Guardar</button>
             <button onclick="toggleEditHorse(${h.id})" style="height:24px;padding:0 10px;font-size:10px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer">Cancelar</button>
-            ${!inactive?`<button onclick="deactivateHorseFromEdit('${h.nombre.replace(/'/g,"\'")}',${h.id})" style="height:24px;padding:0 10px;font-size:10px;border-radius:4px;border:1px solid var(--red);color:var(--red);background:#fff;cursor:pointer;margin-left:auto">Desactivar caballo</button>`:''}
+            ${!inactive?`<button onclick="deactivateHorseFromEdit('${h.nombre.replace(/'/g,"\\'")}',${h.id})" style="height:24px;padding:0 10px;font-size:10px;border-radius:4px;border:1px solid var(--red);color:var(--red);background:#fff;cursor:pointer">Desactivar</button>`:''}
+            <button onclick="deleteHorsePermanently('${h.nombre.replace(/'/g,"\\'")}',${h.id})" style="height:24px;padding:0 10px;font-size:10px;border-radius:4px;border:none;background:var(--red);color:#fff;cursor:pointer">Eliminar</button>
           </div>
         </div>
       </div>
@@ -2072,6 +2073,151 @@ function generarPDF(year,month){
   doc.save('InformeSSR_'+year+'_'+String(month).padStart(2,'0')+'.pdf');
   toast('✓ PDF descargado');
 }
+// ===== INVENTARIO =====
+async function loadInventario(){
+  try{
+    const uid=currentUser?.id;
+    const f=uid?`&user_id=eq.${uid}`:'';
+    allInventario=await sbFetch('inventario?select=*&order=created_at.desc'+f);
+  }catch(e){allInventario=[];}
+}
+function getInvYears(){const ys=new Set(allInventario.map(i=>i.year));ys.add(new Date().getFullYear());return[...ys].sort((a,b)=>b-a);}
+function addInvYear(){const input=document.getElementById('inv-new-year-input');const year=+input.value;if(!year||year<2024||year>2040){toast('Ingresa un año válido','err');return;}if(document.getElementById('invyh'+year)){toast('El año '+year+' ya existe','err');return;}input.value='';renderInvBlocks();toast('Año '+year+' agregado');}
+function renderInvBlocks(){
+  const years=getInvYears();
+  document.getElementById('inv-blocks').innerHTML=years.map(year=>buildInvYear(year)).join('');
+  const curY=new Date().getFullYear();
+  setTimeout(()=>{const b=document.getElementById('invyb'+curY);const a=document.getElementById('invya'+curY);const h=document.getElementById('invyh'+curY);if(b&&!b.classList.contains('open')){b.classList.add('open');if(a)a.classList.add('open');if(h)h.classList.add('open');}},50);
+}
+function buildInvYear(year){
+  const yi=allInventario.filter(i=>i.year===year);
+  return `<div class="exp-block"><div class="exp-y-hdr" onclick="tog('invyh${year}','invyb${year}','invya${year}')" id="invyh${year}"><span class="year-title">📅 ${year}</span><span style="display:flex;align-items:center;gap:12px"><span class="year-arrow" id="invya${year}">▼</span></span></div><div class="exp-y-body" id="invyb${year}">${buildInvCategoria('💊 Remedios','remedio',year,yi.filter(i=>i.tipo==='remedio'))}${buildInvCategoria('🌾 Alimentos','alimento',year,yi.filter(i=>i.tipo==='alimento'))}${buildInvCategoria('🌿 Fardos','fardo',year,yi.filter(i=>i.tipo==='fardo'))}</div></div>`;
+}
+function buildInvCategoria(titulo,tipo,year,items){
+  const rows=items.map(item=>{
+    let stockInfo='',usarBtn='';
+    if(tipo==='remedio'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_ml}${item.envase_unidad||'ml'}/${item.envase_ml}${item.envase_unidad||'ml'}</span>`;usarBtn=isAdmin?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:'';}
+    else if(tipo==='alimento'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_sacos} sacos</span>`;usarBtn=isAdmin?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:'';}
+    else if(tipo==='fardo'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_fardos} fardos</span>`;usarBtn=isAdmin?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:''; }
+    const fechaCompra=item.fecha_compra?new Date(item.fecha_compra+'T12:00:00').toLocaleDateString('es-CL'):'';
+    const delBtn=isAdmin?`<button onclick="delInvItem(${item.id})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:12px;margin-left:4px">×</button>`:'';
+    return `<div style="display:flex;align-items:center;padding:6px 20px;border-bottom:1px solid var(--border);gap:8px;flex-wrap:wrap" id="invitem${item.id}"><span style="font-size:12px;font-weight:500;flex:1">${item.nombre}${fechaCompra?`<span style="font-size:9px;color:var(--text-soft);margin-left:6px">📅 ${fechaCompra}</span>`:''}</span><span style="font-size:11px;color:var(--accent)">${clp(item.precio)}</span>${stockInfo}${usarBtn}${delBtn}</div>`;
+  }).join('');
+  const addBtn=isAdmin?`<div style="padding:6px 16px;border-top:1px solid var(--border)"><button onclick="openInvModal('${tipo}',${year})" style="height:24px;padding:0 12px;font-size:10px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar</button></div>`:'';
+  const sid=`inv_${tipo}_${year}`;
+  return `<div class="exp-h-block"><div class="exp-h-hdr" onclick="tog('${sid}h','${sid}b','${sid}a')"><span class="exp-h-name">${titulo}</span><span class="exp-h-arrow" id="${sid}a">▼</span></div><div class="exp-h-body" id="${sid}b"><div id="invrows_${tipo}_${year}">${rows||'<div class="empty">Sin registros</div>'}</div>${addBtn}</div></div>`;
+}
+function openInvModal(tipo,year){
+  if(tipo==='remedio'){['inv-rem-nombre','inv-rem-precio','inv-rem-envase','inv-rem-fecha'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('inv-remedio-modal').dataset.year=year;document.getElementById('inv-remedio-modal').style.display='flex';}
+  else if(tipo==='alimento'){['inv-ali-nombre','inv-ali-precio','inv-ali-cantidad','inv-ali-fecha'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('inv-ali-peso').value='25';document.getElementById('inv-alimento-modal').dataset.year=year;document.getElementById('inv-alimento-modal').style.display='flex';}
+  else if(tipo==='fardo'){['inv-far-precio','inv-far-cantidad','inv-far-fecha'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('inv-fardo-modal').dataset.year=year;document.getElementById('inv-fardo-modal').style.display='flex';}
+}
+async function saveInvRemedio(){
+  const modal=document.getElementById('inv-remedio-modal');if(!modal)return;
+  const year=+modal.dataset.year;
+  const nombre=document.getElementById('inv-rem-nombre').value.trim();
+  const precio=+document.getElementById('inv-rem-precio').value;
+  const envase=+document.getElementById('inv-rem-envase').value;
+  const unidad=document.getElementById('inv-rem-unidad')?.value||'ml';
+  const fecha=document.getElementById('inv-rem-fecha')?.value||'';
+  if(!nombre||!precio||!envase){toast('Completa nombre, precio y envase','err');return;}
+  const btn=document.getElementById('inv-rem-save-btn');btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'remedio',nombre,precio,envase_ml:envase,stock_ml:envase,envase_unidad:unidad,fecha_compra:fecha||null,user_id:currentUser?.id})});
+    allInventario=[...res,...allInventario];
+    if(fecha){await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse:'General',fecha,tipo:'Compra Inventario',descripcion:'Compra '+nombre+' '+envase+unidad,user_id:currentUser?.id})});}
+    modal.style.display='none';renderInvBlocks();toast('✓ Remedio agregado');
+  }catch(e){toast('Error: '+e.message,'err');}
+  btn.disabled=false;btn.textContent='Guardar';
+}
+async function saveInvAlimento(){
+  const modal=document.getElementById('inv-alimento-modal');if(!modal)return;
+  const year=+modal.dataset.year;
+  const nombre=document.getElementById('inv-ali-nombre').value.trim();
+  const precio=+document.getElementById('inv-ali-precio').value;
+  const peso=+document.getElementById('inv-ali-peso').value||25;
+  const cantidad=+document.getElementById('inv-ali-cantidad').value;
+  const fecha=document.getElementById('inv-ali-fecha')?.value||'';
+  if(!nombre||!precio||!cantidad){toast('Completa los campos','err');return;}
+  const btn=document.getElementById('inv-ali-save-btn');btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'alimento',nombre,precio,peso_kg:peso,cantidad_sacos:cantidad,stock_sacos:cantidad,fecha_compra:fecha||null,user_id:currentUser?.id})});
+    allInventario=[...res,...allInventario];
+    if(fecha){await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse:'General',fecha,tipo:'Compra Inventario',descripcion:'Compra '+nombre+' '+cantidad+' sacos',user_id:currentUser?.id})});}
+    modal.style.display='none';renderInvBlocks();toast('✓ Alimento agregado');
+  }catch(e){toast('Error: '+e.message,'err');}
+  btn.disabled=false;btn.textContent='Guardar';
+}
+async function saveInvFardo(){
+  const modal=document.getElementById('inv-fardo-modal');if(!modal)return;
+  const year=+modal.dataset.year;
+  const tipoF=document.getElementById('inv-far-tipo').value;
+  const precio=+document.getElementById('inv-far-precio').value;
+  const cantidad=+document.getElementById('inv-far-cantidad').value;
+  const fecha=document.getElementById('inv-far-fecha')?.value||'';
+  if(!precio||!cantidad){toast('Completa los campos','err');return;}
+  const btn=document.getElementById('inv-far-save-btn');btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'fardo',nombre:tipoF,precio,tipo_fardo:tipoF,cantidad_fardos:cantidad,stock_fardos:cantidad,fecha_compra:fecha||null,user_id:currentUser?.id})});
+    allInventario=[...res,...allInventario];
+    if(fecha){await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse:'General',fecha,tipo:'Compra Inventario',descripcion:'Compra fardos '+tipoF+' ('+cantidad+')',user_id:currentUser?.id})});}
+    modal.style.display='none';renderInvBlocks();toast('✓ Fardo agregado');
+  }catch(e){toast('Error: '+e.message,'err');}
+  btn.disabled=false;btn.textContent='Guardar';
+}
+function openInvUso(itemId){
+  const item=allInventario.find(i=>i.id===itemId);if(!item)return;
+  invUsoContext={item};
+  document.getElementById('inv-uso-title').textContent='Usar: '+item.nombre;
+  let info='',label='';
+  if(item.tipo==='remedio'){info=`Precio: ${clp(item.precio)} | Stock: ${item.stock_ml}${item.envase_unidad||'ml'}/${item.envase_ml}${item.envase_unidad||'ml'}`;label=`Cantidad (${item.envase_unidad||'ml'})`;}
+  else if(item.tipo==='alimento'){info=`Precio/saco: ${clp(item.precio)} | Stock: ${item.stock_sacos} sacos`;label='Sacos a usar';}
+  else{info=`Precio/fardo: ${clp(item.precio)} | Stock: ${item.stock_fardos} fardos`;label='Fardos a usar';}
+  document.getElementById('inv-uso-info').textContent=info;
+  document.getElementById('inv-uso-cantidad-label').textContent=label;
+  document.getElementById('inv-uso-cantidad').value='';
+  document.getElementById('inv-uso-costo').textContent='$0';
+  document.getElementById('inv-uso-caballo').innerHTML=sortedActive().map(h=>`<option>${h}</option>`).join('');
+  document.getElementById('inv-uso-mes').value=new Date().getMonth()+1;
+  document.getElementById('inv-uso-modal').style.display='flex';
+}
+document.addEventListener('DOMContentLoaded',function(){
+  const cantEl=document.getElementById('inv-uso-cantidad');
+  if(cantEl)cantEl.addEventListener('input',function(){
+    if(!invUsoContext)return;
+    const item=invUsoContext.item;const qty=+this.value;let costo=0;
+    if(item.tipo==='remedio')costo=(qty/item.envase_ml)*item.precio;
+    else costo=qty*item.precio;
+    document.getElementById('inv-uso-costo').textContent=clp(Math.round(costo));
+  });
+});
+async function saveInvUso(){
+  if(!invUsoContext)return;
+  const item=invUsoContext.item;const qty=+document.getElementById('inv-uso-cantidad').value;
+  const horse=document.getElementById('inv-uso-caballo').value;const month=+document.getElementById('inv-uso-mes').value;const year=item.year;
+  if(!qty||qty<=0){toast('Ingresa la cantidad','err');return;}
+  let costo=0,newStock={};
+  if(item.tipo==='remedio'){if(qty>item.stock_ml){toast('Sin stock','err');return;}costo=(qty/item.envase_ml)*item.precio;newStock={stock_ml:item.stock_ml-qty};}
+  else if(item.tipo==='alimento'){if(qty>item.stock_sacos){toast('Sin stock','err');return;}costo=qty*item.precio;newStock={stock_sacos:item.stock_sacos-qty};}
+  else{if(qty>item.stock_fardos){toast('Sin stock','err');return;}costo=qty*item.precio;newStock={stock_fardos:item.stock_fardos-qty};}
+  costo=Math.round(costo);
+  const catMap={'remedio':'Vitaminas / Antiparasitario / Hormonas','alimento':'Alimento','fardo':'Fardos'};
+  const btn=document.getElementById('inv-uso-save-btn');btn.disabled=true;btn.textContent='Registrando...';
+  try{
+    await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat:catMap[item.tipo],amount:costo,note:'Inventario: '+item.nombre,user_id:currentUser?.id})});
+    await sbFetch('inventario?id=eq.'+item.id,{method:'PATCH',body:JSON.stringify(newStock)});
+    Object.assign(item,newStock);
+    document.getElementById('inv-uso-modal').style.display='none';
+    renderInvBlocks();
+    const uid=currentUser?.id;allEntries=await sbFetch('costos?select=*&order=year.desc,month.desc&limit=2000'+(uid?`&user_id=eq.${uid}`:''));
+    toast('✓ Registrado — '+clp(costo)+' en '+horse);
+  }catch(e){toast('Error: '+e.message,'err');}
+  btn.disabled=false;btn.textContent='Registrar uso';
+}
+async function delInvItem(id){
+  if(!confirm('¿Eliminar?'))return;
+  try{await sbFetch('inventario?id=eq.'+id,{method:'DELETE'});allInventario=allInventario.filter(i=>i.id!==id);renderInvBlocks();toast('Eliminado');}catch(e){toast('Error','err');}
+}
 </script>
 <!-- INVENTARIO MODALS -->
 <div id="inv-remedio-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center">
@@ -2132,225 +2278,6 @@ function generarPDF(year,month){
     <div style="display:flex;gap:8px"><button onclick="document.getElementById('inv-uso-modal').style.display='none'" class="btn" style="flex:1">Cancelar</button><button onclick="saveInvUso()" class="btn btn-primary" id="inv-uso-save-btn" style="flex:1">Registrar uso</button></div>
   </div>
 </div>
-
+-e 
 </body>
 </html>
-<script>
-// ===== INVENTARIO =====
-async function loadInventario(){
-  try{
-    const uid=currentUser?.id;
-    const f=uid?`&user_id=eq.${uid}`:'';
-    allInventario=await sbFetch('inventario?select=*&order=created_at.desc'+f);
-  }catch(e){allInventario=[];}
-}
-
-function getInvYears(){
-  const ys=new Set(allInventario.map(i=>i.year));
-  ys.add(new Date().getFullYear());
-  return [...ys].sort((a,b)=>b-a);
-}
-
-function addInvYear(){
-  const input=document.getElementById('inv-new-year-input');
-  const year=+input.value;
-  if(!year||year<2024||year>2040){toast('Ingresa un año válido','err');return;}
-  if(document.getElementById('invyh'+year)){toast('El año '+year+' ya existe','err');return;}
-  input.value='';
-  renderInvBlocks();
-  toast('Año '+year+' agregado');
-}
-
-function renderInvBlocks(){
-  const years=getInvYears();
-  document.getElementById('inv-blocks').innerHTML=years.map(year=>buildInvYear(year)).join('');
-  const curY=new Date().getFullYear();
-  setTimeout(()=>{
-    const b=document.getElementById('invyb'+curY);
-    const a=document.getElementById('invya'+curY);
-    const h=document.getElementById('invyh'+curY);
-    if(b&&!b.classList.contains('open')){b.classList.add('open');if(a)a.classList.add('open');if(h)h.classList.add('open');}
-  },50);
-}
-
-function buildInvYear(year){
-  const yi=allInventario.filter(i=>i.year===year);
-  return `<div class="exp-block">
-    <div class="exp-y-hdr" onclick="tog('invyh${year}','invyb${year}','invya${year}')" id="invyh${year}">
-      <span class="year-title">📅 ${year}</span>
-      <span style="display:flex;align-items:center;gap:12px"><span class="year-arrow" id="invya${year}">▼</span></span>
-    </div>
-    <div class="exp-y-body" id="invyb${year}">
-      ${buildInvCategoria('💊 Remedios','remedio',year,yi.filter(i=>i.tipo==='remedio'))}
-      ${buildInvCategoria('🌾 Alimentos','alimento',year,yi.filter(i=>i.tipo==='alimento'))}
-      ${buildInvCategoria('🌿 Fardos','fardo',year,yi.filter(i=>i.tipo==='fardo'))}
-    </div>
-  </div>`;
-}
-
-function buildInvCategoria(titulo,tipo,year,items){
-  const rows=items.map(item=>{
-    let stockInfo='',usarBtn='';
-    if(tipo==='remedio'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_ml}${item.envase_unidad||'ml'}/${item.envase_ml}${item.envase_unidad||'ml'}</span>`;usarBtn=isAdmin?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:'';
-    }else if(tipo==='alimento'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_sacos} sacos</span>`;usarBtn=isAdmin?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:'';
-    }else if(tipo==='fardo'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_fardos} fardos</span>`;usarBtn=isAdmin?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:'';
-    }
-    const fechaCompra=item.fecha_compra?new Date(item.fecha_compra+'T12:00:00').toLocaleDateString('es-CL'):'';
-    const delBtn=isAdmin?`<button onclick="delInvItem(${item.id})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:12px;margin-left:4px">×</button>`:'';
-    return `<div style="display:flex;align-items:center;padding:6px 20px;border-bottom:1px solid var(--border);gap:8px;flex-wrap:wrap" id="invitem${item.id}">
-      <span style="font-size:12px;font-weight:500;flex:1">${item.nombre}${fechaCompra?`<span style="font-size:9px;color:var(--text-soft);margin-left:6px">📅 ${fechaCompra}</span>`:''}</span>
-      <span style="font-size:11px;color:var(--accent)">${clp(item.precio)}</span>
-      ${stockInfo}${usarBtn}${delBtn}
-    </div>`;
-  }).join('');
-
-  const addBtn=isAdmin?`<div style="padding:6px 16px;border-top:1px solid var(--border)">
-    <button onclick="openInvModal('${tipo}',${year})" style="height:24px;padding:0 12px;font-size:10px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar</button>
-  </div>`:'';
-
-  const sid=`inv_${tipo}_${year}`;
-  return `<div class="exp-h-block">
-    <div class="exp-h-hdr" onclick="tog('${sid}h','${sid}b','${sid}a')">
-      <span class="exp-h-name">${titulo}</span>
-      <span class="exp-h-arrow" id="${sid}a">▼</span>
-    </div>
-    <div class="exp-h-body" id="${sid}b">
-      <div id="invrows_${tipo}_${year}">${rows||'<div class="empty">Sin registros</div>'}</div>
-      ${addBtn}
-    </div>
-  </div>`;
-}
-
-function openInvModal(tipo,year){
-  if(tipo==='remedio'){
-    document.getElementById('inv-rem-nombre').value='';document.getElementById('inv-rem-precio').value='';document.getElementById('inv-rem-envase').value='';document.getElementById('inv-rem-fecha').value='';
-    document.getElementById('inv-remedio-modal').dataset.year=year;document.getElementById('inv-remedio-modal').style.display='flex';
-  }else if(tipo==='alimento'){
-    document.getElementById('inv-ali-nombre').value='';document.getElementById('inv-ali-precio').value='';document.getElementById('inv-ali-peso').value='25';document.getElementById('inv-ali-cantidad').value='';document.getElementById('inv-ali-fecha').value='';
-    document.getElementById('inv-alimento-modal').dataset.year=year;document.getElementById('inv-alimento-modal').style.display='flex';
-  }else if(tipo==='fardo'){
-    document.getElementById('inv-far-precio').value='';document.getElementById('inv-far-cantidad').value='';document.getElementById('inv-far-fecha').value='';
-    document.getElementById('inv-fardo-modal').dataset.year=year;document.getElementById('inv-fardo-modal').style.display='flex';
-  }
-}
-
-async function saveInvRemedio(){
-  const modal=document.getElementById('inv-remedio-modal');
-  if(!modal){toast('Error: modal no encontrado','err');return;}
-  const year=+modal.dataset.year;
-  const nombre=document.getElementById('inv-rem-nombre').value.trim();
-  const precio=+document.getElementById('inv-rem-precio').value;
-  const envase=+document.getElementById('inv-rem-envase').value;
-  const unidad=document.getElementById('inv-rem-unidad')?.value||'ml';
-  const fecha=document.getElementById('inv-rem-fecha')?.value||'';
-  if(!nombre||!precio||!envase){toast('Completa nombre, precio y envase','err');return;}
-  const btn=document.getElementById('inv-rem-save-btn');btn.disabled=true;btn.textContent='Guardando...';
-  try{
-    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'remedio',nombre,precio,envase_ml:envase,stock_ml:envase,envase_unidad:unidad,fecha_compra:fecha||null,user_id:currentUser?.id})});
-    allInventario=[...res,...allInventario];
-    if(fecha){const desc='Compra '+nombre+' '+envase+unidad;await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse:'General',fecha,tipo:'Compra Inventario',descripcion:desc,user_id:currentUser?.id})});const evRes=await sbFetch('eventos?select=*&order=created_at.desc&limit=1&user_id=eq.'+currentUser?.id);if(evRes.length)allEvents=[...allEvents,...evRes];}
-    document.getElementById('inv-remedio-modal').style.display='none';
-    renderInvBlocks();toast('✓ Remedio agregado'+(fecha?' + evento en calendario':''));
-  }catch(e){toast('Error: '+e.message,'err');}
-  btn.disabled=false;btn.textContent='Guardar';
-}
-
-async function saveInvAlimento(){
-  const year=+document.getElementById('inv-alimento-modal').dataset.year;
-  const nombre=document.getElementById('inv-ali-nombre').value.trim();
-  const precio=+document.getElementById('inv-ali-precio').value;
-  const peso=+document.getElementById('inv-ali-peso').value||25;
-  const cantidad=+document.getElementById('inv-ali-cantidad').value;
-  const fecha=document.getElementById('inv-ali-fecha').value;
-  if(!nombre||!precio||!cantidad){toast('Completa todos los campos','err');return;}
-  const btn=document.getElementById('inv-ali-save-btn');btn.disabled=true;btn.textContent='Guardando...';
-  try{
-    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'alimento',nombre,precio,peso_kg:peso,cantidad_sacos:cantidad,stock_sacos:cantidad,fecha_compra:fecha||null,user_id:currentUser?.id})});
-    allInventario=[...res,...allInventario];
-    if(fecha){const desc='Compra '+nombre+' '+cantidad+' sacos';await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse:'General',fecha,tipo:'Compra Inventario',descripcion:desc,user_id:currentUser?.id})});const evRes=await sbFetch('eventos?select=*&order=created_at.desc&limit=1&user_id=eq.'+currentUser?.id);if(evRes.length)allEvents=[...allEvents,...evRes];}
-    document.getElementById('inv-alimento-modal').style.display='none';
-    renderInvBlocks();toast('✓ Alimento agregado'+(fecha?' + evento en calendario':''));
-  }catch(e){toast('Error: '+e.message,'err');}
-  btn.disabled=false;btn.textContent='Guardar';
-}
-
-async function saveInvFardo(){
-  const year=+document.getElementById('inv-fardo-modal').dataset.year;
-  const tipoF=document.getElementById('inv-far-tipo').value;
-  const precio=+document.getElementById('inv-far-precio').value;
-  const cantidad=+document.getElementById('inv-far-cantidad').value;
-  const fecha=document.getElementById('inv-far-fecha').value;
-  if(!precio||!cantidad){toast('Completa todos los campos','err');return;}
-  const btn=document.getElementById('inv-far-save-btn');btn.disabled=true;btn.textContent='Guardando...';
-  try{
-    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'fardo',nombre:tipoF,precio,tipo_fardo:tipoF,cantidad_fardos:cantidad,stock_fardos:cantidad,fecha_compra:fecha||null,user_id:currentUser?.id})});
-    allInventario=[...res,...allInventario];
-    if(fecha){const desc='Compra fardos '+tipoF+' ('+cantidad+' unidades)';await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse:'General',fecha,tipo:'Compra Inventario',descripcion:desc,user_id:currentUser?.id})});const evRes=await sbFetch('eventos?select=*&order=created_at.desc&limit=1&user_id=eq.'+currentUser?.id);if(evRes.length)allEvents=[...allEvents,...evRes];}
-    document.getElementById('inv-fardo-modal').style.display='none';
-    renderInvBlocks();toast('✓ Fardo agregado'+(fecha?' + evento en calendario':''));
-  }catch(e){toast('Error: '+e.message,'err');}
-  btn.disabled=false;btn.textContent='Guardar';
-}
-
-function openInvUso(itemId){
-  const item=allInventario.find(i=>i.id===itemId);if(!item)return;
-  invUsoContext={item};
-  document.getElementById('inv-uso-title').textContent='Usar: '+item.nombre;
-  let info='',label='';
-  if(item.tipo==='remedio'){info=`Precio: ${clp(item.precio)} | Envase: ${item.envase_ml}${item.envase_unidad||'ml'} | Stock: ${item.stock_ml}${item.envase_unidad||'ml'}`;label=`Cantidad a usar (${item.envase_unidad||'ml'})`;}
-  else if(item.tipo==='alimento'){info=`Precio por saco: ${clp(item.precio)} | Stock: ${item.stock_sacos} sacos`;label='Sacos a usar';}
-  else if(item.tipo==='fardo'){info=`Precio por fardo: ${clp(item.precio)} | Stock: ${item.stock_fardos} fardos`;label='Fardos a usar';}
-  document.getElementById('inv-uso-info').textContent=info;
-  document.getElementById('inv-uso-cantidad-label').textContent=label;
-  document.getElementById('inv-uso-cantidad').value='';
-  document.getElementById('inv-uso-costo').textContent='$0';
-  const horses=sortedActive();
-  document.getElementById('inv-uso-caballo').innerHTML=horses.map(h=>`<option>${h}</option>`).join('');
-  document.getElementById('inv-uso-mes').value=new Date().getMonth()+1;
-  document.getElementById('inv-uso-modal').style.display='flex';
-}
-
-document.getElementById('inv-uso-cantidad').addEventListener('input',function(){
-  if(!invUsoContext)return;
-  const item=invUsoContext.item;const qty=+this.value;let costo=0;
-  if(item.tipo==='remedio')costo=(qty/item.envase_ml)*item.precio;
-  else if(item.tipo==='alimento')costo=qty*item.precio;
-  else if(item.tipo==='fardo')costo=qty*item.precio;
-  document.getElementById('inv-uso-costo').textContent=clp(Math.round(costo));
-});
-
-async function saveInvUso(){
-  if(!invUsoContext)return;
-  const item=invUsoContext.item;const qty=+document.getElementById('inv-uso-cantidad').value;
-  const horse=document.getElementById('inv-uso-caballo').value;const month=+document.getElementById('inv-uso-mes').value;const year=item.year;
-  if(!qty||qty<=0){toast('Ingresa la cantidad','err');return;}
-  let costo=0,newStock={};
-  if(item.tipo==='remedio'){if(qty>item.stock_ml){toast('Sin stock suficiente','err');return;}costo=(qty/item.envase_ml)*item.precio;newStock={stock_ml:item.stock_ml-qty};}
-  else if(item.tipo==='alimento'){if(qty>item.stock_sacos){toast('Sin stock suficiente','err');return;}costo=qty*item.precio;newStock={stock_sacos:item.stock_sacos-qty};}
-  else if(item.tipo==='fardo'){if(qty>item.stock_fardos){toast('Sin stock suficiente','err');return;}costo=qty*item.precio;newStock={stock_fardos:item.stock_fardos-qty};}
-  costo=Math.round(costo);
-  const catMap={'remedio':'Vitaminas / Antiparasitario / Hormonas','alimento':'Alimento','fardo':'Fardos'};
-  const cat=catMap[item.tipo];
-  const btn=document.getElementById('inv-uso-save-btn');btn.disabled=true;btn.textContent='Registrando...';
-  try{
-    await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat,amount:costo,note:'Inventario: '+item.nombre,user_id:currentUser?.id})});
-    await sbFetch('inventario?id=eq.'+item.id,{method:'PATCH',body:JSON.stringify(newStock)});
-    Object.assign(item,newStock);
-    document.getElementById('inv-uso-modal').style.display='none';
-    renderInvBlocks();
-    const uid=currentUser?.id;const f=uid?`&user_id=eq.${uid}`:'';
-    allEntries=await sbFetch('costos?select=*&order=year.desc,month.desc&limit=2000'+f);
-    toast('✓ Uso registrado — '+clp(costo)+' en '+horse);
-  }catch(e){toast('Error: '+e.message,'err');}
-  btn.disabled=false;btn.textContent='Registrar uso';
-}
-
-async function delInvItem(id){
-  if(!confirm('¿Eliminar este item del inventario?'))return;
-  try{
-    await sbFetch('inventario?id=eq.'+id,{method:'DELETE'});
-    allInventario=allInventario.filter(i=>i.id!==id);
-    renderInvBlocks();toast('Eliminado');
-  }catch(e){toast('Error','err');}
-}
-</script>
