@@ -201,8 +201,7 @@ select:focus,input:focus{border-color:var(--accent)}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div class="section-header" style="margin-bottom:0"><h2>Costos</h2><p>Abre año → caballo → mes para registrar</p></div>
       <div style="display:flex;align-items:center;gap:6px">
-        <select id="export-year-sel" style="height:28px;padding:0 8px;font-size:11px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)"></select>
-        <button onclick="exportExcel()" style="height:28px;padding:0 12px;font-size:11px;font-weight:500;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">📥 Excel</button>
+        <button onclick="exportExcelPrompt()" style="height:28px;padding:0 12px;font-size:11px;font-weight:500;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">📥 Exportar Excel</button>
       </div>
     </div>
     <div id="readonly-banner"></div>
@@ -531,7 +530,8 @@ async function loadAll(){
     dot.className='conn-dot ok';
     lbl.textContent='Conectado';
   }catch(e){dot.className='conn-dot err';lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
-  renderResumen();renderExpBlocks();populateExportYears();
+  renderResumen();renderExpBlocks();
+  setTimeout(populateExportYears, 100);
 }
 function tog(hdrId,bodyId,arrId){
   const b=document.getElementById(bodyId);if(!b)return;
