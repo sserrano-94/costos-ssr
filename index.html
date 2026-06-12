@@ -326,7 +326,7 @@ select:focus,input:focus{border-color:var(--accent)}
 </div>
 
 <!-- ADD RODEO CARD -->
-<div id="add-rodeo-card" class="card" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center">
+<div id="add-rodeo-card" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center">
   <div style="background:var(--surface);border-radius:var(--radius);padding:20px;width:90%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
     <div style="font-size:13px;font-weight:600;margin-bottom:14px">Agregar rodeo</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
@@ -1426,20 +1426,21 @@ async function saveRodeoCosto(rodeoId, cat, inputId, noteId){
     allRodeosCostos=[...allRodeosCostos,...res];
     document.getElementById(inputId).value='';
     document.getElementById(noteId).value='';
-    // Update display
-    const totalEl=document.getElementById('rtotal_'+rodeoId);
-    const total=allRodeosCostos.filter(c=>c.rodeo_id===rodeoId).reduce((s,c)=>s+Number(c.monto),0);
-    if(totalEl)totalEl.textContent=clp(total);
-    // Rebuild rows for this rodeo
-    const rowsEl=document.getElementById('rrows_'+rodeoId+'_'+cat.replace(/[^a-zA-Z0-9]/g,'_'));
+    const e=res[0];
+    // Add row to inline rodeos view
+    const rowsId=('rrrows_'+rodeoId+'_'+cat).replace(/[^a-zA-Z0-9]/g,'_');
+    const rowsEl=document.getElementById(rowsId);
     if(rowsEl){
-      const e=res[0];
       const div=document.createElement('div');
-      div.id='rc'+e.id;
-      div.style.cssText='display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--border);font-size:11px;';
-      div.innerHTML=`<span style="flex:1;color:var(--text-soft)">${e.nota||'—'}</span><span style="font-weight:500">${clp(e.monto)}</span>${isAdmin?`<button onclick="deleteRodeoCosto(${e.id},${rodeoId})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:12px">×</button>`:''}`;
-      rowsEl.appendChild(div);
+      div.id='rrc'+e.id;
+      div.style.cssText='display:flex;align-items:center;gap:8px;padding:2px 0;border-bottom:1px solid var(--border);font-size:10px;';
+      div.innerHTML=`<span style="flex:1;color:var(--text-soft)">${e.nota||'—'}</span><span style="font-weight:500">${clp(e.monto)}</span>${isAdmin?`<button onclick="deleteRodeoCosto(${e.id},${rodeoId})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:11px">×</button>`:''}`;
+      rowsEl.insertBefore(div, rowsEl.firstChild);
     }
+    // Update rodeo total
+    const total=allRodeosCostos.filter(c=>c.rodeo_id===rodeoId).reduce((s,c)=>s+Number(c.monto),0);
+    const totalEl=document.getElementById('rtotal_'+rodeoId);
+    if(totalEl)totalEl.textContent=clp(total);
     // Update year total
     const ytEl=document.getElementById('ryear_total_'+allRodeos.find(r=>r.id===rodeoId)?.year);
     if(ytEl){
@@ -1794,7 +1795,7 @@ function openAddRodeoModal(year){
   document.getElementById('new-rodeo-nombre').value='';
   document.getElementById('new-rodeo-fecha').value='';
   document.getElementById('add-rodeo-card').dataset.year=year;
-  document.getElementById('add-rodeo-card').style.display='block';
+  document.getElementById('add-rodeo-card').style.display='flex';
 }
 
 async function deleteRodeoAndRefresh(id,year){
@@ -1809,6 +1810,95 @@ async function deleteRodeoAndRefresh(id,year){
   }catch(e){toast('Error','err');}
 }
 
+
+// ===== RODEO GASTO MODAL =====
+let rodeoModalContext=null;
+
+function openRodeoGastoModal(rodeoId, rsid){
+  if(!isAdmin){toast('Sin permisos','err');return;}
+  rodeoModalContext={rodeoId, rsid};
+  const usedCats=allRodeosCostos.filter(c=>c.rodeo_id===rodeoId).map(c=>c.categoria);
+  const sel=document.getElementById('rodeo-modal-cat');
+  sel.innerHTML=RODEO_CATS.filter(c=>!usedCats.includes(c)).map(c=>`<option>${c}</option>`).join('');
+  document.getElementById('rodeo-modal-amt').value='';
+  document.getElementById('rodeo-modal-note').value='';
+  document.getElementById('rodeo-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('rodeo-modal-amt').focus(),100);
+}
+
+function closeRodeoModal(){
+  document.getElementById('rodeo-modal').style.display='none';
+  rodeoModalContext=null;
+}
+
+async function saveRodeoGastoModal(){
+  if(!rodeoModalContext)return;
+  const {rodeoId, rsid}=rodeoModalContext;
+  const cat=document.getElementById('rodeo-modal-cat').value;
+  const monto=+document.getElementById('rodeo-modal-amt').value;
+  const nota=document.getElementById('rodeo-modal-note').value.trim();
+  if(!monto){toast('Ingresa el monto','err');return;}
+  const btn=document.getElementById('rodeo-modal-save-btn');
+  btn.textContent='Guardando...';btn.disabled=true;
+  try{
+    const res=await sbFetch('rodeos_costos',{method:'POST',body:JSON.stringify({rodeo_id:rodeoId,categoria:cat,monto,nota,user_id:currentUser?.id})});
+    allRodeosCostos=[...allRodeosCostos,...res];
+    const e=res[0];
+    const rowsEl=document.getElementById('rrows_'+rsid);
+    if(rowsEl){
+      const div=document.createElement('div');
+      div.className='cat-row';div.id='rrc'+e.id;
+      div.innerHTML=`<span class="cat-name">${e.categoria}</span><span class="cat-val">${clp(e.monto)}</span><span class="cat-note">${e.nota||''}</span><button class="cat-del" onclick="deleteRodeoCostoAndRefresh(${e.id},${rodeoId},0)">×</button>`;
+      rowsEl.appendChild(div);
+    }
+    const total=allRodeosCostos.filter(c=>c.rodeo_id===rodeoId).reduce((s,c)=>s+Number(c.monto),0);
+    const totalEl=document.getElementById('rtotal_'+rodeoId);
+    if(totalEl)totalEl.textContent=clp(total);
+    closeRodeoModal();
+    toast('✓ Guardado');
+  }catch(err){toast('Error: '+err.message,'err');}
+  btn.textContent='Guardar';btn.disabled=false;
+}
+
+async function deleteRodeoCostoAndRefresh(id, rodeoId, year){
+  if(!confirm('¿Eliminar?'))return;
+  try{
+    await sbFetch('rodeos_costos?id=eq.'+id,{method:'DELETE'});
+    allRodeosCostos=allRodeosCostos.filter(c=>c.id!==id);
+    const el=document.getElementById('rrc'+id);if(el)el.remove();
+    const total=allRodeosCostos.filter(c=>c.rodeo_id===rodeoId).reduce((s,c)=>s+Number(c.monto),0);
+    const totalEl=document.getElementById('rtotal_'+rodeoId);
+    if(totalEl)totalEl.textContent=total?clp(total):'$0';
+    toast('Eliminado');
+  }catch(e){toast('Error','err');}
+}
+
 </script>
+
+<!-- MODAL RODEO GASTO -->
+<div id="rodeo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:var(--radius);padding:20px;width:90%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600">Agregar gasto al rodeo</div>
+      <button onclick="closeRodeoModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-soft)">×</button>
+    </div>
+    <div class="form-field" style="margin-bottom:10px">
+      <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Categoría</label>
+      <select id="rodeo-modal-cat" style="width:100%;height:36px;font-size:13px"></select>
+    </div>
+    <div class="form-field" style="margin-bottom:10px">
+      <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Monto</label>
+      <input type="number" id="rodeo-modal-amt" placeholder="0" min="0" style="width:100%">
+    </div>
+    <div class="form-field" style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Nota (opcional)</label>
+      <input type="text" id="rodeo-modal-note" placeholder="Descripción breve" style="width:100%">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeRodeoModal()" class="btn" style="flex:1">Cancelar</button>
+      <button onclick="saveRodeoGastoModal()" class="btn btn-primary" id="rodeo-modal-save-btn" style="flex:1">Guardar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
