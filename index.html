@@ -1730,63 +1730,38 @@ function renderRodeosForYear(year){
   const yearRodeos=allRodeos.filter(r=>r.year===year);
   const container=document.getElementById('rod-content'+year);
   if(!container)return;
-  
-  if(!yearRodeos.length){
-    container.innerHTML='<div class="empty">Sin rodeos este año</div>';
-    return;
-  }
-  
+  if(!yearRodeos.length){container.innerHTML='<div class="empty">Sin rodeos este año</div>';return;}
   const total=allRodeosCostos.filter(c=>yearRodeos.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
   const ytEl=document.getElementById('eyrt'+year);
   if(ytEl)ytEl.textContent=total?clp(total):'$0';
-  
   container.innerHTML=yearRodeos.map(rodeo=>{
     const costos=allRodeosCostos.filter(c=>c.rodeo_id===rodeo.id);
     const rtotal=costos.reduce((s,c)=>s+Number(c.monto),0);
     const fecha=new Date(rodeo.fecha+'T12:00:00').toLocaleDateString('es-CL');
     const rsid='ri'+rodeo.id;
-    
-    const catsHTML=RODEO_CATS.map(cat=>{
-      const catCostos=costos.filter(c=>c.categoria===cat);
-      const catTotal=catCostos.reduce((s,c)=>s+Number(c.monto),0);
-      const cid=('ramt_'+rsid+'_'+cat).replace(/[^a-zA-Z0-9]/g,'_');
-      const nid=('rnote_'+rsid+'_'+cat).replace(/[^a-zA-Z0-9]/g,'_');
-      const rowsId=('rrrows_'+rodeo.id+'_'+cat).replace(/[^a-zA-Z0-9]/g,'_');
-      
-      const existingRows=catCostos.map(c=>`<div id="rrc${c.id}" style="display:flex;align-items:center;gap:8px;padding:2px 0;border-bottom:1px solid var(--border);font-size:10px;">
-        <span style="flex:1;color:var(--text-soft)">${c.nota||'—'}</span>
-        <span style="font-weight:500">${clp(c.monto)}</span>
-        ${isAdmin?`<button onclick="deleteRodeoCosto(${c.id},${rodeo.id})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:11px">×</button>`:''}
-      </div>`).join('');
-      
-      const addRow=isAdmin?`<div style="display:flex;gap:4px;align-items:center;margin-top:3px;flex-wrap:wrap">
-        <input type="number" id="${cid}" placeholder="Monto" style="width:80px;height:22px;padding:0 5px;font-size:10px;border:1px solid var(--border);border-radius:3px">
-        <input type="text" id="${nid}" placeholder="Nota" style="flex:1;min-width:60px;height:22px;padding:0 5px;font-size:10px;border:1px solid var(--border);border-radius:3px">
-        <button onclick="saveRodeoCosto(${rodeo.id},'${cat}','${cid}','${nid}')" style="height:22px;padding:0 8px;font-size:10px;font-weight:600;border-radius:3px;border:none;background:var(--accent);color:#fff;cursor:pointer">✓</button>
-      </div>`:'';
-      
-      return `<div style="border-bottom:1px solid var(--border);padding:6px 16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-          <span style="font-size:11px;font-weight:600">${cat}</span>
-          <span style="font-size:10px;color:var(--accent)">${catTotal?clp(catTotal):''}</span>
-        </div>
-        <div id="${rowsId}">${existingRows}</div>
-        ${addRow}
-      </div>`;
-    }).join('');
-    
-    const delBtn=isAdmin?`<button onclick="deleteRodeoAndRefresh(${rodeo.id},${year})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px">×</button>`:'';
-    
+    const existingRows=costos.map(c=>`<div class="cat-row" id="rrc${c.id}">
+      <span class="cat-name">${c.categoria}</span>
+      <span class="cat-val">${clp(c.monto)}</span>
+      <span class="cat-note">${c.nota||''}</span>
+      ${isAdmin?`<button class="cat-del" onclick="deleteRodeoCostoAndRefresh(${c.id},${rodeo.id},${year})">×</button>`:''}
+    </div>`).join('');
+    const addBtn=isAdmin?`<div style="padding:4px 24px 6px;border-top:1px solid var(--border);background:#f0f4fb">
+      <button onclick="openRodeoGastoModal(${rodeo.id},'${rsid}')" style="height:20px;padding:0 10px;font-size:9px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar gasto</button>
+    </div>`:'';
+    const delBtn=isAdmin?`<button onclick="deleteRodeoAndRefresh(${rodeo.id},${year})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 6px">×</button>`:'';
     return `<div class="exp-h-block" id="rbi${rsid}">
-      <div class="exp-h-hdr" onclick="tog('rbhi${rsid}','rbdi${rsid}','rbai${rsid}')">
-        <div><span class="exp-h-name">${rodeo.nombre}</span><span style="font-size:10px;color:var(--text-soft);margin-left:8px">${fecha}</span></div>
+      <div class="exp-horse-hdr" onclick="tog('rbhi${rsid}','rbdi${rsid}','rbai${rsid}')">
+        <div><span class="exp-horse-name">${rodeo.nombre}</span><span style="font-size:10px;color:var(--text-soft);margin-left:8px">${fecha}</span></div>
         <div style="display:flex;align-items:center;gap:8px">
-          <span class="exp-h-total">${rtotal?clp(rtotal):''}</span>
+          <span class="exp-h-total" id="rtotal_${rodeo.id}">${rtotal?clp(rtotal):'$0'}</span>
           ${delBtn}
           <span class="exp-h-arrow" id="rbai${rsid}">▼</span>
         </div>
       </div>
-      <div class="exp-h-body" id="rbdi${rsid}">${catsHTML}</div>
+      <div class="exp-h-body" id="rbdi${rsid}">
+        <div id="rrows_${rsid}">${existingRows}</div>
+        ${addBtn}
+      </div>
     </div>`;
   }).join('');
 }
