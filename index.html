@@ -1143,6 +1143,21 @@ async function deactivateHorseFromEdit(nombre,id){
   }catch(e){toast('Error','err');}
 }
 
+async function deleteHorsePermanently(nombre,id){
+  if(!confirm('⚠️ ¿Eliminar '+nombre+' DEFINITIVAMENTE? Se borrarán todos sus datos y no se puede recuperar.'))return;
+  if(!confirm('¿Estás seguro? Esta acción es irreversible.'))return;
+  try{
+    await sbFetch('costos?horse=eq.'+encodeURIComponent(nombre),{method:'DELETE'});
+    await sbFetch('eventos?horse=eq.'+encodeURIComponent(nombre),{method:'DELETE'});
+    await sbFetch('fotos_caballos?horse=eq.'+encodeURIComponent(nombre),{method:'DELETE'});
+    await sbFetch('caballos?id=eq.'+id,{method:'DELETE'});
+    allHorses=allHorses.filter(h=>h.id!==id);
+    allEntries=allEntries.filter(e=>e.horse!==nombre);
+    renderCaballos();renderResumen();
+    toast(nombre+' eliminado definitivamente');
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
 function toggleEditHorse(id){
   const el=document.getElementById('edit-horse-'+id);
   if(el)el.style.display=el.style.display==='none'?'block':'none';
@@ -1475,9 +1490,14 @@ async function addRodeo(){
     document.getElementById('new-rodeo-nombre').value='';
     document.getElementById('new-rodeo-fecha').value='';
     document.getElementById('add-rodeo-card').style.display='none';
-    const targetYear=document.getElementById('add-rodeo-card').dataset.year;
-    if(targetYear)renderRodeosForYear(+targetYear);
+    const targetYear=+document.getElementById('add-rodeo-card').dataset.year;
     document.getElementById('add-rodeo-card').style.display='none';
+    if(targetYear){
+      // Open the new rodeo's body automatically
+      const rsid='ri'+res[0].id;
+      renderRodeosForYear(targetYear);
+      setTimeout(()=>{tog('rbhi'+rsid,'rbdi'+rsid,'rbai'+rsid);},100);
+    }
     toast('✓ Rodeo agregado');
   }catch(e){toast('Error: '+e.message,'err');}
 }
@@ -2215,13 +2235,15 @@ function openInvModal(tipo,year){
 }
 
 async function saveInvRemedio(){
-  const year=+document.getElementById('inv-remedio-modal').dataset.year;
+  const modal=document.getElementById('inv-remedio-modal');
+  if(!modal){toast('Error: modal no encontrado','err');return;}
+  const year=+modal.dataset.year;
   const nombre=document.getElementById('inv-rem-nombre').value.trim();
   const precio=+document.getElementById('inv-rem-precio').value;
   const envase=+document.getElementById('inv-rem-envase').value;
-  const unidad=document.getElementById('inv-rem-unidad').value;
-  const fecha=document.getElementById('inv-rem-fecha').value;
-  if(!nombre||!precio||!envase){toast('Completa todos los campos','err');return;}
+  const unidad=document.getElementById('inv-rem-unidad')?.value||'ml';
+  const fecha=document.getElementById('inv-rem-fecha')?.value||'';
+  if(!nombre||!precio||!envase){toast('Completa nombre, precio y envase','err');return;}
   const btn=document.getElementById('inv-rem-save-btn');btn.disabled=true;btn.textContent='Guardando...';
   try{
     const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'remedio',nombre,precio,envase_ml:envase,stock_ml:envase,envase_unidad:unidad,fecha_compra:fecha||null,user_id:currentUser?.id})});
