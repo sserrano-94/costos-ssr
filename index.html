@@ -1916,6 +1916,49 @@ async function deleteRodeoCostoAndRefresh(id, rodeoId, year){
   }catch(e){toast('Error','err');}
 }
 
+// ===== EXPORT EXCEL =====
+function exportExcelPrompt(){
+  const years=[...new Set([...allEntries.map(e=>e.year),...allGenerales.map(e=>e.year),...allRodeos.map(r=>r.year)])].sort((a,b)=>b-a);
+  const defaultYear=years[0]||new Date().getFullYear();
+  const input=prompt('Año a exportar (disponibles: '+years.join(', ')+')',defaultYear);
+  if(!input)return;
+  const year=+input;
+  if(!year){toast('Año inválido','err');return;}
+  exportExcel(year);
+}
+
+function exportExcel(year){
+  if(typeof XLSX==='undefined'){toast('Librería no cargada','err');return;}
+  const wb=XLSX.utils.book_new();
+  const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const fmt=n=>n?Math.round(n):0;
+  const ye=allEntries.filter(e=>e.year===year);
+  const yg=allGenerales.filter(e=>e.year===year);
+  const yr=allRodeos.filter(r=>r.year===year);
+  const yrc=allRodeosCostos.filter(c=>yr.some(r=>r.id===c.rodeo_id));
+  const totCab=ye.reduce((s,e)=>s+Number(e.amount),0);
+  const totGen=yg.reduce((s,e)=>s+Number(e.monto),0);
+  const totRod=yrc.reduce((s,e)=>s+Number(e.monto),0);
+  const totAnual=totCab+totGen+totRod;
+  const wsRes=XLSX.utils.aoa_to_sheet([['RESUMEN COSTOS SSR — '+year],[],['Categoría','Total año','% del total'],['Generales',fmt(totGen),totAnual?Math.round(totGen/totAnual*100)+'%':'—'],['Caballos',fmt(totCab),totAnual?Math.round(totCab/totAnual*100)+'%':'—'],['Rodeos',fmt(totRod),totAnual?Math.round(totRod/totAnual*100)+'%':'—'],[],['TOTAL ANUAL',fmt(totAnual),'100%']]);
+  wsRes['!cols']=[{wch:20},{wch:18},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,wsRes,'Resumen');
+  const genCats=[...new Set(yg.map(e=>e.categoria))].sort();
+  const wsGen=XLSX.utils.aoa_to_sheet([['GASTOS GENERALES — '+year],[],['Categoría',...MESES,'Total anual'],...genCats.map(cat=>[cat,...Array.from({length:12},(_,i)=>fmt(yg.filter(e=>e.categoria===cat&&e.month===i+1).reduce((s,e)=>s+Number(e.monto),0))||'—'),fmt(yg.filter(e=>e.categoria===cat).reduce((s,e)=>s+Number(e.monto),0))]),  [],['Total mes',...Array.from({length:12},(_,i)=>fmt(yg.filter(e=>e.month===i+1).reduce((s,e)=>s+Number(e.monto),0))||'—'),fmt(totGen)]]);
+  wsGen['!cols']=[{wch:22},...Array(13).fill({wch:12})];
+  XLSX.utils.book_append_sheet(wb,wsGen,'Generales');
+  const horses=sortedActive();
+  const wsCab=XLSX.utils.aoa_to_sheet([['GASTOS CABALLOS — '+year],[],['Caballo',...MESES,'Total año'],...horses.map(h=>[h,...Array.from({length:12},(_,i)=>fmt(ye.filter(e=>e.horse===h&&e.month===i+1).reduce((s,e)=>s+Number(e.amount),0))||'—'),fmt(ye.filter(e=>e.horse===h).reduce((s,e)=>s+Number(e.amount),0))]),  [],['Total mes',...Array.from({length:12},(_,i)=>fmt(ye.filter(e=>e.month===i+1).reduce((s,e)=>s+Number(e.amount),0))||'—'),fmt(totCab)]]);
+  wsCab['!cols']=[{wch:18},...Array(13).fill({wch:12})];
+  XLSX.utils.book_append_sheet(wb,wsCab,'Caballos');
+  const rodCats=['Invitación','Flete','Series','Peticero','Otros'];
+  const wsRod=XLSX.utils.aoa_to_sheet([['GASTOS RODEOS — '+year],[],['Rodeo','Fecha',...rodCats,'Total'],...yr.map(r=>{const rc=yrc.filter(c=>c.rodeo_id===r.id);return[r.nombre,new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL'),...rodCats.map(cat=>fmt(rc.filter(c=>c.categoria===cat).reduce((s,c)=>s+Number(c.monto),0))||'—'),fmt(rc.reduce((s,c)=>s+Number(c.monto),0))];}),  [],['Total','',...rodCats.map(cat=>fmt(yrc.filter(c=>c.categoria===cat).reduce((s,c)=>s+Number(c.monto),0))||'—'),fmt(totRod)]]);
+  wsRod['!cols']=[{wch:20},{wch:12},...Array(6).fill({wch:12})];
+  XLSX.utils.book_append_sheet(wb,wsRod,'Rodeos');
+  XLSX.writeFile(wb,'CostosSSR_'+year+'.xlsx');
+  toast('✓ Excel descargado');
+}
+
 </script>
 
 <!-- MODAL RODEO GASTO -->
