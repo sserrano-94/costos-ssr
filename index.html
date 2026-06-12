@@ -1931,14 +1931,20 @@ async function deleteRodeoCostoAndRefresh(id, rodeoId, year){
 function exportPDFPrompt(){
   const years=[...new Set([...allEntries.map(e=>e.year),...allGenerales.map(e=>e.year),...allRodeos.map(r=>r.year)])].sort((a,b)=>b-a);
   const defaultYear=years[0]||new Date().getFullYear();
-  const input=prompt('Año a exportar (disponibles: '+years.join(', ')+')',defaultYear);
-  if(!input)return;
-  const year=+input;
+  const inputYear=prompt('Año del informe (disponibles: '+years.join(', ')+')',defaultYear);
+  if(!inputYear)return;
+  const year=+inputYear;
   if(!year){toast('Año inválido','err');return;}
-  generarPDF(year);
+  const MESES_N=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const defaultMonth=new Date().getMonth()+1;
+  const inputMonth=prompt('Mes del informe (1-12). Ej: 1=Enero, 6=Junio, 12=Diciembre',defaultMonth);
+  if(!inputMonth)return;
+  const month=+inputMonth;
+  if(!month||month<1||month>12){toast('Mes inválido','err');return;}
+  generarPDF(year,month);
 }
 
-function generarPDF(year){
+function generarPDF(year,month){
   const J=window.jspdf;
   if(!J){toast('Librería PDF no cargada, recarga la página','err');return;}
   const doc=new J.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -1965,33 +1971,40 @@ function generarPDF(year){
   doc.text('1. Caballos',ML,y);y+=6;
   doc.setDrawColor(43,95,166);doc.line(ML,y,ML+CW,y);y+=5;
   doc.setTextColor(30,30,30);doc.setFontSize(10);doc.setFont('helvetica','normal');
-  doc.text('Caballos activos: '+activos.length+' | Inactivos: '+inactivos.length,ML,y);y+=5;
+  doc.text('Total activos: '+activos.length+' | Inactivos: '+inactivos.length,ML,y);y+=6;
   if(Object.keys(estados).length){
-    Object.entries(estados).forEach(([est,cnt])=>{checkY(5);doc.text('  • '+est+': '+cnt,ML,y);y+=4.5;});
+    doc.setFont('helvetica','bold');doc.text('Caballos por estado:',ML,y);y+=5;
+    doc.setFont('helvetica','normal');
+    Object.entries(estados).forEach(([est,cnt])=>{checkY(5);doc.text('  • '+est+': '+cnt+' caballo'+(cnt>1?'s':''),ML,y);y+=4.5;});
+    const sinEstado=activos.filter(n=>!allHorses.find(h=>h.nombre===n&&h.estado)).length;
+    if(sinEstado>0){checkY(5);doc.text('  • Sin estado definido: '+sinEstado,ML,y);y+=4.5;}
+    y+=3;
   }
-  y+=2;doc.setFont('helvetica','bold');doc.text('Listado:',ML,y);y+=5;doc.setFont('helvetica','normal');
+  doc.setFont('helvetica','bold');doc.text('Listado de caballos activos:',ML,y);y+=5;doc.setFont('helvetica','normal');
   activos.forEach(nombre=>{
     checkY(5);
     const info=allHorses.find(h=>h.nombre===nombre);
     const edad=info?calcAge(info.fecha_nacimiento):'—';
-    doc.text('  • '+nombre+(info&&info.estado?' ('+info.estado+')':'')+' — '+edad,ML,y);y+=4.5;
+    doc.text('  • '+nombre+' — '+edad,ML,y);y+=4.5;
   });
   y+=6;
 
   // SECCIÓN 2: COSTOS
   checkY(15);
   doc.setTextColor(43,95,166);doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('2. Resumen de costos '+year,ML,y);y+=6;
+  doc.text('2. Costos — '+nomMes+' '+year,ML,y);y+=6;
   doc.setDrawColor(43,95,166);doc.line(ML,y,ML+CW,y);y+=5;
   doc.setTextColor(30,30,30);doc.setFontSize(10);
-  const ye=allEntries.filter(e=>e.year===year);
-  const yg=allGenerales.filter(e=>e.year===year);
+  const MESES_F2=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const nomMes=MESES_F2[month-1];
+  const ye=allEntries.filter(e=>e.year===year&&e.month===month);
+  const yg=allGenerales.filter(e=>e.year===year&&e.month===month);
   const yr2=allRodeos.filter(r=>r.year===year);
   const yrc2=allRodeosCostos.filter(c=>yr2.some(r=>r.id===c.rodeo_id));
   const totCab=ye.reduce((s,e)=>s+Number(e.amount),0);
   const totGen=yg.reduce((s,e)=>s+Number(e.monto),0);
   const totRod=yrc2.reduce((s,e)=>s+Number(e.monto),0);
-  const totAnual=totCab+totGen+totRod;
+  const totMes=totCab+totGen;
 
   doc.setFont('helvetica','bold');doc.text('Gastos generales:',ML,y);y+=5;
   if(!yg.length){doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);doc.text('  Sin información aún.',ML,y);y+=5;doc.setTextColor(30,30,30);}
@@ -2004,7 +2017,7 @@ function generarPDF(year){
 
   checkY(8);doc.setFillColor(232,238,248);doc.rect(ML,y-1,CW,8,'F');
   doc.setTextColor(43,95,166);doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('TOTAL ANUAL: '+clpP(totAnual),ML+2,y+4.5);y+=12;
+  doc.text('TOTAL MES: '+clpP(totMes),ML+2,y+4.5);y+=12;
 
   // SECCIÓN 3: RODEOS
   checkY(15);doc.setTextColor(43,95,166);doc.setFontSize(13);doc.setFont('helvetica','bold');
@@ -2016,9 +2029,9 @@ function generarPDF(year){
   // SECCIÓN 4: CALENDARIO
   checkY(15);doc.setTextColor(43,95,166);doc.setFontSize(13);doc.setFont('helvetica','bold');
   const mesAct=new Date().getMonth(),anioAct=new Date().getFullYear();
-  doc.text('4. Calendario — '+MESES_F[mesAct]+' '+anioAct,ML,y);y+=6;doc.setDrawColor(43,95,166);doc.line(ML,y,ML+CW,y);y+=5;
+  doc.text('4. Calendario — '+MESES_F[month-1]+' '+year,ML,y);y+=6;doc.setDrawColor(43,95,166);doc.line(ML,y,ML+CW,y);y+=5;
   doc.setTextColor(30,30,30);doc.setFontSize(10);
-  const evMes=allEvents.filter(e=>{const d=new Date(e.fecha+'T12:00:00');return d.getMonth()===mesAct&&d.getFullYear()===anioAct;}).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+  const evMes=allEvents.filter(e=>{const d=new Date(e.fecha+'T12:00:00');return d.getMonth()===(month-1)&&d.getFullYear()===year;}).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
   if(!evMes.length){doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);doc.text('Sin eventos este mes.',ML,y);y+=8;doc.setTextColor(30,30,30);}
   else{doc.setFillColor(232,238,248);doc.rect(ML,y-1,CW,7,'F');doc.setFont('helvetica','bold');doc.setTextColor(43,95,166);doc.text('Fecha',ML+1,y+4);doc.text('Caballo',ML+28,y+4);doc.text('Tipo',ML+68,y+4);doc.text('Descripción',ML+108,y+4);y+=8;doc.setFont('helvetica','normal');doc.setTextColor(30,30,30);evMes.forEach(ev=>{checkY(6);doc.text(new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-CL'),ML+1,y);doc.text(ev.horse.substring(0,14),ML+28,y);doc.text(ev.tipo.substring(0,18),ML+68,y);doc.text((ev.descripcion||'').substring(0,20),ML+108,y);y+=5;});y+=3;}
 
@@ -2037,7 +2050,7 @@ function generarPDF(year){
   const pc=doc.internal.getNumberOfPages();
   for(let i=1;i<=pc;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(150,150,150);doc.setFont('helvetica','normal');doc.text('Costos SSR — '+year+' | Pág. '+i+' de '+pc,PW/2,290,{align:'center'});}
 
-  doc.save('InformeSSR_'+year+'.pdf');
+  doc.save('InformeSSR_'+year+'_'+String(month).padStart(2,'0')+'.pdf');
   toast('✓ PDF descargado');
 }
 </script>
