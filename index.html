@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Costos SSR — Caballos</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1917;--text-soft:#6b6860;--accent:#2b5fa6;--accent-light:#e8eef8;--green:#1a7a4a;--red:#c0392b;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.07)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -197,7 +198,13 @@ select:focus,input:focus{border-color:var(--accent)}
     <div id="year-blocks"></div>
   </div>
   <div class="section" id="tab-ingresar">
-    <div class="section-header"><h2>Costos</h2><p>Abre año → caballo → mes para registrar</p></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="section-header" style="margin-bottom:0"><h2>Costos</h2><p>Abre año → caballo → mes para registrar</p></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <select id="export-year-sel" style="height:28px;padding:0 8px;font-size:11px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)"></select>
+        <button onclick="exportExcel()" style="height:28px;padding:0 12px;font-size:11px;font-weight:500;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">📥 Excel</button>
+      </div>
+    </div>
     <div id="readonly-banner"></div>
     <div id="exp-blocks"></div>
     <div style="display:flex;justify-content:flex-end;margin-top:16px">
@@ -524,7 +531,7 @@ async function loadAll(){
     dot.className='conn-dot ok';
     lbl.textContent='Conectado';
   }catch(e){dot.className='conn-dot err';lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
-  renderResumen();renderExpBlocks();
+  renderResumen();renderExpBlocks();populateExportYears();
 }
 function tog(hdrId,bodyId,arrId){
   const b=document.getElementById(bodyId);if(!b)return;
@@ -1178,7 +1185,7 @@ function showTab(name){
   document.querySelectorAll('.nav-tab').forEach((btn,i)=>{btn.classList.toggle('active',['resumen','ingresar','caballos','calendario','inventario'][i]===name);});
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='resumen')renderResumen();
-  if(name==='ingresar'){renderExpBlocks();const curY=new Date().getFullYear();setTimeout(()=>{const b=document.getElementById('eyb'+curY);const a=document.getElementById('eya'+curY);const h=document.getElementById('eyh'+curY);if(b&&!b.classList.contains('open')){b.classList.add('open');if(a)a.classList.add('open');if(h)h.classList.add('open');}},50);}
+  if(name==='ingresar'){renderExpBlocks();populateExportYears();const curY=new Date().getFullYear();setTimeout(()=>{const b=document.getElementById('eyb'+curY);const a=document.getElementById('eya'+curY);const h=document.getElementById('eyh'+curY);if(b&&!b.classList.contains('open')){b.classList.add('open');if(a)a.classList.add('open');if(h)h.classList.add('open');}},50);}
   if(name==='caballos')renderCaballos();
   if(name==='calendario'){loadEvents().then(()=>{calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();});}
   if(name==='inventario'){loadInventario().then(()=>renderInvBlocks());}
