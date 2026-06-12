@@ -596,6 +596,7 @@ function renderResumen(){
 
         </div>
         <div class="horse-detail-info">
+          ${info&&info.estado?`<div class="horse-detail-row" style="grid-column:1/-1">Estado: <span style="color:var(--accent)">${info.estado}</span></div>`:''}
           <div class="horse-detail-row">Número: <span>${numero}</span></div>
           <div class="horse-detail-row">Nacimiento: <span>${dob}</span></div>
           <div class="horse-detail-row">Padre: <span>${padre}</span></div>
@@ -1189,6 +1190,7 @@ let calMonth = new Date().getMonth(); // 0-indexed
 let allEvents = [];
 
 const EVENT_COLORS = {
+  'Compra Inventario': {bg:'#fff8e1',border:'#f59e0b',dot:'#f59e0b',text:'#92400e'},
   'Herraje': {bg:'#e8f4fd',border:'#2b5fa6',dot:'#2b5fa6',text:'#1a3a6b'},
   'Vitaminas / Antiparasitario / Hormonas': {bg:'#e8f7ee',border:'#1a7a4a',dot:'#1a7a4a',text:'#0f4a2c'},
   'default': {bg:'#f3eeff',border:'#7b5ea7',dot:'#7b5ea7',text:'#4a2d7a'}
@@ -1945,6 +1947,7 @@ async function deleteRodeoCostoAndRefresh(id, rodeoId, year){
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
       <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Nombre</label><input type="text" id="inv-rem-nombre" placeholder="Ej: Febrectal" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
       <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Precio ($)</label><input type="number" id="inv-rem-precio" placeholder="0" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Fecha de compra</label><input type="date" id="inv-rem-fecha" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Envase (ml o L)</label><input type="number" id="inv-rem-envase" placeholder="Ej: 50" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
         <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Unidad</label>
@@ -1971,6 +1974,7 @@ async function deleteRodeoCostoAndRefresh(id, rodeoId, year){
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
       <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Nombre</label><input type="text" id="inv-ali-nombre" placeholder="Ej: Performance" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
       <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Precio por saco ($)</label><input type="number" id="inv-ali-precio" placeholder="0" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Fecha de compra</label><input type="date" id="inv-ali-fecha" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Peso saco (kg)</label><input type="number" id="inv-ali-peso" placeholder="25" value="25" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
         <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Cantidad sacos</label><input type="number" id="inv-ali-cantidad" placeholder="0" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
@@ -1996,6 +2000,7 @@ async function deleteRodeoCostoAndRefresh(id, rodeoId, year){
         </select>
       </div>
       <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Precio por fardo ($)</label><input type="number" id="inv-far-precio" placeholder="0" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Fecha de compra</label><input type="date" id="inv-far-fecha" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
       <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Cantidad</label><input type="number" id="inv-far-cantidad" placeholder="0" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
     </div>
     <div style="display:flex;gap:8px">
@@ -2116,8 +2121,9 @@ function buildInvCategoria(titulo, tipo, year, items){
       usarBtn=isAdmin?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:'';
     }
     const delBtn=isAdmin?`<button onclick="delInvItem(${item.id})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:12px;margin-left:4px">×</button>`:'';
+    const fechaCompra=item.fecha_compra?new Date(item.fecha_compra+'T12:00:00').toLocaleDateString('es-CL'):'';
     return `<div style="display:flex;align-items:center;padding:6px 20px;border-bottom:1px solid var(--border);gap:8px;flex-wrap:wrap" id="invitem${item.id}">
-      <span style="font-size:12px;font-weight:500;flex:1">${item.nombre}</span>
+      <span style="font-size:12px;font-weight:500;flex:1">${item.nombre}${fechaCompra?`<span style="font-size:9px;color:var(--text-soft);margin-left:6px">📅 ${fechaCompra}</span>`:''}</span>
       <span style="font-size:11px;color:var(--accent)">${clp(item.precio)}</span>
       ${stockInfo}
       ${usarBtn}${delBtn}
@@ -2172,12 +2178,20 @@ async function saveInvRemedio(){
   if(!nombre||!precio||!envase){toast('Completa todos los campos','err');return;}
   const btn=document.getElementById('inv-rem-save-btn');
   btn.disabled=true;btn.textContent='Guardando...';
+  const fecha=document.getElementById('inv-rem-fecha').value;
   try{
-    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'remedio',nombre,precio,envase_ml:envase,stock_ml:envase,envase_unidad:unidad,user_id:currentUser?.id})});
+    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'remedio',nombre,precio,envase_ml:envase,stock_ml:envase,envase_unidad:unidad,fecha_compra:fecha||null,user_id:currentUser?.id})});
     allInventario=[...res,...allInventario];
+    // Create calendar event
+    if(fecha){
+      const desc='Compra '+nombre+' '+envase+unidad;
+      await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse:'General',fecha,tipo:'Compra Inventario',descripcion:desc,user_id:currentUser?.id})});
+      const evRes=await sbFetch('eventos?select=*&order=created_at.desc&limit=1&user_id=eq.'+currentUser?.id);
+      if(evRes.length)allEvents=[...allEvents,...evRes];
+    }
     document.getElementById('inv-remedio-modal').style.display='none';
     renderInvBlocks();
-    toast('✓ Remedio agregado');
+    toast('✓ Remedio agregado'+(fecha?' + evento en calendario':''));
   }catch(e){toast('Error: '+e.message,'err');}
   btn.disabled=false;btn.textContent='Guardar';
 }
@@ -2191,12 +2205,19 @@ async function saveInvAlimento(){
   if(!nombre||!precio||!cantidad){toast('Completa todos los campos','err');return;}
   const btn=document.getElementById('inv-ali-save-btn');
   btn.disabled=true;btn.textContent='Guardando...';
+  const fecha=document.getElementById('inv-ali-fecha').value;
   try{
-    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'alimento',nombre,precio,peso_kg:peso,cantidad_sacos:cantidad,stock_sacos:cantidad,user_id:currentUser?.id})});
+    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'alimento',nombre,precio,peso_kg:peso,cantidad_sacos:cantidad,stock_sacos:cantidad,fecha_compra:fecha||null,user_id:currentUser?.id})});
     allInventario=[...res,...allInventario];
+    if(fecha){
+      const desc='Compra '+nombre+' '+cantidad+' sacos';
+      await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse:'General',fecha,tipo:'Compra Inventario',descripcion:desc,user_id:currentUser?.id})});
+      const evRes=await sbFetch('eventos?select=*&order=created_at.desc&limit=1&user_id=eq.'+currentUser?.id);
+      if(evRes.length)allEvents=[...allEvents,...evRes];
+    }
     document.getElementById('inv-alimento-modal').style.display='none';
     renderInvBlocks();
-    toast('✓ Alimento agregado');
+    toast('✓ Alimento agregado'+(fecha?' + evento en calendario':''));
   }catch(e){toast('Error: '+e.message,'err');}
   btn.disabled=false;btn.textContent='Guardar';
 }
@@ -2209,12 +2230,19 @@ async function saveInvFardo(){
   if(!precio||!cantidad){toast('Completa todos los campos','err');return;}
   const btn=document.getElementById('inv-far-save-btn');
   btn.disabled=true;btn.textContent='Guardando...';
+  const fecha=document.getElementById('inv-far-fecha').value;
   try{
-    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'fardo',nombre:tipoF,precio,tipo_fardo:tipoF,cantidad_fardos:cantidad,stock_fardos:cantidad,user_id:currentUser?.id})});
+    const res=await sbFetch('inventario',{method:'POST',body:JSON.stringify({year,tipo:'fardo',nombre:tipoF,precio,tipo_fardo:tipoF,cantidad_fardos:cantidad,stock_fardos:cantidad,fecha_compra:fecha||null,user_id:currentUser?.id})});
     allInventario=[...res,...allInventario];
+    if(fecha){
+      const desc='Compra fardos '+tipoF+' ('+cantidad+' unidades)';
+      await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse:'General',fecha,tipo:'Compra Inventario',descripcion:desc,user_id:currentUser?.id})});
+      const evRes=await sbFetch('eventos?select=*&order=created_at.desc&limit=1&user_id=eq.'+currentUser?.id);
+      if(evRes.length)allEvents=[...allEvents,...evRes];
+    }
     document.getElementById('inv-fardo-modal').style.display='none';
     renderInvBlocks();
-    toast('✓ Fardo agregado');
+    toast('✓ Fardo agregado'+(fecha?' + evento en calendario':''));
   }catch(e){toast('Error: '+e.message,'err');}
   btn.disabled=false;btn.textContent='Guardar';
 }
