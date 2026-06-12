@@ -184,7 +184,6 @@ select:focus,input:focus{border-color:var(--accent)}
   <button class="nav-tab" onclick="showTab('ingresar')">COSTOS</button>
   <button class="nav-tab" onclick="showTab('caballos')">CABALLOS</button>
   <button class="nav-tab" onclick="showTab('calendario')">📅 CALENDARIO</button>
-  <button class="nav-tab" onclick="showTab('rodeos')">🐎 RODEOS</button>
 </nav>
 <div id="breadcrumb" style="display:none;background:#f0f4fb;border-bottom:1px solid var(--border);padding:6px 24px;font-size:11px;color:var(--text-soft)"></div>
 <main>
@@ -268,23 +267,7 @@ select:focus,input:focus{border-color:var(--accent)}
     </div>
   </div>
 
-  <div class="section" id="tab-rodeos">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
-      <div class="section-header" style="margin-bottom:0"><h2>Rodeos</h2><p>Costos por rodeo y año</p></div>
-      <button onclick="toggleAddRodeo()" id="btn-add-rodeo" style="height:32px;padding:0 16px;font-size:12px;font-weight:500;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar rodeo</button>
-    </div>
-    <!-- Add rodeo form -->
-    <div id="add-rodeo-card" class="card" style="display:none;margin-bottom:16px">
-      <div style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;margin-bottom:10px">Nuevo rodeo</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px">
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Nombre del rodeo</label><input type="text" id="new-rodeo-nombre" placeholder="Ej: Rodeo San Clemente" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Fecha</label><input type="date" id="new-rodeo-fecha" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
-      </div>
-      <button onclick="addRodeo()" style="height:28px;padding:0 14px;font-size:11px;font-weight:600;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer">Guardar rodeo</button>
-    </div>
-    <!-- Year blocks -->
-    <div id="rodeos-blocks"></div>
-  </div>
+  </main>
 
 <!-- MODAL AGREGAR COSTO -->
 <div id="cost-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center">
@@ -295,11 +278,7 @@ select:focus,input:focus{border-color:var(--accent)}
     </div>
     <div class="form-field" style="margin-bottom:10px">
       <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Categoría</label>
-      <select id="modal-cat" style="width:100%;height:36px;font-size:13px">
-        <option>Trabajo + Pesebrera</option><option>Fardos</option><option>Alimento</option>
-        <option>Vitaminas / Antiparasitario / Hormonas</option><option>Herraje</option>
-        <option>Veterinario</option><option>Flete</option><option>Inscripción</option><option>Otros</option>
-      </select>
+      <select id="modal-cat" style="width:100%;height:36px;font-size:13px"></select>
     </div>
     <div class="form-field" style="margin-bottom:10px">
       <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Monto</label>
@@ -342,7 +321,21 @@ select:focus,input:focus{border-color:var(--accent)}
     </div>
   </div>
 </div>
-</main>
+
+<!-- ADD RODEO CARD -->
+<div id="add-rodeo-card" class="card" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:var(--radius);padding:20px;width:90%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="font-size:13px;font-weight:600;margin-bottom:14px">Agregar rodeo</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Nombre</label><input type="text" id="new-rodeo-nombre" placeholder="Ej: Rodeo San Clemente" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
+      <div><label style="font-size:12px;font-weight:500;color:var(--text-soft)">Fecha</label><input type="date" id="new-rodeo-fecha" style="width:100%;height:36px;font-size:13px;padding:0 10px;border:1px solid var(--border);border-radius:6px;margin-top:4px"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="document.getElementById('add-rodeo-card').style.display='none'" class="btn" style="flex:1">Cancelar</button>
+      <button onclick="addRodeo()" class="btn btn-primary" style="flex:1">Guardar</button>
+    </div>
+  </div>
+</div>
 <div id="toast"></div>
 <input type="file" id="photo-input" class="photo-input" accept="image/*" multiple>
 
@@ -636,7 +629,9 @@ function renderExpBlocks(){
     const yg=allGenerales.filter(e=>e.year===year);
     const yt=ye.reduce((s,e)=>s+Number(e.amount),0);
     const ygt=yg.reduce((s,e)=>s+Number(e.monto),0);
-    const ytotal=yt+ygt;
+    const yrods=allRodeos.filter(r=>r.year===year);
+    const yrt=allRodeosCostos.filter(c=>yrods.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
+    const ytotal=yt+ygt+yrt;
     const yhorsesForYear=horses.filter(h=>horseStartYear(h)<=year);
     return `<div class="exp-block">
       <div class="exp-y-hdr" onclick="tog('eyh${year}','eyb${year}','eya${year}')" id="eyh${year}">
@@ -662,6 +657,19 @@ function renderExpBlocks(){
           </div>
           <div class="exp-h-body" id="cab-b${year}">
             ${yhorsesForYear.map(h=>buildExpHorse(h,year,ye)).join('')}
+          </div>
+        </div>
+        <!-- RODEOS section -->
+        <div class="exp-h-block">
+          <div class="exp-h-hdr" onclick="tog('rod-h${year}','rod-b${year}','rod-a${year}');loadRodeosForYear(${year})">
+            <span class="exp-h-name">🐎 RODEOS</span>
+            <span style="display:flex;align-items:center;gap:8px"><span class="exp-h-total" id="eyrt${year}">$0</span><span class="exp-h-arrow" id="rod-a${year}">▼</span></span>
+          </div>
+          <div class="exp-h-body" id="rod-b${year}">
+            <div id="rod-content${year}"><div class="empty">Cargando...</div></div>
+            ${isAdmin?`<div style="padding:6px 16px;border-top:1px solid var(--border)">
+              <button onclick="openAddRodeoModal(${year})" style="height:24px;padding:0 12px;font-size:10px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar rodeo</button>
+            </div>`:''}
           </div>
         </div>
       </div>
@@ -1105,13 +1113,12 @@ function toggleAddHorse(){
 
 function showTab(name){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach((btn,i)=>{btn.classList.toggle('active',['resumen','ingresar','caballos','calendario','rodeos'][i]===name);});
+  document.querySelectorAll('.nav-tab').forEach((btn,i)=>{btn.classList.toggle('active',['resumen','ingresar','caballos','calendario'][i]===name);});
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='resumen')renderResumen();
   if(name==='ingresar'){renderExpBlocks();const curY=new Date().getFullYear();setTimeout(()=>{const b=document.getElementById('eyb'+curY);const a=document.getElementById('eya'+curY);const h=document.getElementById('eyh'+curY);if(b&&!b.classList.contains('open')){b.classList.add('open');if(a)a.classList.add('open');if(h)h.classList.add('open');}},50);}
   if(name==='caballos')renderCaballos();
   if(name==='calendario'){loadEvents().then(()=>{calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();});}
-  if(name==='rodeos'){loadRodeos().then(()=>{renderRodeos();});}
 }
 
 // ===== CALENDARIO =====
@@ -1386,7 +1393,9 @@ async function addRodeo(){
     document.getElementById('new-rodeo-nombre').value='';
     document.getElementById('new-rodeo-fecha').value='';
     document.getElementById('add-rodeo-card').style.display='none';
-    renderRodeos();
+    const targetYear=document.getElementById('add-rodeo-card').dataset.year;
+    if(targetYear)renderRodeosForYear(+targetYear);
+    document.getElementById('add-rodeo-card').style.display='none';
     toast('✓ Rodeo agregado');
   }catch(e){toast('Error: '+e.message,'err');}
 }
@@ -1703,6 +1712,99 @@ async function saveModalCost(){
 }
 // Close modal on backdrop click
 document.getElementById('cost-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+
+// ===== RODEOS INLINE IN COSTOS =====
+async function loadRodeosForYear(year){
+  if(!allRodeos.length){
+    await loadRodeos();
+  }
+  renderRodeosForYear(year);
+}
+
+function renderRodeosForYear(year){
+  const yearRodeos=allRodeos.filter(r=>r.year===year);
+  const container=document.getElementById('rod-content'+year);
+  if(!container)return;
+  
+  if(!yearRodeos.length){
+    container.innerHTML='<div class="empty">Sin rodeos este año</div>';
+    return;
+  }
+  
+  const total=allRodeosCostos.filter(c=>yearRodeos.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
+  const ytEl=document.getElementById('eyrt'+year);
+  if(ytEl)ytEl.textContent=total?clp(total):'$0';
+  
+  container.innerHTML=yearRodeos.map(rodeo=>{
+    const costos=allRodeosCostos.filter(c=>c.rodeo_id===rodeo.id);
+    const rtotal=costos.reduce((s,c)=>s+Number(c.monto),0);
+    const fecha=new Date(rodeo.fecha+'T12:00:00').toLocaleDateString('es-CL');
+    const rsid='ri'+rodeo.id;
+    
+    const catsHTML=RODEO_CATS.map(cat=>{
+      const catCostos=costos.filter(c=>c.categoria===cat);
+      const catTotal=catCostos.reduce((s,c)=>s+Number(c.monto),0);
+      const cid=('ramt_'+rsid+'_'+cat).replace(/[^a-zA-Z0-9]/g,'_');
+      const nid=('rnote_'+rsid+'_'+cat).replace(/[^a-zA-Z0-9]/g,'_');
+      const rowsId=('rrrows_'+rodeo.id+'_'+cat).replace(/[^a-zA-Z0-9]/g,'_');
+      
+      const existingRows=catCostos.map(c=>`<div id="rrc${c.id}" style="display:flex;align-items:center;gap:8px;padding:2px 0;border-bottom:1px solid var(--border);font-size:10px;">
+        <span style="flex:1;color:var(--text-soft)">${c.nota||'—'}</span>
+        <span style="font-weight:500">${clp(c.monto)}</span>
+        ${isAdmin?`<button onclick="deleteRodeoCosto(${c.id},${rodeo.id})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:11px">×</button>`:''}
+      </div>`).join('');
+      
+      const addRow=isAdmin?`<div style="display:flex;gap:4px;align-items:center;margin-top:3px;flex-wrap:wrap">
+        <input type="number" id="${cid}" placeholder="Monto" style="width:80px;height:22px;padding:0 5px;font-size:10px;border:1px solid var(--border);border-radius:3px">
+        <input type="text" id="${nid}" placeholder="Nota" style="flex:1;min-width:60px;height:22px;padding:0 5px;font-size:10px;border:1px solid var(--border);border-radius:3px">
+        <button onclick="saveRodeoCosto(${rodeo.id},'${cat}','${cid}','${nid}')" style="height:22px;padding:0 8px;font-size:10px;font-weight:600;border-radius:3px;border:none;background:var(--accent);color:#fff;cursor:pointer">✓</button>
+      </div>`:'';
+      
+      return `<div style="border-bottom:1px solid var(--border);padding:6px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <span style="font-size:11px;font-weight:600">${cat}</span>
+          <span style="font-size:10px;color:var(--accent)">${catTotal?clp(catTotal):''}</span>
+        </div>
+        <div id="${rowsId}">${existingRows}</div>
+        ${addRow}
+      </div>`;
+    }).join('');
+    
+    const delBtn=isAdmin?`<button onclick="deleteRodeoAndRefresh(${rodeo.id},${year})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px">×</button>`:'';
+    
+    return `<div class="exp-h-block" id="rbi${rsid}">
+      <div class="exp-h-hdr" onclick="tog('rbhi${rsid}','rbdi${rsid}','rbai${rsid}')">
+        <div><span class="exp-h-name">${rodeo.nombre}</span><span style="font-size:10px;color:var(--text-soft);margin-left:8px">${fecha}</span></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="exp-h-total">${rtotal?clp(rtotal):''}</span>
+          ${delBtn}
+          <span class="exp-h-arrow" id="rbai${rsid}">▼</span>
+        </div>
+      </div>
+      <div class="exp-h-body" id="rbdi${rsid}">${catsHTML}</div>
+    </div>`;
+  }).join('');
+}
+
+function openAddRodeoModal(year){
+  document.getElementById('new-rodeo-nombre').value='';
+  document.getElementById('new-rodeo-fecha').value='';
+  document.getElementById('add-rodeo-card').dataset.year=year;
+  document.getElementById('add-rodeo-card').style.display='block';
+}
+
+async function deleteRodeoAndRefresh(id,year){
+  if(!confirm('¿Eliminar este rodeo y sus costos?'))return;
+  try{
+    await sbFetch('rodeos_costos?rodeo_id=eq.'+id,{method:'DELETE'});
+    await sbFetch('rodeos?id=eq.'+id,{method:'DELETE'});
+    allRodeos=allRodeos.filter(r=>r.id!==id);
+    allRodeosCostos=allRodeosCostos.filter(c=>c.rodeo_id!==id);
+    renderRodeosForYear(year);
+    toast('Rodeo eliminado');
+  }catch(e){toast('Error','err');}
+}
 
 </script>
 </body>
