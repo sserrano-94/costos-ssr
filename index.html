@@ -87,7 +87,10 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .exp-h-block:last-child{border-bottom:none}
 .exp-h-hdr{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;cursor:pointer;background:#f0f0ee;user-select:none;border-left:3px solid #1a1917}
 .exp-h-hdr:hover{background:var(--accent-light)}
-.exp-h-name{font-size:12px;font-weight:600}
+.exp-horse-hdr{display:flex;align-items:center;justify-content:space-between;padding:5px 14px;cursor:pointer;background:#fff;user-select:none;border-left:3px solid var(--accent);}
+.exp-horse-hdr:hover{background:var(--accent-light)}
+.exp-horse-name{font-size:11px;font-weight:500;color:var(--text-soft)}
+.exp-h-name{font-size:12px;font-weight:600;color:var(--text)}
 .exp-h-total{font-size:12px;font-weight:600;color:var(--green)}
 .exp-h-arrow{font-size:10px;color:var(--text-soft);transition:transform .2s}
 .exp-h-arrow.open{transform:rotate(180deg)}
@@ -717,8 +720,8 @@ function buildExpHorse(horse,year,ye){
   const ht=he.reduce((s,e)=>s+Number(e.amount),0);
   const sid=horse.replace(/[^a-zA-Z0-9]/g,'_')+'_'+year;
   return `<div class="exp-h-block" id="ehb${sid}">
-    <div class="exp-h-hdr" onclick="tog('ehh${sid}','ehbd${sid}','eha${sid}')">
-      <span class="exp-h-name">${horse}</span>
+    <div class="exp-horse-hdr" onclick="tog('ehh${sid}','ehbd${sid}','eha${sid}')">
+      <span class="exp-horse-name">${horse}</span>
       <span style="display:flex;align-items:center;gap:8px"><span class="exp-h-total" id="eht${sid}">${ht?clp(ht):'$0'}</span><span class="exp-h-arrow" id="eha${sid}">▼</span></span>
     </div>
     <div class="exp-h-body" id="ehbd${sid}">
