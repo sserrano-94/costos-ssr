@@ -468,9 +468,19 @@ function clp(n){return n?'$'+Math.round(n).toLocaleString('es-CL'):'';}function 
   if(m>0)return m+' meses '+d+' días';
   return d+' días';
 }
-function sortedActive(){
+function sortedActive(year=null){
   const inactive=allHorses.filter(h=>h.activo===false).map(h=>h.nombre);
-  const all=[...new Set([...allHorses.map(h=>h.nombre),...allEntries.map(e=>e.horse)])].filter(n=>!inactive.includes(n));
+  let all;
+  if(year){
+    // Include inactive horses that had costs in this specific year
+    const horsesWithCostsThisYear=new Set(allEntries.filter(e=>e.year===year).map(e=>e.horse));
+    all=[...new Set([...allHorses.map(h=>h.nombre),...allEntries.map(e=>e.horse)])].filter(n=>{
+      if(!inactive.includes(n))return true; // active horse
+      return horsesWithCostsThisYear.has(n); // inactive but had costs this year
+    });
+  } else {
+    all=[...new Set([...allHorses.map(h=>h.nombre),...allEntries.map(e=>e.horse)])].filter(n=>!inactive.includes(n));
+  }
   return all.sort((a,b)=>{
     const ia=allHorses.find(h=>h.nombre===a),ib=allHorses.find(h=>h.nombre===b);
     const da=ia&&ia.fecha_nacimiento?new Date(ia.fecha_nacimiento):new Date();
@@ -619,7 +629,7 @@ function renderResumen(){
   document.getElementById('year-blocks').innerHTML=years.map(year=>{
     const ye=allEntries.filter(e=>e.year===year);
     const yt=ye.reduce((s,e)=>s+Number(e.amount),0);
-    const yh=horses.filter(h=>ye.some(e=>e.horse===h));
+    const yhAll=sortedActive(year);const yh=yhAll.filter(h=>ye.some(e=>e.horse===h));
     if(!yh.length)return'';
     const am=[...new Set(ye.map(e=>e.month))].sort((a,b)=>a-b);
     const rows=yh.map(h=>{
@@ -655,7 +665,7 @@ function renderExpBlocks(){
     const yrods=allRodeos.filter(r=>r.year===year);
     const yrt=allRodeosCostos.filter(c=>yrods.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
     const ytotal=yt+ygt+yrt;
-    const yhorsesForYear=horses.filter(h=>horseStartYear(h)<=year);
+    const allHorsesForYear=sortedActive(year);const yhorsesForYear=allHorsesForYear.filter(h=>horseStartYear(h)<=year||allEntries.some(e=>e.horse===h&&e.year===year));
     return `<div class="exp-block">
       <div class="exp-y-hdr" onclick="tog('eyh${year}','eyb${year}','eya${year}')" id="eyh${year}">
         <span class="year-title">📅 ${year}</span>
