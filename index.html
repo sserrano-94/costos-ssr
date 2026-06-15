@@ -551,6 +551,10 @@ function tog(hdrId,bodyId,arrId){
   b.classList.toggle('open',!o);
   if(a)a.classList.toggle('open',!o);
   if(h)h.classList.toggle('open',!o);
+  // If closing, collapse all children
+  if(o){
+    b.querySelectorAll('.open').forEach(el=>el.classList.remove('open'));
+  }
   updateBreadcrumb();
 }
 function updateBreadcrumb(){
