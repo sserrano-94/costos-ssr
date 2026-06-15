@@ -70,10 +70,10 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .year-arrow.open{transform:rotate(180deg)}
 .year-body{display:none;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);overflow-x:auto}
 .year-body.open{display:block}
-.year-table{width:100%;border-collapse:collapse;font-size:9px}
-.year-table th{font-size:8px;font-weight:600;color:var(--text-soft);text-transform:uppercase;padding:4px 4px;border-bottom:1px solid var(--border);background:#fafaf8;text-align:right;white-space:nowrap}
+.year-table{width:100%;border-collapse:collapse;font-size:7.5px}
+.year-table th{font-size:7px;font-weight:600;color:var(--text-soft);text-transform:uppercase;padding:3px 3px;border-bottom:1px solid var(--border);background:#fafaf8;text-align:right;white-space:nowrap}
 .year-table th:first-child{text-align:left}
-.year-table td{padding:4px 4px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.year-table td{padding:3px 3px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .year-table td:first-child{text-align:left;font-weight:600;color:var(--text)}
 .year-table tr:last-child td{border-bottom:none;font-weight:700;background:#f7f6f3;color:var(--accent)}
 .year-table tbody tr:hover:not(:last-child) td{background:var(--accent-light)}
@@ -459,7 +459,14 @@ let allEntries=[],allHorses=[];
 const extraPhotos={},newHorsePhotos={};
 let photoTargetHorse=null;
 
-function clp(n){return n?'$'+Math.round(n).toLocaleString('es-CL'):'';}function calcAge(dob){
+function clp(n){return n?'$'+Math.round(n).toLocaleString('es-CL'):'';}
+function clpK(n){
+  if(!n)return'—';
+  const v=Math.round(n);
+  if(v>=1000000)return'$'+Math.round(v/1000)+'k';
+  if(v>=100000)return'$'+Math.round(v/1000)+'k';
+  return'$'+Math.round(v/1000)+'k';
+}function calcAge(dob){
   if(!dob)return'—';
   const b=new Date(dob+'T12:00:00'),now=new Date();
   let y=now.getFullYear()-b.getFullYear(),m=now.getMonth()-b.getMonth(),d=now.getDate()-b.getDate();
@@ -602,7 +609,7 @@ function renderResumen(){
     const padre=(info&&info.padre)||(geo.padre||'—');
     const madre=(info&&info.madre)||(geo.madre||'—');
     const sid=nombre.replace(/[^a-zA-Z0-9]/g,'_');
-    const extras=(extraPhotos[nombre]||[]).map(src=>`<img src="${src}" onclick="setMainPhoto('${sid}','${src}')" style="cursor:pointer" title="Ver en grande">`).join('');
+    const extras=(extraPhotos[nombre]||[]).map((src,i)=>`<img src="${src}" onclick="setMainPhoto('${sid}','${src}')" style="cursor:pointer;height:60px;width:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border)" title="Ver en grande" data-url="${src}" data-horse="${nombre.replace(/"/g,'&quot;')}">`).join('');
     const delBtn=isAdmin?`<button class="horse-del" onclick="deactivateHorse('${nombre.replace(/'/g,"\\'")}','${sid}')" title="Desactivar" style="padding:2px 6px;font-size:14px;margin-left:6px">×</button>`:'';
     return `<div style="display:flex;align-items:center;gap:4px">
     <div class="horse-list-item" style="flex:1">
@@ -1114,6 +1121,20 @@ async function addHorse(){
 function toggleAddEvent(){
   const card=document.getElementById('add-event-card');
   card.style.display=card.style.display==='none'?'block':'none';
+}
+
+async function deleteExtraPhoto(nombre, url, btn){
+  if(!confirm('¿Eliminar esta foto?'))return;
+  try{
+    // Delete from fotos_caballos table
+    const encoded=encodeURIComponent(url);
+    await sbFetch('fotos_caballos?url=eq.'+encoded,{method:'DELETE'});
+    // Remove from extraPhotos array
+    if(extraPhotos[nombre])extraPhotos[nombre]=extraPhotos[nombre].filter(u=>u!==url);
+    // Remove from DOM
+    const wrapper=btn.closest('div');if(wrapper)wrapper.remove();
+    toast('Foto eliminada');
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 function setMainPhoto(sid, src){
