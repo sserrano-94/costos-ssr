@@ -1149,26 +1149,52 @@ async function deleteExtraPhoto(nombre, url, btn){
 }
 
 function setMainPhoto(sid, src){
-  // Show clicked photo in main slot, keep original stored
   const mainImg=document.querySelector('#det-'+sid+' .main-img');
   if(!mainImg)return;
-  // Store original src if not already stored
   if(!mainImg.dataset.original) mainImg.dataset.original=mainImg.src;
   mainImg.src=src;
-  // Add "ver original" button if not exists
-  let origBtn=document.getElementById('orig-btn-'+sid);
-  if(!origBtn){
-    origBtn=document.createElement('button');
-    origBtn.id='orig-btn-'+sid;
-    origBtn.textContent='Ver foto original';
-    origBtn.style.cssText='margin:4px 8px;background:none;border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text-soft)';
-    origBtn.onclick=()=>{
-      mainImg.src=mainImg.dataset.original;
-      origBtn.remove();
-    };
-    const horseImgs=document.querySelector('#det-'+sid+' .horse-imgs');
-    horseImgs.insertBefore(origBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
+  const horseImgs=document.querySelector('#det-'+sid+' .horse-imgs');
+  // Remove old buttons
+  const oldOrig=document.getElementById('orig-btn-'+sid);if(oldOrig)oldOrig.remove();
+  const oldDel=document.getElementById('del-photo-btn-'+sid);if(oldDel)oldDel.remove();
+  // Add "ver original" button
+  const origBtn=document.createElement('button');
+  origBtn.id='orig-btn-'+sid;
+  origBtn.textContent='← Foto original';
+  origBtn.style.cssText='margin:4px 4px 4px 8px;background:none;border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text-soft)';
+  origBtn.onclick=()=>{
+    mainImg.src=mainImg.dataset.original;
+    origBtn.remove();
+    const db=document.getElementById('del-photo-btn-'+sid);if(db)db.remove();
+  };
+  horseImgs.insertBefore(origBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
+  // Add delete button only if it's an uploaded photo (not geo)
+  if(isAdmin && src!==mainImg.dataset.original){
+    const delBtn=document.createElement('button');
+    delBtn.id='del-photo-btn-'+sid;
+    delBtn.textContent='🗑 Eliminar foto';
+    delBtn.style.cssText='margin:4px 8px 4px 0;background:none;border:1px solid var(--red);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--red)';
+    delBtn.onclick=()=>deleteExtraPhotoFromMain(sid, src);
+    horseImgs.insertBefore(delBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
   }
+}
+
+async function deleteExtraPhotoFromMain(sid, url){
+  if(!confirm('¿Eliminar esta foto permanentemente?'))return;
+  try{
+    await sbFetch('fotos_caballos?url=eq.'+encodeURIComponent(url),{method:'DELETE'});
+    // Remove from extraPhotos
+    Object.keys(extraPhotos).forEach(n=>{extraPhotos[n]=extraPhotos[n].filter(u=>u!==url);});
+    // Reset main to original
+    const mainImg=document.querySelector('#det-'+sid+' .main-img');
+    if(mainImg&&mainImg.dataset.original){mainImg.src=mainImg.dataset.original;}
+    // Remove thumbnail
+    document.querySelectorAll(`#det-${sid} .extra-imgs img`).forEach(img=>{if(img.src===url||img.getAttribute('src')===url)img.remove();});
+    // Remove buttons
+    const ob=document.getElementById('orig-btn-'+sid);if(ob)ob.remove();
+    const db=document.getElementById('del-photo-btn-'+sid);if(db)db.remove();
+    toast('Foto eliminada');
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 async function deactivateHorseFromEdit(nombre,id){
