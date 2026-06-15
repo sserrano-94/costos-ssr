@@ -1061,7 +1061,7 @@ function renderCaballos(){
               <option value="Reproducción" ${(h.estado||'')==='Reproducción'?'selected':''}>Reproducción</option>
             </select>
           </div>
-          <div style="grid-column:1/-1"><label style="font-size:9px;color:var(--text-soft)">📷 Agregar foto</label><input type="file" id="eh-photo-${h.id}" accept="image/*" style="font-size:10px;margin-top:2px;display:block"></div>
+          <div style="grid-column:1/-1"><label style="font-size:9px;color:var(--text-soft)">📷 Agregar foto</label><input type="file" id="eh-photo-${h.id}" accept="image/*" style="font-size:10px;margin-top:2px;display:block;color:transparent;width:120px"></div>
           </div>
           <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
             <button onclick="saveEditHorse(${h.id})" style="height:24px;padding:0 10px;font-size:10px;font-weight:600;border-radius:4px;border:none;background:var(--accent);color:#fff;cursor:pointer">Guardar</button>
@@ -2241,8 +2241,22 @@ async function saveInvUso(){
   btn.disabled=false;btn.textContent='Registrar uso';
 }
 async function delInvItem(id){
-  if(!confirm('¿Eliminar?'))return;
-  try{await sbFetch('inventario?id=eq.'+id,{method:'DELETE'});allInventario=allInventario.filter(i=>i.id!==id);renderInvBlocks();toast('Eliminado');}catch(e){toast('Error','err');}
+  if(!confirm('¿Eliminar este item y su evento del calendario?'))return;
+  try{
+    const item=allInventario.find(i=>i.id===id);
+    // Delete matching calendar event if fecha_compra exists
+    if(item&&item.fecha_compra){
+      const evs=allEvents.filter(e=>e.tipo==='Compra Inventario'&&e.fecha===item.fecha_compra&&e.descripcion&&e.descripcion.includes(item.nombre));
+      for(const ev of evs){
+        await sbFetch('eventos?id=eq.'+ev.id,{method:'DELETE'});
+        allEvents=allEvents.filter(e=>e.id!==ev.id);
+      }
+    }
+    await sbFetch('inventario?id=eq.'+id,{method:'DELETE'});
+    allInventario=allInventario.filter(i=>i.id!==id);
+    renderInvBlocks();
+    toast('Eliminado');
+  }catch(e){toast('Error','err');}
 }
 </script>
 <!-- INVENTARIO MODALS -->
