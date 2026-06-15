@@ -594,7 +594,11 @@ function updateBreadcrumb(){
 // ===== RESUMEN =====
 function getHorseImg(nombre){
   if(newHorsePhotos[nombre])return newHorsePhotos[nombre];
-  return(GEO[nombre]||{}).img||null;
+  const geoImg=(GEO[nombre]||{}).img||null;
+  if(geoImg)return geoImg;
+  // Use first uploaded photo as main image
+  if(extraPhotos[nombre]&&extraPhotos[nombre].length>0)return extraPhotos[nombre][0];
+  return null;
 }
 function renderResumen(){
   const horses=sortedActive();
@@ -609,7 +613,11 @@ function renderResumen(){
     const padre=(info&&info.padre)||(geo.padre||'—');
     const madre=(info&&info.madre)||(geo.madre||'—');
     const sid=nombre.replace(/[^a-zA-Z0-9]/g,'_');
-    const extras=(extraPhotos[nombre]||[]).map((src,i)=>`<img src="${src}" onclick="setMainPhoto('${sid}','${src}')" style="cursor:pointer;height:60px;width:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border)" title="Ver en grande" data-url="${src}" data-horse="${nombre.replace(/"/g,'&quot;')}">`).join('');
+    const mainImgSrc=getHorseImg(nombre);
+    const extrasAll=extraPhotos[nombre]||[];
+    // If main image is from extraPhotos, skip it in thumbnails
+    const extrasToShow=mainImgSrc&&extrasAll.includes(mainImgSrc)?extrasAll.slice(1):extrasAll;
+    const extras=extrasToShow.map((src,i)=>`<img src="${src}" onclick="setMainPhoto('${sid}','${src}')" style="cursor:pointer;height:60px;width:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border)" title="Ver en grande" data-url="${src}" data-horse="${nombre.replace(/"/g,'&quot;')}">`).join('');
     const delBtn=isAdmin?`<button class="horse-del" onclick="deactivateHorse('${nombre.replace(/'/g,"\\'")}','${sid}')" title="Desactivar" style="padding:2px 6px;font-size:14px;margin-left:6px">×</button>`:'';
     return `<div style="display:flex;align-items:center;gap:4px">
     <div class="horse-list-item" style="flex:1">
