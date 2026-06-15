@@ -70,10 +70,10 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .year-arrow.open{transform:rotate(180deg)}
 .year-body{display:none;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);overflow-x:auto}
 .year-body.open{display:block}
-.year-table{width:100%;border-collapse:collapse;font-size:12px}
-.year-table th{font-size:10px;font-weight:600;color:var(--text-soft);text-transform:uppercase;padding:7px 8px;border-bottom:1px solid var(--border);background:#fafaf8;text-align:right;white-space:nowrap}
+.year-table{width:100%;border-collapse:collapse;font-size:9px}
+.year-table th{font-size:8px;font-weight:600;color:var(--text-soft);text-transform:uppercase;padding:4px 4px;border-bottom:1px solid var(--border);background:#fafaf8;text-align:right;white-space:nowrap}
 .year-table th:first-child{text-align:left}
-.year-table td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.year-table td{padding:4px 4px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .year-table td:first-child{text-align:left;font-weight:600;color:var(--text)}
 .year-table tr:last-child td{border-bottom:none;font-weight:700;background:#f7f6f3;color:var(--accent)}
 .year-table tbody tr:hover:not(:last-child) td{background:var(--accent-light)}
@@ -551,9 +551,10 @@ function tog(hdrId,bodyId,arrId){
   b.classList.toggle('open',!o);
   if(a)a.classList.toggle('open',!o);
   if(h)h.classList.toggle('open',!o);
-  // If closing, collapse all children
+  // If closing, collapse all nested open elements inside
   if(o){
-    b.querySelectorAll('.open').forEach(el=>el.classList.remove('open'));
+    b.querySelectorAll('.exp-y-body.open,.exp-h-body.open,.exp-m-body.open,.year-body.open').forEach(el=>el.classList.remove('open'));
+    b.querySelectorAll('.exp-y-hdr.open,.exp-h-hdr.open,.exp-m-hdr.open,.year-header.open,.exp-h-arrow.open,.exp-m-arrow.open,.year-arrow.open,.exp-horse-hdr.open').forEach(el=>el.classList.remove('open'));
   }
   updateBreadcrumb();
 }
