@@ -632,7 +632,7 @@ function renderResumen(){
         <div class="horse-imgs">
           ${mainImg}
           ${extras?`<div class="extra-imgs">${extras}</div>`:''}
-
+          ${isAdmin&&imgSrc&&!(GEO[nombre]||{}).img&&!newHorsePhotos[nombre]?`<button onclick="deleteMainPhoto('${nombre.replace(/'/g,"\\'")}','${sid}')" style="margin:4px 8px;background:none;border:1px solid var(--red);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--red)">🗑 Eliminar foto principal</button>`:''}
         </div>
         <div class="horse-detail-info">
           ${info&&info.estado?`<div class="horse-detail-row" style="grid-column:1/-1">Estado: <span style="color:var(--accent)">${info.estado}</span></div>`:''}
@@ -1178,6 +1178,19 @@ function setMainPhoto(sid, src){
     delBtn.onclick=()=>deleteExtraPhotoFromMain(sid, src);
     horseImgs.insertBefore(delBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
   }
+}
+
+async function deleteMainPhoto(nombre, sid){
+  if(!confirm('¿Eliminar la foto principal de '+nombre+'?'))return;
+  try{
+    const url=extraPhotos[nombre]&&extraPhotos[nombre][0];
+    if(url){
+      await sbFetch('fotos_caballos?url=eq.'+encodeURIComponent(url),{method:'DELETE'});
+      extraPhotos[nombre]=extraPhotos[nombre].slice(1);
+    }
+    renderResumen();
+    toast('Foto eliminada');
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 async function deleteExtraPhotoFromMain(sid, url){
