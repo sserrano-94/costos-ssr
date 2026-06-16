@@ -608,7 +608,11 @@ function renderResumen(){
     const edad=info?calcAge(info.fecha_nacimiento):'—';
     const geo=GEO[nombre]||{};
     const imgSrc=getHorseImg(nombre);
-    const mainImg=imgSrc?`<img class="main-img" src="${imgSrc}" alt="${nombre}" onerror="this.style.display='none'">`:'<div style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen</div>';
+    // Check if main image is an uploaded photo (not from GEO)
+    const isUploadedMain=imgSrc&&!(GEO[nombre]||{}).img&&!newHorsePhotos[nombre];
+    const mainImgOnclick=isUploadedMain&&isAdmin?`onclick="setMainPhotoClickable('${sid}','${imgSrc}')"`:'';
+    const mainImgTitle=isUploadedMain&&isAdmin?' title="Clic para opciones"':' title=""';
+    const mainImg=imgSrc?`<img class="main-img" src="${imgSrc}" alt="${nombre}" ${mainImgOnclick}${mainImgTitle} style="${isUploadedMain&&isAdmin?'cursor:pointer':''}" onerror="this.style.display='none'">`:'<div style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen</div>';
     const dob=info&&info.fecha_nacimiento?new Date(info.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
     const numero=(info&&info.numero)||(geo.numero||'—');
     const padre=(info&&info.padre)||(geo.padre||'—');
@@ -1191,6 +1195,21 @@ async function deleteMainPhoto(nombre, sid){
     renderResumen();
     toast('Foto eliminada');
   }catch(e){toast('Error: '+e.message,'err');}
+}
+
+function setMainPhotoClickable(sid, src){
+  // When clicking the main uploaded photo, show delete button
+  const horseImgs=document.querySelector('#det-'+sid+' .horse-imgs');
+  const oldDel=document.getElementById('del-main-btn-'+sid);
+  if(oldDel){oldDel.remove();return;} // toggle off if already shown
+  const delBtn=document.createElement('button');
+  delBtn.id='del-main-btn-'+sid;
+  delBtn.textContent='🗑 Eliminar esta foto';
+  delBtn.style.cssText='margin:4px 8px;background:none;border:1px solid var(--red);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--red)';
+  // Find horse name from extraPhotos
+  const nombre=Object.keys(extraPhotos).find(n=>extraPhotos[n]&&extraPhotos[n][0]===src)||'';
+  delBtn.onclick=()=>deleteMainPhoto(nombre,sid);
+  horseImgs.insertBefore(delBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
 }
 
 async function deleteExtraPhotoFromMain(sid, url){
