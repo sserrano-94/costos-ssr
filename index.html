@@ -616,7 +616,9 @@ function renderResumen(){
     const isUploadedMain=imgSrc&&!(GEO[nombre]||{}).img&&!newHorsePhotos[nombre];
     const mainImgOnclick=isAdmin&&isUploadedMain?`onclick="setMainPhoto('${sid}','${imgSrc}','${nombre.replace(/'/g,"\\'")}')"`:'';
     const mainImgTitle=isAdmin&&isUploadedMain?' title="Clic para opciones"':'';
-    const mainImg=imgSrc?`<img class="main-img" src="${imgSrc}" alt="${nombre}" ${mainImgOnclick}${mainImgTitle} style="${isUploadedMain&&isAdmin?'cursor:pointer':''}" onerror="this.style.display='none'">`:'<div style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen</div>';
+    const mainImg=imgSrc
+      ?`<img class="main-img" src="${imgSrc}" alt="${nombre}" ${mainImgOnclick}${mainImgTitle} style="${isUploadedMain&&isAdmin?'cursor:pointer':''}" onerror="this.style.display='none'">`
+      :`<img class="main-img" src="" alt="${nombre}" style="display:none"><div class="main-img-placeholder" style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen — haz clic en una miniatura</div>`;
     const dob=info&&info.fecha_nacimiento?new Date(info.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
     const numero=(info&&info.numero)||(geo.numero||'—');
     const padre=(info&&info.padre)||(geo.padre||'—');
@@ -1163,7 +1165,11 @@ async function deleteExtraPhoto(nombre, url, btn){
 function setMainPhoto(sid, src, nombre){
   const mainImg=document.querySelector('#det-'+sid+' .main-img');
   if(!mainImg)return;
-  if(!mainImg.dataset.original) mainImg.dataset.original=mainImg.src;
+  // Show img and hide placeholder
+  mainImg.style.display='';
+  const placeholder=document.querySelector('#det-'+sid+' .main-img-placeholder');
+  if(placeholder)placeholder.style.display='none';
+  if(!mainImg.dataset.original)mainImg.dataset.original=mainImg.src||'';
   mainImg.src=src;
   const horseImgs=document.querySelector('#det-'+sid+' .horse-imgs');
   // Remove old buttons
