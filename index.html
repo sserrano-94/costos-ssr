@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root{--bg:#fffdf7;--surface:#ffffff;--border:#e0c898;--text:#1a1917;--text-soft:#a07840;--accent:#7a5c2e;--accent-light:#f5e9d0;--green:#1a7a4a;--red:#c0392b;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.07)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -566,6 +567,11 @@ function tog(hdrId,bodyId,arrId){
   b.classList.toggle('open',!o);
   if(a)a.classList.toggle('open',!o);
   if(h)h.classList.toggle('open',!o);
+  // Init chart if opening a year block in resumen
+  if(!o&&bodyId&&bodyId.startsWith('ybr')){
+    const yr=parseInt(bodyId.replace('ybr',''));
+    if(yr)setTimeout(()=>{ chartFilters[yr]=chartFilters[yr]||'TOTAL'; renderChart(yr); updateChartButtons(yr); },50);
+  }
   // If closing, collapse all nested open elements inside
   if(o){
     b.querySelectorAll('.exp-y-body.open,.exp-h-body.open,.exp-m-body.open,.year-body.open').forEach(el=>el.classList.remove('open'));
@@ -691,6 +697,15 @@ function renderResumen(){
         <span style="display:flex;align-items:center;gap:12px"><span class="year-total">${clp(yt)}</span><span class="year-arrow" id="yar${year}">▼</span></span>
       </div>
       <div class="year-body" id="ybr${year}">
+        <div style="padding:14px 16px 8px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+            <span style="font-size:12px;font-weight:600;color:var(--text-soft)">Gasto mensual ${year}</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              ${['CABALLOS','GENERALES','RODEOS','TOTAL'].map(f=>`<button onclick="setChartFilter(${year},'${f}')" id="cf-${year}-${f}" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-soft);cursor:pointer;transition:all .15s">${f}</button>`).join('')}
+            </div>
+          </div>
+          <canvas id="chart-${year}" height="50"></canvas>
+        </div>
         <table class="year-table"><thead><tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
         <tbody>
           ${rows.map(r=>`<tr><td>${r.h}</td>${r.cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${clp(r.rt)}</strong></td></tr>`).join('')}
@@ -699,6 +714,76 @@ function renderResumen(){
       </div>
     </div>`;
   }).join('');
+}
+
+// ===== GRAFICOS RESUMEN =====
+const chartInstances={};
+const chartFilters={};
+const MONTHS_ALL=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function initCharts(){
+  const years=getYears();
+  years.forEach(year=>{
+    chartFilters[year]=chartFilters[year]||'TOTAL';
+    renderChart(year);
+    updateChartButtons(year);
+  });
+}
+
+function setChartFilter(year,filter){
+  chartFilters[year]=filter;
+  updateChartButtons(year);
+  renderChart(year);
+}
+
+function updateChartButtons(year){
+  ['CABALLOS','GENERALES','RODEOS','TOTAL'].forEach(f=>{
+    const btn=document.getElementById('cf-'+year+'-'+f);
+    if(!btn)return;
+    const active=chartFilters[year]===f;
+    btn.style.background=active?'#7a5c2e':'var(--bg)';
+    btn.style.color=active?'#fdf6ec':'var(--text-soft)';
+    btn.style.borderColor=active?'#7a5c2e':'var(--border)';
+  });
+}
+
+function renderChart(year){
+  const canvas=document.getElementById('chart-'+year);
+  if(!canvas)return;
+  const filter=chartFilters[year]||'TOTAL';
+  const data=MONTHS_ALL.map((_,i)=>{
+    const m=i+1;
+    let val=0;
+    if(filter==='CABALLOS'||filter==='TOTAL'){
+      val+=allEntries.filter(e=>e.year===year&&e.month===m).reduce((s,e)=>s+Number(e.amount),0);
+    }
+    if(filter==='GENERALES'||filter==='TOTAL'){
+      val+=allGenerales.filter(e=>e.year===year&&e.month===m).reduce((s,e)=>s+Number(e.monto),0);
+    }
+    if(filter==='RODEOS'||filter==='TOTAL'){
+      const rods=allRodeos.filter(r=>r.year===year&&r.month===m);
+      val+=allRodeosCostos.filter(c=>rods.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
+    }
+    return val;
+  });
+  const colorMap={CABALLOS:'#7a5c2e',GENERALES:'#185FA5',RODEOS:'#1a7a4a',TOTAL:'#c9a96e'};
+  const barColor=colorMap[filter]||'#c9a96e';
+  if(chartInstances[year])chartInstances[year].destroy();
+  chartInstances[year]=new Chart(canvas,{
+    type:'bar',
+    data:{
+      labels:MONTHS_ALL,
+      datasets:[{data,backgroundColor:barColor,borderRadius:4,borderSkipped:false}]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'$'+Math.round(ctx.raw).toLocaleString('es-CL')}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10}}},
+        y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+v,font:{size:10}}}
+      }
+    }
+  });
 }
 
 // ===== INGRESAR =====
