@@ -653,7 +653,6 @@ function renderResumen(){
         <div class="horse-imgs">
           ${mainImg}
           ${extras?`<div class="extra-imgs">${extras}</div>`:''}
-          ${isAdmin&&imgSrc&&!(GEO[nombre]||{}).img&&!newHorsePhotos[nombre]?`<button onclick="deleteMainPhoto('${nombre.replace(/'/g,"\\'")}','${sid}')" style="margin:4px 8px;background:none;border:1px solid var(--red);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--red)">🗑 Eliminar foto principal</button>`:''}
         </div>
         <div class="horse-detail-info">
           ${info&&info.estado?`<div class="horse-detail-row" style="grid-column:1/-1">Estado: <span style="color:var(--accent)">${info.estado}</span></div>`:''}
