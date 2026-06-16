@@ -597,10 +597,11 @@ function getHorseImg(nombre){
   if(newHorsePhotos[nombre])return newHorsePhotos[nombre];
   const geoImg=(GEO[nombre]||{}).img||null;
   if(geoImg)return geoImg;
-  // Use photo marked as principal, or first photo
+  // Find principal photo from records
   const fotos=allPhotoRecords.filter(p=>p.horse===nombre);
-  const principal=fotos.find(p=>p.es_principal);
+  const principal=fotos.find(p=>p.es_principal===true);
   if(principal)return principal.url;
+  // Fallback to first photo
   if(fotos.length>0)return fotos[0].url;
   return null;
 }
@@ -1207,15 +1208,18 @@ function setMainPhoto(sid, src, nombre){
 
 async function setPrincipalPhoto(sid, url, nombre){
   try{
-    // Remove principal from all photos of this horse
     await sbFetch('fotos_caballos?horse=eq.'+encodeURIComponent(nombre),{method:'PATCH',body:JSON.stringify({es_principal:false}),headers:{'Prefer':'return=minimal'}});
-    // Set this one as principal
     await sbFetch('fotos_caballos?url=eq.'+encodeURIComponent(url),{method:'PATCH',body:JSON.stringify({es_principal:true}),headers:{'Prefer':'return=minimal'}});
-    // Update local records
-    allPhotoRecords.forEach(p=>{if(p.horse===nombre)p.es_principal=p.url===url;});
-    // Update main image display
-    const mainImg=document.querySelector('#det-'+sid+' .main-img');
-    if(mainImg)mainImg.src=url;
+    // Reload photo records
+    const uid=currentUser?.id;
+    const f=uid?`&user_id=eq.${uid}`:'';
+    const allPhotos=await sbFetch('fotos_caballos?select=*'+f);
+    allPhotoRecords=allPhotos;
+    Object.keys(extraPhotos).forEach(k=>delete extraPhotos[k]);
+    allPhotos.forEach(p=>{
+      if(!extraPhotos[p.horse])extraPhotos[p.horse]=[];
+      if(!extraPhotos[p.horse].includes(p.url))extraPhotos[p.horse].push(p.url);
+    });
     renderResumen();
     toast('✓ Foto principal actualizada');
   }catch(e){toast('Error: '+e.message,'err');}
