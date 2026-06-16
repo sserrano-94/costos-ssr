@@ -457,7 +457,7 @@ const GEO={
 };
 
 let allEntries=[],allHorses=[];
-const extraPhotos={},newHorsePhotos={};
+const extraPhotos={},newHorsePhotos={};let allPhotoRecords=[];
 let photoTargetHorse=null;
 
 function clp(n){return n?'$'+Math.round(n).toLocaleString('es-CL'):'';}
@@ -597,8 +597,11 @@ function getHorseImg(nombre){
   if(newHorsePhotos[nombre])return newHorsePhotos[nombre];
   const geoImg=(GEO[nombre]||{}).img||null;
   if(geoImg)return geoImg;
-  // Use first uploaded photo as main image
-  if(extraPhotos[nombre]&&extraPhotos[nombre].length>0)return extraPhotos[nombre][0];
+  // Use photo marked as principal, or first photo
+  const fotos=allPhotoRecords.filter(p=>p.horse===nombre);
+  const principal=fotos.find(p=>p.es_principal);
+  if(principal)return principal.url;
+  if(fotos.length>0)return fotos[0].url;
   return null;
 }
 function renderResumen(){
@@ -622,7 +625,14 @@ function renderResumen(){
     const extrasAll=extraPhotos[nombre]||[];
     // If main image is from extraPhotos, skip it in thumbnails
     const extrasToShow=mainImgSrc&&extrasAll.includes(mainImgSrc)?extrasAll.slice(1):extrasAll;
-    const extras=extrasToShow.map((src,i)=>`<img src="${src}" onclick="setMainPhoto('${sid}','${src}')" style="cursor:pointer;height:60px;width:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border)" title="Ver en grande" data-url="${src}" data-horse="${nombre.replace(/"/g,'&quot;')}">`).join('');
+    const principalUrl=getHorseImg(nombre);
+    const extras=extrasToShow.map((src,i)=>{
+      const isPrincipal=src===principalUrl;
+      return `<div style="position:relative;display:inline-block;margin:2px">
+        <img src="${src}" onclick="setMainPhoto('${sid}','${src}','${nombre.replace(/'/g,"\'")}')" style="cursor:pointer;height:60px;width:60px;object-fit:cover;border-radius:4px;border:2px solid ${isPrincipal?'var(--accent)':'var(--border)'}" title="Ver en grande">
+        ${isPrincipal?`<span style="position:absolute;bottom:2px;left:2px;background:var(--accent);color:#fff;font-size:7px;padding:1px 3px;border-radius:2px">principal</span>`:''}
+      </div>`;
+    }).join('');
     const delBtn='';
     return `<div style="display:flex;align-items:center;gap:4px">
     <div class="horse-list-item" style="flex:1">
@@ -1153,35 +1163,59 @@ async function deleteExtraPhoto(nombre, url, btn){
   }catch(e){toast('Error: '+e.message,'err');}
 }
 
-function setMainPhoto(sid, src){
+function setMainPhoto(sid, src, nombre){
   const mainImg=document.querySelector('#det-'+sid+' .main-img');
   if(!mainImg)return;
   if(!mainImg.dataset.original) mainImg.dataset.original=mainImg.src;
   mainImg.src=src;
   const horseImgs=document.querySelector('#det-'+sid+' .horse-imgs');
   // Remove old buttons
-  const oldOrig=document.getElementById('orig-btn-'+sid);if(oldOrig)oldOrig.remove();
-  const oldDel=document.getElementById('del-photo-btn-'+sid);if(oldDel)oldDel.remove();
-  // Add "ver original" button
+  ['orig-btn-','del-photo-btn-','set-principal-btn-'].forEach(p=>{const el=document.getElementById(p+sid);if(el)el.remove();});
+  // Back button
   const origBtn=document.createElement('button');
   origBtn.id='orig-btn-'+sid;
-  origBtn.textContent='← Foto original';
+  origBtn.textContent='← Volver';
   origBtn.style.cssText='margin:4px 4px 4px 8px;background:none;border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text-soft)';
   origBtn.onclick=()=>{
     mainImg.src=mainImg.dataset.original;
-    origBtn.remove();
-    const db=document.getElementById('del-photo-btn-'+sid);if(db)db.remove();
+    ['orig-btn-','del-photo-btn-','set-principal-btn-'].forEach(p=>{const el=document.getElementById(p+sid);if(el)el.remove();});
   };
   horseImgs.insertBefore(origBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
-  // Add delete button only if it's an uploaded photo (not geo)
-  if(isAdmin && src!==mainImg.dataset.original){
+  if(isAdmin){
+    // Set as principal button
+    const currentPrincipal=getHorseImg(nombre||'');
+    if(src!==currentPrincipal){
+      const setPrinBtn=document.createElement('button');
+      setPrinBtn.id='set-principal-btn-'+sid;
+      setPrinBtn.textContent='⭐ Marcar como principal';
+      setPrinBtn.style.cssText='margin:4px 4px;background:none;border:1px solid var(--accent);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--accent)';
+      setPrinBtn.onclick=()=>setPrincipalPhoto(sid,src,nombre||'');
+      horseImgs.insertBefore(setPrinBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
+    }
+    // Delete button
     const delBtn=document.createElement('button');
     delBtn.id='del-photo-btn-'+sid;
-    delBtn.textContent='🗑 Eliminar foto';
+    delBtn.textContent='🗑 Eliminar';
     delBtn.style.cssText='margin:4px 8px 4px 0;background:none;border:1px solid var(--red);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--red)';
-    delBtn.onclick=()=>deleteExtraPhotoFromMain(sid, src);
+    delBtn.onclick=()=>deleteExtraPhotoFromMain(sid,src,nombre||'');
     horseImgs.insertBefore(delBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
   }
+}
+
+async function setPrincipalPhoto(sid, url, nombre){
+  try{
+    // Remove principal from all photos of this horse
+    await sbFetch('fotos_caballos?horse=eq.'+encodeURIComponent(nombre),{method:'PATCH',body:JSON.stringify({es_principal:false}),headers:{'Prefer':'return=minimal'}});
+    // Set this one as principal
+    await sbFetch('fotos_caballos?url=eq.'+encodeURIComponent(url),{method:'PATCH',body:JSON.stringify({es_principal:true}),headers:{'Prefer':'return=minimal'}});
+    // Update local records
+    allPhotoRecords.forEach(p=>{if(p.horse===nombre)p.es_principal=p.url===url;});
+    // Update main image display
+    const mainImg=document.querySelector('#det-'+sid+' .main-img');
+    if(mainImg)mainImg.src=url;
+    renderResumen();
+    toast('✓ Foto principal actualizada');
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 async function deleteMainPhoto(nombre, sid){
@@ -1212,7 +1246,7 @@ function setMainPhotoClickable(sid, src){
   horseImgs.insertBefore(delBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
 }
 
-async function deleteExtraPhotoFromMain(sid, url){
+async function deleteExtraPhotoFromMain(sid, url, nombre){
   if(!confirm('¿Eliminar esta foto permanentemente?'))return;
   try{
     await sbFetch('fotos_caballos?url=eq.'+encodeURIComponent(url),{method:'DELETE'});
