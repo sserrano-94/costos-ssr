@@ -542,6 +542,7 @@ async function loadAll(){
     // Load saved photos
     try{
       const uid3=currentUser?.id;const fotFilter=uid3?`&user_id=eq.${uid3}`:'';const savedPhotos=await sbFetch('fotos_caballos?select=*&order=created_at.asc'+fotFilter);
+      allPhotoRecords=savedPhotos;
       savedPhotos.forEach(p=>{
         if(!extraPhotos[p.horse])extraPhotos[p.horse]=[];
         if(!extraPhotos[p.horse].includes(p.url))extraPhotos[p.horse].push(p.url);
