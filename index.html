@@ -623,7 +623,7 @@ function renderResumen(){
     // If main image is from extraPhotos, skip it in thumbnails
     const extrasToShow=mainImgSrc&&extrasAll.includes(mainImgSrc)?extrasAll.slice(1):extrasAll;
     const extras=extrasToShow.map((src,i)=>`<img src="${src}" onclick="setMainPhoto('${sid}','${src}')" style="cursor:pointer;height:60px;width:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border)" title="Ver en grande" data-url="${src}" data-horse="${nombre.replace(/"/g,'&quot;')}">`).join('');
-    const delBtn=isAdmin?`<button class="horse-del" onclick="deactivateHorse('${nombre.replace(/'/g,"\\'")}','${sid}')" title="Desactivar" style="padding:2px 6px;font-size:14px;margin-left:6px">×</button>`:'';
+    const delBtn='';
     return `<div style="display:flex;align-items:center;gap:4px">
     <div class="horse-list-item" style="flex:1">
       <div class="horse-list-header" onclick="tog(null,'det-${sid}','arr-${sid}')">
