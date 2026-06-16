@@ -626,14 +626,19 @@ function renderResumen(){
     const madre=(info&&info.madre)||(geo.madre||'—');
     const principalUrl=getHorseImg(nombre);
     const extrasAll=extraPhotos[nombre]||[];
-    const extras=extrasAll.map((src,i)=>{
+    // Sort: principal first, then rest in original order
+    const extrasSorted=[...extrasAll].sort((a,b)=>{
+      if(a===principalUrl)return -1;
+      if(b===principalUrl)return 1;
+      return 0;
+    });
+    const extras=extrasSorted.map((src,i)=>{
       const isPrincipal=src===principalUrl;
       return `<div style="position:relative;display:inline-block;margin:2px">
         <img src="${src}" onclick="setMainPhoto('${sid}','${src}','${nombre.replace(/'/g,"\'")}')" style="cursor:pointer;height:60px;width:60px;object-fit:cover;border-radius:4px;border:2px solid ${isPrincipal?'var(--accent)':'var(--border)'}" title="Ver en grande">
         ${isPrincipal?`<span style="position:absolute;bottom:2px;left:2px;background:var(--accent);color:#fff;font-size:7px;padding:1px 3px;border-radius:2px">★</span>`:''}
       </div>`;
     }).join('');
-    const delBtn='';
     return `<div style="display:flex;align-items:center;gap:4px">
     <div class="horse-list-item" style="flex:1">
       <div class="horse-list-header" onclick="tog(null,'det-${sid}','arr-${sid}')">
@@ -1183,6 +1188,9 @@ function setMainPhoto(sid, src, nombre){
   origBtn.onclick=()=>{
     mainImg.src=mainImg.dataset.original;
     ['orig-btn-','del-photo-btn-','set-principal-btn-'].forEach(p=>{const el=document.getElementById(p+sid);if(el)el.remove();});
+    // Unwrap main-img-wrapper if exists
+    const wrapper=document.querySelector('#det-'+sid+' .main-img-wrapper');
+    if(wrapper){wrapper.parentNode.insertBefore(mainImg,wrapper);wrapper.remove();}
   };
   horseImgs.insertBefore(origBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
   if(isAdmin){
@@ -1196,13 +1204,24 @@ function setMainPhoto(sid, src, nombre){
       setPrinBtn.onclick=()=>setPrincipalPhoto(sid,src,nombre||'');
       horseImgs.insertBefore(setPrinBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
     }
-    // Delete button
-    const delBtn=document.createElement('button');
-    delBtn.id='del-photo-btn-'+sid;
-    delBtn.textContent='🗑 Eliminar';
-    delBtn.style.cssText='margin:4px 8px 4px 0;background:none;border:1px solid var(--red);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--red)';
-    delBtn.onclick=()=>deleteExtraPhotoFromMain(sid,src,nombre||'');
-    horseImgs.insertBefore(delBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
+    // Delete X overlay on main image
+    const delX=document.createElement('div');
+    delX.id='del-photo-btn-'+sid;
+    delX.style.cssText='position:absolute;top:6px;right:6px;width:22px;height:22px;background:rgba(0,0,0,0.55);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:bold;z-index:10';
+    delX.textContent='×';
+    delX.title='Eliminar foto';
+    delX.onclick=()=>deleteExtraPhotoFromMain(sid,src,nombre||'');
+    // Wrap mainImg in relative div if not already
+    let imgWrapper=mainImg.parentElement;
+    if(!imgWrapper.classList.contains('main-img-wrapper')){
+      const wrapper=document.createElement('div');
+      wrapper.className='main-img-wrapper';
+      wrapper.style.cssText='position:relative;display:inline-block';
+      mainImg.parentNode.insertBefore(wrapper,mainImg);
+      wrapper.appendChild(mainImg);
+      imgWrapper=wrapper;
+    }
+    imgWrapper.appendChild(delX);
   }
 }
 
