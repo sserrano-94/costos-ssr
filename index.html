@@ -621,16 +621,13 @@ function renderResumen(){
     const numero=(info&&info.numero)||(geo.numero||'—');
     const padre=(info&&info.padre)||(geo.padre||'—');
     const madre=(info&&info.madre)||(geo.madre||'—');
-    const mainImgSrc=getHorseImg(nombre);
-    const extrasAll=extraPhotos[nombre]||[];
-    // If main image is from extraPhotos, skip it in thumbnails
-    const extrasToShow=mainImgSrc&&extrasAll.includes(mainImgSrc)?extrasAll.slice(1):extrasAll;
     const principalUrl=getHorseImg(nombre);
-    const extras=extrasToShow.map((src,i)=>{
+    const extrasAll=extraPhotos[nombre]||[];
+    const extras=extrasAll.map((src,i)=>{
       const isPrincipal=src===principalUrl;
       return `<div style="position:relative;display:inline-block;margin:2px">
         <img src="${src}" onclick="setMainPhoto('${sid}','${src}','${nombre.replace(/'/g,"\'")}')" style="cursor:pointer;height:60px;width:60px;object-fit:cover;border-radius:4px;border:2px solid ${isPrincipal?'var(--accent)':'var(--border)'}" title="Ver en grande">
-        ${isPrincipal?`<span style="position:absolute;bottom:2px;left:2px;background:var(--accent);color:#fff;font-size:7px;padding:1px 3px;border-radius:2px">principal</span>`:''}
+        ${isPrincipal?`<span style="position:absolute;bottom:2px;left:2px;background:var(--accent);color:#fff;font-size:7px;padding:1px 3px;border-radius:2px">★</span>`:''}
       </div>`;
     }).join('');
     const delBtn='';
