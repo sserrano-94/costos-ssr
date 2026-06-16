@@ -12,7 +12,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 /* LOGIN */
-#login-screen{position:fixed;inset:0;background:#e8dcc8;display:flex;align-items:center;justify-content:center;z-index:999}
+#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999}
 .login-box{background:var(--surface);border:2px solid #1a1917;border-radius:var(--radius);padding:36px 32px;box-shadow:0 4px 24px rgba(0,0,0,0.15);width:320px;text-align:center;outline:2px solid #1a1917;outline-offset:6px}
 .login-box h2{font-size:18px;font-weight:600;margin-bottom:6px}
 .login-box p{font-size:13px;color:var(--text-soft);margin-bottom:20px}
@@ -48,6 +48,8 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .horse-list-arrow{font-size:10px;color:var(--text-soft);transition:transform .2s}
 .horse-list-arrow.open{transform:rotate(180deg)}
 .horse-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;padding:4px 10px;border-radius:4px}
+.wood-texture{background-image:repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 5px),repeating-linear-gradient(180deg,transparent,transparent 6px,rgba(255,255,255,0.04) 6px,rgba(255,255,255,0.04) 7px)}
+.wood-login-bg{background-color:#e8dcc8;background-image:repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(139,90,43,0.04) 2px,rgba(139,90,43,0.04) 4px),repeating-linear-gradient(180deg,transparent,transparent 8px,rgba(101,60,20,0.03) 8px,rgba(101,60,20,0.03) 9px)}
 .horse-del:hover{color:var(--red);background:#fdecea}
 .horse-detail{display:none;border-top:1px solid var(--border)}
 .horse-detail.open{display:block}
@@ -163,7 +165,7 @@ select:focus,input:focus{border-color:var(--accent)}
 <body>
 
 <!-- LOGIN SCREEN -->
-<div id="login-screen">
+<div id="login-screen" class="wood-login-bg">
   <div style="width:90%;max-width:360px;background:#fdf6ec;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.15)">
     <div style="background:#7a5c2e;padding:28px 24px 20px;text-align:center;border-bottom:3px solid #c9a96e">
       <div style="width:72px;height:72px;margin:0 auto 12px;background:#fdf6ec;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #c9a96e;font-size:36px">🐴</div>
