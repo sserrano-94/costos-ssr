@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Costos SSR — Caballos</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐴</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
@@ -1286,7 +1287,7 @@ function showTab(name){
   document.querySelectorAll('.nav-tab').forEach((btn,i)=>{btn.classList.toggle('active',['resumen','ingresar','caballos','calendario','inventario'][i]===name);});
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='resumen')renderResumen();
-  if(name==='ingresar'){renderExpBlocks();const curY=new Date().getFullYear();setTimeout(()=>{const b=document.getElementById('eyb'+curY);const a=document.getElementById('eya'+curY);const h=document.getElementById('eyh'+curY);if(b&&!b.classList.contains('open')){b.classList.add('open');if(a)a.classList.add('open');if(h)h.classList.add('open');}},50);}
+  if(name==='ingresar'){renderExpBlocks();}
   if(name==='caballos')renderCaballos();
   if(name==='calendario'){loadEvents().then(()=>{calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();});}
   if(name==='inventario'){loadInventario().then(()=>renderInvBlocks());}
@@ -2160,8 +2161,7 @@ function addInvYear(){const input=document.getElementById('inv-new-year-input');
 function renderInvBlocks(){
   const years=getInvYears();
   document.getElementById('inv-blocks').innerHTML=years.map(year=>buildInvYear(year)).join('');
-  const curY=new Date().getFullYear();
-  setTimeout(()=>{const b=document.getElementById('invyb'+curY);const a=document.getElementById('invya'+curY);const h=document.getElementById('invyh'+curY);if(b&&!b.classList.contains('open')){b.classList.add('open');if(a)a.classList.add('open');if(h)h.classList.add('open');}},50);
+
 }
 function buildInvYear(year){
   const yi=allInventario.filter(i=>i.year===year);
