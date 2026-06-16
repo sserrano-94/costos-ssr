@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Costos SSR — Caballos</title>
+<title>MANCOS — Caballos</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐴</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -31,8 +31,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .user-badge{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--accent-light);color:var(--accent);font-weight:500;cursor:pointer}
 .user-badge.readonly{background:#f0f0f0;color:#999}
 nav{background-color:#c8a86b;background-image:repeating-linear-gradient(92deg,transparent,transparent 2px,rgba(101,60,20,0.07) 2px,rgba(101,60,20,0.07) 4px),repeating-linear-gradient(180deg,transparent,transparent 5px,rgba(255,255,255,0.06) 5px,rgba(255,255,255,0.06) 6px);border-top:2px solid #8b5e2a;border-bottom:2px solid #8b5e2a;padding:8px 24px;display:flex;gap:8px;overflow-x:auto}
-.nav-tab{padding:8px 18px;font-size:13px;font-weight:500;color:#fdf6ec;border:1.5px solid rgba(255,255,255,0.35);border-radius:20px;background:transparent;cursor:pointer;white-space:nowrap;transition:all .15s}
-.nav-tab:hover{background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.6)}
+.nav-tab{padding:8px 18px;font-size:13px;font-weight:500;color:#3d2b0f;border:1.5px solid #8b5e2a;border-radius:20px;background:#e8c87a;cursor:pointer;white-space:nowrap;transition:all .15s}
+.nav-tab:hover{background:#d4b05a;color:#3d2b0f;border-color:#7a5020}
 .nav-tab.active{color:#3d2b0f;background:#fdf6ec;border-color:#8b5e2a;font-weight:700}
 main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .section{display:none}.section.active{display:block}
@@ -169,7 +169,7 @@ select:focus,input:focus{border-color:var(--accent)}
   <div style="width:90%;max-width:360px;background:#fdf6ec;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.15)">
     <div style="background:#7a5c2e;padding:28px 24px 20px;text-align:center;border-bottom:3px solid #c9a96e">
       <div style="width:72px;height:72px;margin:0 auto 12px;background:#fdf6ec;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #c9a96e;font-size:36px">🐴</div>
-      <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fdf6ec;letter-spacing:2px">COSTOS SSR</div>
+      <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fdf6ec;letter-spacing:2px">MANCOS</div>
       <div style="font-size:11px;color:#f0d9a8;letter-spacing:3px;margin-top:4px;text-transform:uppercase">Administración de Caballos</div>
     </div>
     <div style="padding:24px 24px 28px">
@@ -2151,7 +2151,7 @@ function generarPDF(year,month){
   // Header
   doc.setFillColor(43,95,166);doc.rect(0,0,PW,14,'F');
   doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('COSTOS SSR — Informe '+year,ML,9.5);
+  doc.text('MANCOS — Informe '+year,ML,9.5);
   doc.setFontSize(8);doc.setFont('helvetica','normal');
   doc.text('Generado: '+new Date().toLocaleDateString('es-CL'),PW-ML,9.5,{align:'right'});
   y=24;
@@ -2241,7 +2241,7 @@ function generarPDF(year,month){
 
   // Footer
   const pc=doc.internal.getNumberOfPages();
-  for(let i=1;i<=pc;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(150,150,150);doc.setFont('helvetica','normal');doc.text('Costos SSR — '+year+' | Pág. '+i+' de '+pc,PW/2,290,{align:'center'});}
+  for(let i=1;i<=pc;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(150,150,150);doc.setFont('helvetica','normal');doc.text('MANCOS — '+year+' | Pág. '+i+' de '+pc,PW/2,290,{align:'center'});}
 
   doc.save('InformeSSR_'+year+'_'+String(month).padStart(2,'0')+'.pdf');
   toast('✓ PDF descargado');
