@@ -8,11 +8,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
-:root{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1917;--text-soft:#6b6860;--accent:#2b5fa6;--accent-light:#e8eef8;--green:#1a7a4a;--red:#c0392b;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.07)}
+:root{--bg:#fdf6ec;--surface:#fff9f0;--border:#e0c898;--text:#1a1917;--text-soft:#a07840;--accent:#7a5c2e;--accent-light:#f5e9d0;--green:#1a7a4a;--red:#c0392b;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.07)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 /* LOGIN */
-#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
+#login-screen{position:fixed;inset:0;background:#e8dcc8;display:flex;align-items:center;justify-content:center;z-index:999}
 .login-box{background:var(--surface);border:2px solid #1a1917;border-radius:var(--radius);padding:36px 32px;box-shadow:0 4px 24px rgba(0,0,0,0.15);width:320px;text-align:center;outline:2px solid #1a1917;outline-offset:6px}
 .login-box h2{font-size:18px;font-weight:600;margin-bottom:6px}
 .login-box p{font-size:13px;color:var(--text-soft);margin-bottom:20px}
@@ -164,17 +164,17 @@ select:focus,input:focus{border-color:var(--accent)}
 
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
-  <div class="login-box">
-    <div style="display:flex;justify-content:center;margin-bottom:16px"><div style="font-size:72px;line-height:1;display:inline-block;border:2px solid #1a1917;border-radius:8px;padding:4px 8px;outline:2px solid #1a1917;outline-offset:4px">🐴</div></div>
-    <h2 style="font-family:Georgia,serif;font-size:22px;font-weight:700;letter-spacing:2px;color:#1a1917;margin-bottom:4px">COSTOS SSR</h2>
-    <p>Ingresa tus credenciales</p>
-    <form onsubmit="event.preventDefault();doLogin()" autocomplete="on">
-      <div class="login-field"><label>Email</label><input type="email" id="login-email" name="email" placeholder="tu@email.com" autocomplete="email"></div>
-      <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" name="password" placeholder="Contraseña" autocomplete="current-password"></div>
-      <div class="login-err" id="login-err">Email o contraseña incorrectos</div>
-      <button type="submit" class="btn btn-primary" style="width:100%;text-align:center;justify-content:center;letter-spacing:1px;font-size:14px;margin-bottom:8px">ENTRAR</button>
-      <div id="login-loading" style="display:none;font-size:12px;color:var(--text-soft);text-align:center">Iniciando sesión...</div>
-    </form>
+  <div style="width:90%;max-width:360px;background:#fdf6ec;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.15)">
+    <div style="background:#7a5c2e;padding:28px 24px 20px;text-align:center;border-bottom:3px solid #c9a96e">
+      <div style="width:72px;height:72px;margin:0 auto 12px;background:#fdf6ec;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #c9a96e;font-size:36px">🐴</div>
+      <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fdf6ec;letter-spacing:2px">COSTOS SSR</div>
+      <div style="font-size:11px;color:#f0d9a8;letter-spacing:3px;margin-top:4px;text-transform:uppercase">Administración de Caballos</div>
+    </div>
+    <div style="padding:24px 24px 28px">
+      <div style="margin-bottom:14px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px">Correo</label><input type="email" id="login-email" placeholder="tu@email.com" style="width:100%;height:38px;padding:0 12px;border:1.5px solid #c9a96e;border-radius:6px;background:#fff;font-size:13px;color:#3d2b0f;box-sizing:border-box;outline:none"></div>
+      <div style="margin-bottom:20px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px">Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" style="width:100%;height:38px;padding:0 12px;border:1.5px solid #c9a96e;border-radius:6px;background:#fff;font-size:13px;color:#3d2b0f;box-sizing:border-box;outline:none" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button onclick="doLogin()" style="width:100%;height:42px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer">ENTRAR</button>
+    </div>
   </div>
 </div>
 
