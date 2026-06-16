@@ -614,8 +614,8 @@ function renderResumen(){
     const imgSrc=getHorseImg(nombre);
     // Check if main image is an uploaded photo (not from GEO)
     const isUploadedMain=imgSrc&&!(GEO[nombre]||{}).img&&!newHorsePhotos[nombre];
-    const mainImgOnclick=isUploadedMain&&isAdmin?`onclick="setMainPhotoClickable('${sid}','${imgSrc}')"`:'';
-    const mainImgTitle=isUploadedMain&&isAdmin?' title="Clic para opciones"':' title=""';
+    const mainImgOnclick=isAdmin&&isUploadedMain?`onclick="setMainPhoto('${sid}','${imgSrc}','${nombre.replace(/'/g,"\\'")}')"`:'';
+    const mainImgTitle=isAdmin&&isUploadedMain?' title="Clic para opciones"':'';
     const mainImg=imgSrc?`<img class="main-img" src="${imgSrc}" alt="${nombre}" ${mainImgOnclick}${mainImgTitle} style="${isUploadedMain&&isAdmin?'cursor:pointer':''}" onerror="this.style.display='none'">`:'<div style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen</div>';
     const dob=info&&info.fecha_nacimiento?new Date(info.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
     const numero=(info&&info.numero)||(geo.numero||'—');
