@@ -697,16 +697,23 @@ function renderResumen(){
         <span style="display:flex;align-items:center;gap:12px"><span class="year-total">${clp(yt)}</span><span class="year-arrow" id="yar${year}">▼</span></span>
       </div>
       <div class="year-body" id="ybr${year}">
-        <div style="padding:14px 16px 8px;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-            <span style="font-size:12px;font-weight:600;color:var(--text-soft)">Gasto mensual ${year}</span>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
-              ${['CABALLOS','GENERALES','RODEOS','TOTAL'].map(f=>`<button onclick="setChartFilter(${year},'${f}')" id="cf-${year}-${f}" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-soft);cursor:pointer;transition:all .15s">${f}</button>`).join('')}
-            </div>
-          </div>
-          <canvas id="chart-${year}" height="50"></canvas>
-        </div>
-        <table class="year-table"><thead><tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
+        <table class="year-table">
+          <thead>
+            <tr>
+              <th style="border-bottom:none;background:transparent"></th>
+              <th colspan="12" style="border-bottom:none;background:transparent;padding:10px 0 4px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                  <span style="font-size:11px;font-weight:600;color:var(--text-soft)">Gasto mensual ${year}</span>
+                  <div style="display:flex;gap:5px;flex-wrap:wrap">
+                    ${['CABALLOS','GENERALES','RODEOS','TOTAL'].map(f=>`<button onclick="setChartFilter(${year},'${f}')" id="cf-${year}-${f}" style="padding:3px 8px;font-size:10px;font-weight:600;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-soft);cursor:pointer;transition:all .15s">${f}</button>`).join('')}
+                  </div>
+                </div>
+                <canvas id="chart-${year}" height="50"></canvas>
+              </th>
+              <th style="border-bottom:none;background:transparent"></th>
+            </tr>
+            <tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr>
+          </thead>
         <tbody>
           ${rows.map(r=>`<tr><td>${r.h}</td>${r.cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${clp(r.rt)}</strong></td></tr>`).join('')}
           <tr><td>TOTAL</td>${colT.map(v=>`<td>${clp(v)}</td>`).join('')}<td>${clp(yt)}</td></tr>
@@ -773,7 +780,7 @@ function renderChart(year){
     type:'bar',
     data:{
       labels:MONTHS_ALL,
-      datasets:[{data,backgroundColor:barColor,borderRadius:4,borderSkipped:false}]
+      datasets:[{data,backgroundColor:barColor,borderRadius:4,borderSkipped:false,barPercentage:0.6,categoryPercentage:0.95}]
     },
     options:{
       responsive:true,
