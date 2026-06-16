@@ -51,12 +51,13 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .horse-del:hover{color:var(--red);background:#fdecea}
 .horse-detail{display:none;border-top:1px solid var(--border)}
 .horse-detail.open{display:block}
-.horse-imgs{position:relative;background:#f5f5f5;display:flex;flex-direction:column;align-items:center}
+.horse-imgs{position:relative;background:#f5f5f5}
 .horse-imgs img.main-img{width:100%;max-height:300px;object-fit:contain;display:block}
+.extra-imgs{display:flex;gap:4px;flex-wrap:wrap;padding:8px;justify-content:center}
+.extra-imgs img{height:60px;width:60px;object-fit:cover;border-radius:4px}
 .add-photo-btn{margin:8px;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer}
 .add-photo-btn:hover{background:#234e8a}
-.extra-imgs{display:flex;gap:4px;flex-wrap:wrap;padding:4px;border-top:1px solid var(--border)}
-.extra-imgs img{height:60px;width:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border)}
+
 .horse-detail-info{padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px}
 .horse-detail-row{font-size:12px;color:var(--text-soft)}
 .horse-detail-row span{font-weight:500;color:var(--text)}
@@ -615,11 +616,11 @@ function renderResumen(){
     const imgSrc=getHorseImg(nombre);
     // Check if main image is an uploaded photo (not from GEO)
     const isUploadedMain=imgSrc&&!(GEO[nombre]||{}).img&&!newHorsePhotos[nombre];
-    const mainImgOnclick=isAdmin&&isUploadedMain?`onclick="setMainPhoto('${sid}','${imgSrc}','${nombre.replace(/'/g,"\\'")}')"`:'';
+    const mainImgOnclick=isAdmin&&isUploadedMain?`onclick="setMainPhoto('${sid}','${imgSrc}','${nombre.replace(/'/g,"\\'")}')"`:'';     
     const mainImgTitle=isAdmin&&isUploadedMain?' title="Clic para opciones"':'';
     const mainImg=imgSrc
       ?`<img class="main-img" src="${imgSrc}" alt="${nombre}" ${mainImgOnclick}${mainImgTitle} style="${isUploadedMain&&isAdmin?'cursor:pointer':''}" onerror="this.style.display='none'">`
-      :`<img class="main-img" src="" alt="${nombre}" style="display:none"><div class="main-img-placeholder" style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen — haz clic en una miniatura</div>`;
+      :`<img class="main-img" src="" alt="${nombre}" style="display:none"><div class="main-img-placeholder" style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen</div>`;
     const dob=info&&info.fecha_nacimiento?new Date(info.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
     const numero=(info&&info.numero)||(geo.numero||'—');
     const padre=(info&&info.padre)||(geo.padre||'—');
@@ -1217,7 +1218,7 @@ function setMainPhoto(sid, src, nombre){
     if(!imgWrapper.classList.contains('main-img-wrapper')){
       const wrapper=document.createElement('div');
       wrapper.className='main-img-wrapper';
-      wrapper.style.cssText='position:relative;display:inline-block';
+      wrapper.style.cssText='position:relative;display:block;width:100%';
       mainImg.parentNode.insertBefore(wrapper,mainImg);
       wrapper.appendChild(mainImg);
       imgWrapper=wrapper;
