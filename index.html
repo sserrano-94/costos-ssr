@@ -42,6 +42,14 @@ header{background:#7a5c2e;border-bottom:1px solid #8b5e2a;padding:0 24px;display
 .conn-dot.ok{background:var(--green)}.conn-dot.err{background:var(--red)}
 .user-badge{font-size:11px;padding:2px 8px;border-radius:4px;background:#c9a96e;color:#3d2b0f;font-weight:500;cursor:pointer}
 .user-badge.readonly{background:#8b6e4a;color:#fdf6ec}
+.user-menu-wrap{position:relative;display:inline-block}
+.user-dropdown{display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1.5px solid #c9a96e;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:170px;z-index:999;overflow:hidden}
+.user-dropdown.open{display:block}
+.user-dropdown-item{padding:10px 14px;font-size:12px;font-weight:500;color:#3d2b0f;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0e4c8}
+.user-dropdown-item:last-child{border-bottom:none}
+.user-dropdown-item:hover{background:#fdf6ec}
+.user-dropdown-item.danger{color:#c0392b}
+.user-dropdown-item.danger:hover{background:#fdf0ee}
 nav{background-color:#c8a86b;background-image:repeating-linear-gradient(92deg,transparent,transparent 2px,rgba(101,60,20,0.07) 2px,rgba(101,60,20,0.07) 4px),repeating-linear-gradient(180deg,transparent,transparent 5px,rgba(255,255,255,0.06) 5px,rgba(255,255,255,0.06) 6px);border-top:2px solid #8b5e2a;border-bottom:2px solid #8b5e2a;padding:8px 24px;display:flex;gap:8px;overflow-x:auto}
 .nav-tab{padding:8px 18px;font-size:13px;font-weight:500;color:#3d2b0f;border:1.5px solid #8b5e2a;border-radius:20px;background:#e8c87a;cursor:pointer;white-space:nowrap;transition:all .15s}
 .nav-tab:hover{background:#d4b05a;color:#3d2b0f;border-color:#7a5020}
@@ -221,6 +229,7 @@ select:focus,input:focus{border-color:var(--accent)}
       <button onclick="doLogin()" class="login-btn">ENTRAR</button>
       <div id="login-err" style="display:none;margin-top:10px;color:#c0392b;font-size:12px;text-align:center"></div>
       <div id="login-loading" style="display:none;margin-top:10px;color:#7a5c2e;font-size:12px;text-align:center">Ingresando...</div>
+
     </div>
   </div>
 </div>
@@ -228,7 +237,15 @@ select:focus,input:focus{border-color:var(--accent)}
 <header>
   <div class="logo"><span class="logo-badge">SSR</span><span style="font-family:'Dancing Script',cursive;font-size:22px">MANCOS</span></div>
   <div style="display:flex;align-items:center;gap:10px">
-    <span id="user-badge" class="user-badge"></span>
+    <div class="user-menu-wrap">
+      <span id="user-badge" class="user-badge"></span>
+      <div class="user-dropdown" id="user-dropdown">
+        <div class="user-dropdown-item" onclick="openChangePassword()">🔑 Cambiar contraseña</div>
+        <div class="user-dropdown-item" id="manage-users-btn" style="display:none" onclick="openManageUsers()">👥 Gestionar usuarios</div>
+        <div class="user-dropdown-item" id="create-user-btn" style="display:none" onclick="openCreateUser()">➕ Crear cuenta</div>
+        <div class="user-dropdown-item danger" onclick="logout()">🚪 Cerrar sesión</div>
+      </div>
+    </div>
     <div class="conn-status"><div class="conn-dot" id="conn-dot"></div><span id="conn-label">Conectando...</span></div>
   </div>
 </header>
@@ -440,6 +457,12 @@ async function doLogin(){
       await supabaseClient.from('perfiles').insert({id:currentUser.id,email:currentUser.email,rol:'admin',nombre:currentUser.email.split('@')[0]});
       perfil={rol:'admin'};
     }
+    if(perfil && perfil.rol==='bloqueado'){
+      await supabaseClient.auth.signOut();
+      const errEl=document.getElementById('login-err');
+      if(errEl){errEl.style.display='block';errEl.textContent='Tu cuenta ha sido bloqueada. Contacta al administrador.';}
+      return;
+    }
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
     startApp();
   }catch(e){
@@ -447,6 +470,138 @@ async function doLogin(){
     errEl.textContent=e.message==='Invalid login credentials'?'Email o contraseña incorrectos':e.message;
     errEl.style.display='block';
   }
+}
+
+function openChangePassword(){
+  document.getElementById('user-dropdown').classList.remove('open');
+  const modal=document.createElement('div');
+  modal.id='change-pass-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
+  modal.innerHTML=`
+    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:90%;max-width:340px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
+      <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;font-weight:600;color:#fdf6ec">🔑 Cambiar contraseña</span>
+        <span onclick="document.getElementById('change-pass-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Nueva contraseña</label><input type="password" id="new-pass-1" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
+        <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Confirmar contraseña</label><input type="password" id="new-pass-2" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
+        <div id="pass-change-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
+        <button onclick="doChangePassword()" style="width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">GUARDAR</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+}
+
+async function doChangePassword(){
+  const p1=document.getElementById('new-pass-1').value;
+  const p2=document.getElementById('new-pass-2').value;
+  const err=document.getElementById('pass-change-err');
+  if(!p1||p1.length<6){err.style.display='block';err.textContent='Mínimo 6 caracteres';return;}
+  if(p1!==p2){err.style.display='block';err.textContent='Las contraseñas no coinciden';return;}
+  err.style.display='none';
+  const{error}=await _supabase.auth.updateUser({password:p1});
+  if(error){err.style.display='block';err.textContent=error.message;}
+  else{document.getElementById('change-pass-modal').remove();toast('Contraseña actualizada ✓');}
+}
+
+function openCreateUser(){
+  document.getElementById('user-dropdown').classList.remove('open');
+  const modal=document.createElement('div');
+  modal.id='create-user-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
+  modal.innerHTML=`
+    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:90%;max-width:340px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
+      <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;font-weight:600;color:#fdf6ec">➕ Crear cuenta</span>
+        <span onclick="document.getElementById('create-user-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Correo</label><input type="email" id="new-user-email" placeholder="correo@ejemplo.com" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
+        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Contraseña</label><input type="password" id="new-user-pass" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
+        <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Rol</label>
+          <select id="new-user-rol" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+            <option value="readonly">Solo lectura</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div id="create-user-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
+        <button onclick="doCreateUser()" style="width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">CREAR</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+}
+
+async function doCreateUser(){
+  const email=document.getElementById('new-user-email').value.trim();
+  const pass=document.getElementById('new-user-pass').value;
+  const rol=document.getElementById('new-user-rol').value;
+  const err=document.getElementById('create-user-err');
+  if(!email){err.style.display='block';err.textContent='Ingresa un correo';return;}
+  if(!pass||pass.length<6){err.style.display='block';err.textContent='Mínimo 6 caracteres';return;}
+  err.style.display='none';
+  const{data,error}=await supabaseClient.auth.admin.createUser({email,password:pass,email_confirm:true});
+  if(error){
+    // Fallback: signup normal
+    const{data:d2,error:e2}=await supabaseClient.auth.signUp({email,password:pass});
+    if(e2){err.style.display='block';err.textContent=e2.message;return;}
+    if(d2?.user){
+      await supabaseClient.from('perfiles').upsert({id:d2.user.id,email,rol,nombre:email.split('@')[0]});
+    }
+  } else if(data?.user){
+    await supabaseClient.from('perfiles').upsert({id:data.user.id,email,rol,nombre:email.split('@')[0]});
+  }
+  document.getElementById('create-user-modal').remove();
+  toast('Cuenta creada: '+email+' ('+rol+')');
+}
+
+async function openManageUsers(){
+  document.getElementById('user-dropdown').classList.remove('open');
+  const modal=document.createElement('div');
+  modal.id='manage-users-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
+  modal.innerHTML=`
+    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:92%;max-width:420px;box-shadow:0 4px 24px rgba(0,0,0,0.2);max-height:80vh;display:flex;flex-direction:column">
+      <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <span style="font-size:14px;font-weight:600;color:#fdf6ec">👥 Gestionar usuarios</span>
+        <span onclick="document.getElementById('manage-users-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+      </div>
+      <div id="users-list" style="overflow-y:auto;padding:16px;flex:1">
+        <div style="text-align:center;color:#a07840;font-size:13px">Cargando...</div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+  loadUsersList();
+}
+
+async function loadUsersList(){
+  const el=document.getElementById('users-list');
+  if(!el)return;
+  const{data,error}=await supabaseClient.from('perfiles').select('*').order('email');
+  if(error||!data){el.innerHTML='<div style="color:#c0392b;font-size:12px">Error al cargar</div>';return;}
+  if(!data.length){el.innerHTML='<div style="color:#a07840;font-size:12px">No hay usuarios</div>';return;}
+  el.innerHTML=data.map(u=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e0c898;gap:8px">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#1a1917">${u.email}</div>
+        <div style="font-size:10px;color:#a07840">${u.nombre||''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <select onchange="changeUserRol('${u.id}',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid #c9a96e;border-radius:4px;background:#fff;color:#3d2b0f">
+          <option value="readonly" ${u.rol==='readonly'?'selected':''}>Solo lectura</option>
+          <option value="admin" ${u.rol==='admin'?'selected':''}>Admin</option>
+          <option value="bloqueado" ${u.rol==='bloqueado'?'selected':''}>Bloqueado</option>
+        </select>
+      </div>
+    </div>`).join('');
+}
+
+async function changeUserRol(uid,rol){
+  await supabaseClient.from('perfiles').update({rol}).eq('id',uid);
+  toast('Rol actualizado');
 }
 
 async function logout(){
@@ -466,6 +621,12 @@ async function checkSession(){
       await supabaseClient.from('perfiles').insert({id:currentUser.id,email:currentUser.email,rol:'admin',nombre:currentUser.email.split('@')[0]});
       perfil={rol:'admin'};
     }
+    if(perfil && perfil.rol==='bloqueado'){
+      await supabaseClient.auth.signOut();
+      const errEl=document.getElementById('login-err');
+      if(errEl){errEl.style.display='block';errEl.textContent='Tu cuenta ha sido bloqueada. Contacta al administrador.';}
+      return;
+    }
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
     startApp();
   }
@@ -476,8 +637,10 @@ function startApp(){
   const badgeLabel=isAdmin?'✏️ '+( currentUser?.email?.split('@')[0]||'Admin'):'👁 '+( currentUser?.email?.split('@')[0]||'Invitado');
   badge.textContent=badgeLabel;
   badge.className=isAdmin?'user-badge':'user-badge readonly';
-  badge.title='Clic para cerrar sesión';
-  badge.onclick=()=>{if(confirm('¿Cerrar sesión?'))logout();};
+  badge.title='Opciones de usuario';
+  if(isAdmin){const mu=document.getElementById('manage-users-btn');if(mu)mu.style.display='flex';const cu=document.getElementById('create-user-btn');if(cu)cu.style.display='flex';}
+  badge.onclick=(e)=>{e.stopPropagation();document.getElementById('user-dropdown').classList.toggle('open');};
+  document.addEventListener('click',()=>document.getElementById('user-dropdown')?.classList.remove('open'),{once:false});
   if(!isAdmin){
     document.getElementById('add-horse-card').style.display='none';
     document.getElementById('readonly-banner').innerHTML='<div class="readonly-msg">👁 Modo solo lectura — puedes ver todos los datos pero no modificar ni agregar registros.</div>';
@@ -2487,6 +2650,7 @@ function openInvUso(itemId){
   document.getElementById('inv-uso-mes').value=new Date().getMonth()+1;
   document.getElementById('inv-uso-modal').style.display='flex';
 }
+window.addEventListener('load', function(){ checkSession(); });
 document.addEventListener('DOMContentLoaded',function(){
   const cantEl=document.getElementById('inv-uso-cantidad');
   if(cantEl)cantEl.addEventListener('input',function(){
