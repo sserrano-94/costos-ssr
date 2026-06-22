@@ -464,7 +464,9 @@ async function doLogin(){
       return;
     }
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
-    canEdit = perfil && (perfil.rol==='admin' || perfil.rol==='super_admin' || perfil.rol==='usuario');
+    canEdit = perfil && (perfil.rol==='admin' || perfil.rol==='super_admin' || perfil.rol==='usuario' || perfil.rol==='subusuario');
+    isSubuser = perfil && perfil.rol==='subusuario';
+    parentUserId = perfil?.parent_user_id||null;
     startApp();
   }catch(e){
     loadEl.style.display='none';
@@ -507,6 +509,29 @@ async function doChangePassword(){
   else{document.getElementById('change-pass-modal').remove();toast('Contraseña actualizada ✓');}
 }
 
+function toggleParentField(){
+  const rol=document.getElementById('new-user-rol')?.value;
+  const field=document.getElementById('parent-user-field');
+  if(!field)return;
+  if(rol==='subusuario'){
+    field.style.display='block';
+    // Load usuarios into select
+    loadUsuariosSelect();
+  } else {
+    field.style.display='none';
+  }
+}
+
+async function loadUsuariosSelect(){
+  const sel=document.getElementById('new-user-parent');
+  if(!sel)return;
+  initSupabase();
+  const{data}=await supabaseClient.rpc('get_all_profiles');
+  if(!data)return;
+  const usuarios=data.filter(u=>u.rol==='usuario'||u.rol==='admin');
+  sel.innerHTML='<option value="">Selecciona usuario...</option>'+usuarios.map(u=>`<option value="${u.id}">${u.nombre||u.email}</option>`).join('');
+}
+
 function openCreateUser(){
   document.getElementById('user-dropdown').classList.remove('open');
   const modal=document.createElement('div');
@@ -523,6 +548,7 @@ function openCreateUser(){
         <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Contraseña</label><input type="password" id="new-user-pass" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
         <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Rol</label>
           <select id="new-user-rol" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+            <option value="subusuario">Subusuario</option>
             <option value="usuario">Usuario</option>
             <option value="readonly">Lectura</option>
           </select>
@@ -533,12 +559,15 @@ function openCreateUser(){
     </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+  // Load usuarios for parent field
+  setTimeout(()=>loadUsuariosSelect(),100);
 }
 
 async function doCreateUser(){
   const email=document.getElementById('new-user-email').value.trim();
   const pass=document.getElementById('new-user-pass').value;
   const rol=document.getElementById('new-user-rol').value;
+  const parentId=document.getElementById('new-user-parent')?.value||null;
   const err=document.getElementById('create-user-err');
   if(!email){err.style.display='block';err.textContent='Ingresa un correo';return;}
   if(!pass||pass.length<6){err.style.display='block';err.textContent='Mínimo 6 caracteres';return;}
@@ -549,10 +578,10 @@ async function doCreateUser(){
     const{data:d2,error:e2}=await supabaseClient.auth.signUp({email,password:pass});
     if(e2){err.style.display='block';err.textContent=e2.message;return;}
     if(d2?.user){
-      await supabaseClient.from('perfiles').upsert({id:d2.user.id,email,rol,nombre:email.split('@')[0]});
+      await supabaseClient.from('perfiles').upsert({id:d2.user.id,email,rol,nombre:email.split('@')[0],parent_user_id:rol==='subusuario'?parentId:null});
     }
   } else if(data?.user){
-    await supabaseClient.from('perfiles').upsert({id:data.user.id,email,rol,nombre:email.split('@')[0]});
+    await supabaseClient.from('perfiles').upsert({id:data.user.id,email,rol,nombre:email.split('@')[0],parent_user_id:rol==='subusuario'?parentId:null});
   }
   document.getElementById('create-user-modal').remove();
   toast('Cuenta creada: '+email+' ('+rol+')');
@@ -593,6 +622,7 @@ async function loadUsersList(){
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <select onchange="changeUserRol('${u.id}',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid #c9a96e;border-radius:4px;background:#fff;color:#3d2b0f">
+          <option value="subusuario" ${u.rol==='subusuario'?'selected':''}>Subusuario</option>
           <option value="usuario" ${u.rol==='usuario'?'selected':''}>Usuario</option>
           <option value="readonly" ${u.rol==='readonly'?'selected':''}>Lectura</option>
           <option value="admin" ${u.rol==='admin'?'selected':''}>Admin</option>
@@ -631,7 +661,9 @@ async function checkSession(){
       return;
     }
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
-    canEdit = perfil && (perfil.rol==='admin' || perfil.rol==='super_admin' || perfil.rol==='usuario');
+    canEdit = perfil && (perfil.rol==='admin' || perfil.rol==='super_admin' || perfil.rol==='usuario' || perfil.rol==='subusuario');
+    isSubuser = perfil && perfil.rol==='subusuario';
+    parentUserId = perfil?.parent_user_id||null;
     startApp();
   } else {
     document.getElementById('login-screen').style.display='flex';
@@ -650,6 +682,15 @@ function startApp(){
   if(!canEdit){
     document.getElementById('add-horse-card').style.display='none';
     document.getElementById('readonly-banner').innerHTML='<div class="readonly-msg">👁 Modo solo lectura — puedes ver todos los datos pero no modificar ni agregar registros.</div>';
+  }
+  if(isSubuser){
+    // Hide COSTOS and CABALLOS tabs
+    document.querySelectorAll('.nav-tab').forEach(btn=>{
+      const t=btn.getAttribute('onclick')||'';
+      if(t.includes('ingresar')||t.includes('caballos'))btn.style.display='none';
+    });
+    // Hide year blocks in resumen
+    const yb=document.getElementById('year-blocks');if(yb)yb.style.display='none';
   }
   loadAll();
 }
@@ -748,7 +789,7 @@ function toast(msg,type='ok'){
 async function loadAll(){
   const dot=document.getElementById('conn-dot'),lbl=document.getElementById('conn-label');
   try{
-    const uid=currentUser?.id;
+    const uid=isSubuser&&parentUserId?parentUserId:currentUser?.id;
     const userFilter=uid?`&user_id=eq.${uid}`:'';
     [allEntries,allHorses,allGenerales]=await Promise.all([
       sbFetch('costos?select=*&order=year.desc,month.desc&limit=2000'+userFilter),
