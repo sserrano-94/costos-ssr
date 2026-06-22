@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=0.75">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MANCOS — Caballos</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐴</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
@@ -161,7 +161,29 @@ select:focus,input:focus{border-color:var(--accent)}
 .horse-cnt{font-size:11px;color:var(--text-soft);text-align:right;margin-top:2px}
 .badge-inactive{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;background:#eee;color:#999;margin-left:6px}
 .photo-preview{width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--border);margin-top:6px;display:none}
-@media(max-width:600px){header{padding:0 14px}main{padding:16px 12px 60px}nav{padding:0 8px}.nav-tab{padding:12px 10px;font-size:12px}}
+@media(max-width:600px){
+  header{padding:0 10px;height:44px}
+  .logo{font-size:13px;gap:6px}
+  .logo-badge{font-size:9px;padding:1px 5px}
+  .logo span[style]{font-size:17px!important}
+  .conn-status{font-size:10px;gap:4px}
+  .user-badge{font-size:9px;padding:1px 6px}
+  .conn-dot{width:6px;height:6px}
+  nav{padding:5px 8px;gap:5px}
+  .nav-tab{padding:5px 9px;font-size:10px;border-radius:14px}
+  main{padding:10px 8px 60px}
+  .section-header h2{font-size:14px}
+  .section-header p{font-size:11px}
+  .year-header{padding:8px 12px}
+  .year-title{font-size:13px}
+  .year-total{font-size:12px}
+  .horse-list-header{padding:4px 8px}
+  .horse-list-name{font-size:10px}
+  .horse-list-age{font-size:9px}
+  .card{padding:14px}
+  .form-grid{grid-template-columns:1fr 1fr}
+  .horses-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+}
 </style>
 </head>
 <body>
