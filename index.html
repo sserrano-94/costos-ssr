@@ -464,6 +464,7 @@ async function doLogin(){
       return;
     }
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
+    canEdit = perfil && (perfil.rol==='admin' || perfil.rol==='super_admin' || perfil.rol==='usuario');
     startApp();
   }catch(e){
     loadEl.style.display='none';
@@ -522,8 +523,8 @@ function openCreateUser(){
         <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Contraseña</label><input type="password" id="new-user-pass" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
         <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Rol</label>
           <select id="new-user-rol" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
-            <option value="readonly">Solo lectura</option>
-            <option value="admin">Admin</option>
+            <option value="usuario">Usuario</option>
+            <option value="readonly">Lectura</option>
           </select>
         </div>
         <div id="create-user-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
@@ -591,7 +592,8 @@ async function loadUsersList(){
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <select onchange="changeUserRol('${u.id}',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid #c9a96e;border-radius:4px;background:#fff;color:#3d2b0f">
-          <option value="readonly" ${u.rol==='readonly'?'selected':''}>Solo lectura</option>
+          <option value="usuario" ${u.rol==='usuario'?'selected':''}>Usuario</option>
+          <option value="readonly" ${u.rol==='readonly'?'selected':''}>Lectura</option>
           <option value="admin" ${u.rol==='admin'?'selected':''}>Admin</option>
           <option value="bloqueado" ${u.rol==='bloqueado'?'selected':''}>Bloqueado</option>
         </select>
@@ -628,6 +630,7 @@ async function checkSession(){
       return;
     }
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
+    canEdit = perfil && (perfil.rol==='admin' || perfil.rol==='super_admin' || perfil.rol==='usuario');
     startApp();
   }
 }
@@ -641,7 +644,7 @@ function startApp(){
   if(isAdmin){const mu=document.getElementById('manage-users-btn');if(mu)mu.style.display='flex';const cu=document.getElementById('create-user-btn');if(cu)cu.style.display='flex';}
   badge.onclick=(e)=>{e.stopPropagation();document.getElementById('user-dropdown').classList.toggle('open');};
   document.addEventListener('click',()=>document.getElementById('user-dropdown')?.classList.remove('open'),{once:false});
-  if(!isAdmin){
+  if(!canEdit){
     document.getElementById('add-horse-card').style.display='none';
     document.getElementById('readonly-banner').innerHTML='<div class="readonly-msg">👁 Modo solo lectura — puedes ver todos los datos pero no modificar ni agregar registros.</div>';
   }
@@ -832,10 +835,10 @@ function renderResumen(){
     const imgSrc=getHorseImg(nombre);
     // Check if main image is an uploaded photo (not from GEO)
     const isUploadedMain=imgSrc&&!(GEO[nombre]||{}).img&&!newHorsePhotos[nombre];
-    const mainImgOnclick=isAdmin&&isUploadedMain?`onclick="setMainPhoto('${sid}','${imgSrc}','${nombre.replace(/'/g,"\\'")}')"`:'';     
-    const mainImgTitle=isAdmin&&isUploadedMain?' title="Clic para opciones"':'';
+    const mainImgOnclick=canEdit&&isUploadedMain?`onclick="setMainPhoto('${sid}','${imgSrc}','${nombre.replace(/'/g,"\\'")}')"`:'';     
+    const mainImgTitle=canEdit&&isUploadedMain?' title="Clic para opciones"':'';
     const mainImg=imgSrc
-      ?`<img class="main-img" src="${imgSrc}" alt="${nombre}" ${mainImgOnclick}${mainImgTitle} style="${isUploadedMain&&isAdmin?'cursor:pointer':''}" onerror="this.style.display='none'">`
+      ?`<img class="main-img" src="${imgSrc}" alt="${nombre}" ${mainImgOnclick}${mainImgTitle} style="${isUploadedMain&&canEdit?'cursor:pointer':''}" onerror="this.style.display='none'">`
       :`<img class="main-img" src="" alt="${nombre}" style="display:none"><div class="main-img-placeholder" style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen</div>`;
     const dob=info&&info.fecha_nacimiento?new Date(info.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
     const numero=(info&&info.numero)||(geo.numero||'—');
@@ -1044,7 +1047,7 @@ function renderExpBlocks(){
           </div>
           <div class="exp-h-body" id="rod-b${year}">
             <div id="rod-content${year}"><div class="empty">Cargando...</div></div>
-            ${isAdmin?`<div style="padding:6px 16px;border-top:1px solid var(--border)">
+            ${canEdit?`<div style="padding:6px 16px;border-top:1px solid var(--border)">
               <button onclick="openAddRodeoModal(${year})" style="height:24px;padding:0 12px;font-size:10px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar rodeo</button>
             </div>`:''}
           </div>
@@ -1061,8 +1064,8 @@ function buildExpGenMonth(year,month,yg){
   const usedCats=me.map(e=>e.categoria);
 
   const existingRows=me.map(e=>{
-    const valEl=isAdmin?`<span class="cat-val" onclick="editGenVal(this,${e.id},'${msid}',${year},${month})" title="Clic para editar">${clp(e.monto)}</span>`:`<span class="cat-val" style="cursor:default">${clp(e.monto)}</span>`;
-    const delBtn=isAdmin?`<button class="cat-del" onclick="delGenEntry(${e.id},'${msid}',${year},${month})">×</button>`:'';
+    const valEl=canEdit?`<span class="cat-val" onclick="editGenVal(this,${e.id},'${msid}',${year},${month})" title="Clic para editar">${clp(e.monto)}</span>`:`<span class="cat-val" style="cursor:default">${clp(e.monto)}</span>`;
+    const delBtn=canEdit?`<button class="cat-del" onclick="delGenEntry(${e.id},'${msid}',${year},${month})">×</button>`:'';
     return `<div class="cat-row" id="gcr${e.id}">
       <span class="cat-name">${e.categoria}</span>
       ${valEl}
@@ -1071,7 +1074,7 @@ function buildExpGenMonth(year,month,yg){
     </div>`;
   }).join('');
 
-  const addBtn=isAdmin?`<div style="padding:3px 24px 4px;border-top:1px solid var(--border);background:#f0f4fb">
+  const addBtn=canEdit?`<div style="padding:3px 24px 4px;border-top:1px solid var(--border);background:#f0f4fb">
     <button onclick="openGenModal(${year},${month},'${msid}')" style="height:20px;padding:0 10px;font-size:9px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar gasto</button>
   </div>`:'';
 
@@ -1109,8 +1112,8 @@ function buildExpMonth(horse,year,month,he,parentSid){
   const mt=me.reduce((s,e)=>s+Number(e.amount),0);
   const msid=parentSid+'_m'+month;
   const existingRows=me.map(e=>{
-    const delBtn=isAdmin?`<button class="cat-del" onclick="delCatEntry(${e.id},'${parentSid}',${year},${month})">×</button>`:'';
-    const valEl=isAdmin
+    const delBtn=canEdit?`<button class="cat-del" onclick="delCatEntry(${e.id},'${parentSid}',${year},${month})">×</button>`:'';
+    const valEl=canEdit
       ?`<span class="cat-val" onclick="editCatVal(this,${e.id},'${parentSid}',${year},${month})" title="Clic para editar">${clp(e.amount)}</span>`
       :`<span class="cat-val" style="cursor:default">${clp(e.amount)}</span>`;
     return `<div class="cat-row" id="cr${e.id}">
@@ -1123,7 +1126,7 @@ function buildExpMonth(horse,year,month,he,parentSid){
 
   // Only show add row for categories not yet entered this month
   const usedCats=me.map(e=>e.cat);
-  const addSection=isAdmin&&usedCats.length<CATS.length?`<div style="padding:4px 24px 6px;border-top:1px solid var(--border);background:#f0f4fb">
+  const addSection=canEdit&&usedCats.length<CATS.length?`<div style="padding:4px 24px 6px;border-top:1px solid var(--border);background:#f0f4fb">
     <button onclick="openCostModal('${horse}',${year},${month},'${parentSid}')" style="height:20px;padding:0 10px;font-size:9px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar gasto</button>
   </div>`:'';
 
@@ -1191,7 +1194,7 @@ function handleSaveCat(btn){
 }
 
 async function saveCatEntry(horse,year,month,cat,cid,parentSid,mnum){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   const amount=+document.getElementById('amt_'+cid).value;
   const note=document.getElementById('note_'+cid).value.trim();
   if(!amount){toast('Ingresa el monto','err');return;}
@@ -1226,7 +1229,7 @@ async function saveCatEntry(horse,year,month,cat,cid,parentSid,mnum){
 }
 
 async function delCatEntry(id,parentSid,year,month){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   if(!confirm('¿Eliminar?'))return;
   try{
     const entry=allEntries.find(e=>e.id===id);
@@ -1263,7 +1266,7 @@ async function delCatEntry(id,parentSid,year,month){
 }
 
 function addNewYear(){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   const input=document.getElementById('new-year-input');
   const year=+input.value;
   if(!year||year<2024||year>2040){toast('Ingresa un año válido','err');return;}
@@ -1287,7 +1290,7 @@ function addNewYear(){
 }
 
 function openPhotoUpload(nombre,sid){
-  if(!isAdmin)return;
+  if(!canEdit)return;
   photoTargetHorse={nombre,sid};
   document.getElementById('photo-input').click();
 }
@@ -1334,7 +1337,7 @@ document.getElementById('new-horse-photo').addEventListener('change',function(){
 });
 
 async function deactivateHorse(nombre,sid){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   if(!confirm('¿Desactivar '+nombre+'? Sus datos se conservan.'))return;
   const info=allHorses.find(h=>h.nombre===nombre);
   if(info){
@@ -1419,7 +1422,7 @@ async function reactivateHorse(nombre,id){
 }
 
 async function addHorse(){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   const nombre=document.getElementById('new-horse-name').value.trim().toUpperCase();
   const numero=document.getElementById('new-horse-num').value.trim();
   const dob=document.getElementById('new-horse-dob').value;
@@ -1841,7 +1844,7 @@ function renderEventsList(events){
 }
 
 async function addManualEvent(){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   const horses=Array.from(document.querySelectorAll('#ev-horse-checks input:checked')).map(i=>i.value);
   const fecha=document.getElementById('ev-date').value;
   const tipo=document.getElementById('ev-tipo').value.trim();
@@ -1874,7 +1877,7 @@ async function deleteEvent(id){
 
 // Auto-prompt date when saving Herraje or Vitaminas
 async function saveCatEntryWithDate(horse,year,month,cat,cid,parentSid,mnum){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   const amount=+document.getElementById('amt_'+cid).value;
   const note=document.getElementById('note_'+cid).value.trim();
   if(!amount){toast('Ingresa el monto','err');return;}
@@ -1950,7 +1953,7 @@ function toggleAddRodeo(){
 }
 
 async function addRodeo(){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   const nombre=document.getElementById('new-rodeo-nombre').value.trim();
   const fecha=document.getElementById('new-rodeo-fecha').value;
   if(!nombre||!fecha){toast('Ingresa nombre y fecha','err');return;}
@@ -1987,7 +1990,7 @@ async function deleteRodeo(id){
 }
 
 async function saveRodeoCosto(rodeoId, cat, inputId, noteId){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   const monto=+document.getElementById(inputId).value;
   const nota=document.getElementById(noteId).value.trim();
   if(!monto){toast('Ingresa el monto','err');return;}
@@ -2117,7 +2120,7 @@ function renderRodeos(){
 let genModalContext=null;
 
 function openGenModal(year,month,msid){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   genModalContext={year,month,msid};
   const me=allGenerales.filter(e=>e.year===year&&e.month===month);
   const usedCats=me.map(e=>e.categoria);
@@ -2214,7 +2217,7 @@ async function delGenEntry(id,msid,year,month){
 // ===== MODAL =====
 let modalContext = null;
 function openCostModal(horse, year, month, parentSid){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   modalContext={horse,year,month,parentSid};
   document.getElementById('modal-title').textContent='Agregar gasto — '+horse+' '+month+'/'+year;
   // Filter out already-used cats
@@ -2360,7 +2363,7 @@ async function deleteRodeoAndRefresh(id,year){
 let rodeoModalContext=null;
 
 function openRodeoGastoModal(rodeoId, rsid){
-  if(!isAdmin){toast('Sin permisos','err');return;}
+  if(!canEdit){toast('Sin permisos','err');return;}
   rodeoModalContext={rodeoId, rsid};
   const usedCats=allRodeosCostos.filter(c=>c.rodeo_id===rodeoId).map(c=>c.categoria);
   const sel=document.getElementById('rodeo-modal-cat');
