@@ -240,17 +240,14 @@ select:focus,input:focus{border-color:var(--accent)}
 
 <header>
   <div class="logo"><span class="logo-badge">SSR</span><span style="font-family:'Dancing Script',cursive;font-size:22px">MANCOS</span></div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <div class="user-menu-wrap">
-      <span id="user-badge" class="user-badge"></span>
-      <div class="user-dropdown" id="user-dropdown">
-        <div class="user-dropdown-item" onclick="openChangePassword()">🔑 Cambiar contraseña</div>
-        <div class="user-dropdown-item" id="manage-users-btn" style="display:none" onclick="openManageUsers()">👥 Gestionar usuarios</div>
-        <div class="user-dropdown-item" id="create-user-btn" style="display:none" onclick="openCreateUser()">➕ Crear cuenta</div>
-        <div class="user-dropdown-item danger" onclick="logout()">🚪 Cerrar sesión</div>
-      </div>
+  <div class="user-menu-wrap">
+    <span id="user-badge" class="user-badge"></span>
+    <div class="user-dropdown" id="user-dropdown">
+      <div class="user-dropdown-item" onclick="openChangePassword()">🔑 Cambiar contraseña</div>
+      <div class="user-dropdown-item" id="manage-users-btn" style="display:none" onclick="openManageUsers()">👥 Gestionar usuarios</div>
+      <div class="user-dropdown-item" id="create-user-btn" style="display:none" onclick="openCreateUser()">➕ Crear cuenta</div>
+      <div class="user-dropdown-item danger" onclick="logout()">🚪 Cerrar sesión</div>
     </div>
-    <div class="conn-status"><div class="conn-dot" id="conn-dot"></div><span id="conn-label">Conectando...</span></div>
   </div>
 </header>
 <nav>
