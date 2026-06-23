@@ -534,8 +534,8 @@ async function loadUsuariosSelect(){
   if(!sel)return;
   initSupabase();
   const{data}=await supabaseClient.rpc('get_all_profiles');
-  if(!data)return;
-  const usuarios=data.filter(u=>u.rol==='usuario'||u.rol==='admin');
+  if(!data){sel.innerHTML='<option value="">Sin usuarios disponibles</option>';return;}
+  const usuarios=data.filter(u=>u.rol==='usuario'||u.rol==='admin'||u.rol==='super_admin');
   sel.innerHTML='<option value="">Selecciona usuario...</option>'+usuarios.map(u=>`<option value="${u.id}">${u.nombre||u.email}</option>`).join('');
 }
 
@@ -580,7 +580,7 @@ function openCreateUser(){
   document.body.appendChild(modal);
   modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
   // Show/hide parent field based on default rol
-  setTimeout(()=>toggleParentField(),100);
+  setTimeout(()=>toggleParentField(),200);
 }
 
 async function doCreateUser(){
@@ -653,6 +653,9 @@ async function loadUsersList(){
 }
 
 async function changeUserRol(uid,rol){
+  // Protect super admin
+  const{data:p}=await supabaseClient.from('perfiles').select('email').eq('id',uid).single();
+  if(p&&p.email==='s.serrano@baumsystem.com'){toast('No se puede modificar al super admin','err');loadUsersList();return;}
   await supabaseClient.from('perfiles').update({rol}).eq('id',uid);
   toast('Rol actualizado');
 }
