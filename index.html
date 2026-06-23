@@ -948,7 +948,7 @@ function renderResumen(){
   document.getElementById('year-blocks').innerHTML=years.map(year=>{
     const ye=allEntries.filter(e=>e.year===year);
     const yt=ye.reduce((s,e)=>s+Number(e.amount),0);
-    const yhAll=sortedActive(year);const yh=yhAll.filter(h=>ye.some(e=>e.horse===h));
+    const yhAll=sortedActive(year);const yh=yhAll;
     if(!yh.length)return'';
     const am=[1,2,3,4,5,6,7,8,9,10,11,12];
     const rows=yh.map(h=>{
