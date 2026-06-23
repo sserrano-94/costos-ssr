@@ -560,17 +560,17 @@ function openCreateUser(){
       <div style="padding:20px">
         <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Correo</label><input type="email" id="new-user-email" placeholder="correo@ejemplo.com" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
         <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Contraseña</label><input type="password" id="new-user-pass" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
-        <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Rol</label>
-          <select id="new-user-rol" onchange="toggleParentField()" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Rol</label>
+          <select id="new-user-rol" onchange="document.getElementById('parent-user-field').style.display=this.value==='subusuario'?'block':'none'" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
             <option value="subusuario">Subusuario</option>
             <option value="usuario">Usuario</option>
             <option value="readonly">Lectura</option>
           </select>
         </div>
-        <div id="parent-user-field" style="margin-bottom:16px">
+        <div id="parent-user-field" style="margin-bottom:16px;display:block">
           <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Usuario asociado</label>
           <select id="new-user-parent" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
-            <option value="">Selecciona usuario...</option>
+            <option value="">Cargando...</option>
           </select>
         </div>
         <div id="create-user-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
@@ -579,8 +579,15 @@ function openCreateUser(){
     </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
-  // Show/hide parent field based on default rol
-  setTimeout(()=>toggleParentField(),200);
+  // Load usuarios into parent select
+  setTimeout(async()=>{
+    const sel=document.getElementById('new-user-parent');if(!sel)return;
+    initSupabase();
+    const{data}=await supabaseClient.rpc('get_all_profiles');
+    if(!data){sel.innerHTML='<option value="">Sin usuarios</option>';return;}
+    const usuarios=data.filter(u=>['usuario','admin','super_admin'].includes(u.rol));
+    sel.innerHTML='<option value="">Selecciona usuario...</option>'+usuarios.map(u=>`<option value="${u.id}">${u.nombre||u.email}</option>`).join('');
+  },300);
 }
 
 async function doCreateUser(){
@@ -634,13 +641,17 @@ async function loadUsersList(){
   const{data,error}=await supabaseClient.rpc('get_all_profiles');
   if(error||!data){el.innerHTML='<div style="color:#c0392b;font-size:12px">Error: '+(error?.message||'sin datos')+'</div>';return;}
   if(!data.length){el.innerHTML='<div style="color:#a07840;font-size:12px">No hay usuarios</div>';return;}
+  // Build parent options for subusuario
+  const usuariosParent=data.filter(u=>['usuario','admin','super_admin'].includes(u.rol));
+  const parentOpts='<option value="">Sin asociar</option>'+usuariosParent.map(u=>`<option value="${u.id}">${u.nombre||u.email}</option>`).join('');
+
   el.innerHTML=data.map(u=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e0c898;gap:8px">
-      <div>
-        <div style="font-size:12px;font-weight:600;color:#1a1917">${u.email}</div>
-        <div style="font-size:10px;color:#a07840">${u.nombre||''}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
+    <div style="padding:8px 0;border-bottom:1px solid #e0c898">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1a1917">${u.email}</div>
+          <div style="font-size:10px;color:#a07840">${u.nombre||''}</div>
+        </div>
         <select onchange="changeUserRol('${u.id}',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid #c9a96e;border-radius:4px;background:#fff;color:#3d2b0f">
           <option value="subusuario" ${u.rol==='subusuario'?'selected':''}>Subusuario</option>
           <option value="usuario" ${u.rol==='usuario'?'selected':''}>Usuario</option>
@@ -649,7 +660,19 @@ async function loadUsersList(){
           <option value="bloqueado" ${u.rol==='bloqueado'?'selected':''}>Bloqueado</option>
         </select>
       </div>
+      ${u.rol==='subusuario'?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:10px;color:#a07840">Usuario asociado:</span>
+        <select onchange="changeParentUser('${u.id}',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid #c9a96e;border-radius:4px;background:#fff;color:#3d2b0f;flex:1">
+          ${parentOpts.replace(`value="${u.parent_user_id||''}"`,`value="${u.parent_user_id||''}" selected`)}
+        </select>
+      </div>`:''}
     </div>`).join('');
+}
+
+async function changeParentUser(uid,parentId){
+  initSupabase();
+  await supabaseClient.from('perfiles').update({parent_user_id:parentId||null}).eq('id',uid);
+  toast('Usuario asociado actualizado');
 }
 
 async function changeUserRol(uid,rol){
@@ -658,6 +681,7 @@ async function changeUserRol(uid,rol){
   if(p&&p.email==='s.serrano@baumsystem.com'){toast('No se puede modificar al super admin','err');loadUsersList();return;}
   await supabaseClient.from('perfiles').update({rol}).eq('id',uid);
   toast('Rol actualizado');
+  loadUsersList();
 }
 
 async function logout(){
