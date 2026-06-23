@@ -225,7 +225,10 @@ select:focus,input:focus{border-color:var(--accent)}
     </div>
     <div class="login-form">
       <div class="login-field-wrap"><label class="login-label">Correo</label><input type="email" id="login-email" placeholder="tu@email.com" class="login-input"></div>
-      <div class="login-field-wrap" style="margin-bottom:16px"><label class="login-label">Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" class="login-input" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="login-field-wrap" style="margin-bottom:16px"><label class="login-label">Contraseña</label><div style="position:relative;display:flex;align-items:center">
+  <input type="password" id="login-pass" placeholder="••••••••" class="login-input" style="padding-right:36px" onkeydown="if(event.key==='Enter')doLogin()">
+  <span onclick="togglePass('login-pass',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none">👁</span>
+</div></div>
       <button onclick="doLogin()" class="login-btn">ENTRAR</button>
       <div id="login-err" style="display:none;margin-top:10px;color:#c0392b;font-size:12px;text-align:center"></div>
       <div id="login-loading" style="display:none;margin-top:10px;color:#7a5c2e;font-size:12px;text-align:center">Ingresando...</div>
@@ -487,8 +490,14 @@ function openChangePassword(){
         <span onclick="document.getElementById('change-pass-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
       </div>
       <div style="padding:20px">
-        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Nueva contraseña</label><input type="password" id="new-pass-1" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
-        <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Confirmar contraseña</label><input type="password" id="new-pass-2" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
+        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Nueva contraseña</label><div style="position:relative;display:flex;align-items:center">
+  <input type="password" id="new-pass-1" placeholder="••••••••" style="width:100%;height:36px;padding:0 36px 0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+  <span onclick="togglePass('new-pass-1',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none">👁</span>
+</div></div>
+        <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Confirmar contraseña</label><div style="position:relative;display:flex;align-items:center">
+  <input type="password" id="new-pass-2" placeholder="••••••••" style="width:100%;height:36px;padding:0 36px 0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+  <span onclick="togglePass('new-pass-2',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none">👁</span>
+</div></div>
         <div id="pass-change-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
         <button onclick="doChangePassword()" style="width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">GUARDAR</button>
       </div>
@@ -530,6 +539,13 @@ async function loadUsuariosSelect(){
   if(!data)return;
   const usuarios=data.filter(u=>u.rol==='usuario'||u.rol==='admin');
   sel.innerHTML='<option value="">Selecciona usuario...</option>'+usuarios.map(u=>`<option value="${u.id}">${u.nombre||u.email}</option>`).join('');
+}
+
+function togglePass(inputId, btn){
+  const input=document.getElementById(inputId);
+  if(!input)return;
+  if(input.type==='password'){input.type='text';btn.textContent='🙈';}
+  else{input.type='password';btn.textContent='👁';}
 }
 
 function openCreateUser(){
