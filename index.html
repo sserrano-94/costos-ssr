@@ -732,7 +732,7 @@ let allEntries=[],allHorses=[];
 const extraPhotos={},newHorsePhotos={};let allPhotoRecords=[];
 let photoTargetHorse=null;
 
-function clp(n){return n?'$'+Math.round(n).toLocaleString('es-CL'):'';}
+function clp(n){return (n||n===0)?'$'+Math.round(n).toLocaleString('es-CL'):'';}
 function clpK(n){
   if(!n)return'—';
   const v=Math.round(n);
