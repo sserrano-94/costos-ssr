@@ -561,10 +561,16 @@ function openCreateUser(){
         <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Correo</label><input type="email" id="new-user-email" placeholder="correo@ejemplo.com" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
         <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Contraseña</label><input type="password" id="new-user-pass" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
         <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Rol</label>
-          <select id="new-user-rol" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+          <select id="new-user-rol" onchange="toggleParentField()" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
             <option value="subusuario">Subusuario</option>
             <option value="usuario">Usuario</option>
             <option value="readonly">Lectura</option>
+          </select>
+        </div>
+        <div id="parent-user-field" style="margin-bottom:16px">
+          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Usuario asociado</label>
+          <select id="new-user-parent" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+            <option value="">Selecciona usuario...</option>
           </select>
         </div>
         <div id="create-user-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
@@ -573,8 +579,8 @@ function openCreateUser(){
     </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
-  // Load usuarios for parent field
-  setTimeout(()=>loadUsuariosSelect(),100);
+  // Show/hide parent field based on default rol
+  setTimeout(()=>toggleParentField(),100);
 }
 
 async function doCreateUser(){
