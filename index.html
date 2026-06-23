@@ -6,6 +6,7 @@
 <title>MANCOS — Caballos</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐴</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -227,7 +228,7 @@ select:focus,input:focus{border-color:var(--accent)}
       <div class="login-field-wrap"><label class="login-label">Correo</label><input type="email" id="login-email" placeholder="tu@email.com" class="login-input"></div>
       <div class="login-field-wrap" style="margin-bottom:16px"><label class="login-label">Contraseña</label><div style="position:relative;display:flex;align-items:center">
   <input type="password" id="login-pass" placeholder="••••••••" class="login-input" style="padding-right:36px" onkeydown="if(event.key==='Enter')doLogin()">
-  <span onclick="togglePass('login-pass',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none">👁</span>
+  <span onclick="togglePass('login-pass',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none"><i class="ti ti-eye" style="font-size:16px"></i></span>
 </div></div>
       <button onclick="doLogin()" class="login-btn">ENTRAR</button>
       <div id="login-err" style="display:none;margin-top:10px;color:#c0392b;font-size:12px;text-align:center"></div>
@@ -492,11 +493,11 @@ function openChangePassword(){
       <div style="padding:20px">
         <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Nueva contraseña</label><div style="position:relative;display:flex;align-items:center">
   <input type="password" id="new-pass-1" placeholder="••••••••" style="width:100%;height:36px;padding:0 36px 0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
-  <span onclick="togglePass('new-pass-1',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none">👁</span>
+  <span onclick="togglePass('new-pass-1',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none"><i class="ti ti-eye" style="font-size:16px"></i></span>
 </div></div>
         <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Confirmar contraseña</label><div style="position:relative;display:flex;align-items:center">
   <input type="password" id="new-pass-2" placeholder="••••••••" style="width:100%;height:36px;padding:0 36px 0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
-  <span onclick="togglePass('new-pass-2',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none">👁</span>
+  <span onclick="togglePass('new-pass-2',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none"><i class="ti ti-eye" style="font-size:16px"></i></span>
 </div></div>
         <div id="pass-change-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
         <button onclick="doChangePassword()" style="width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">GUARDAR</button>
@@ -544,8 +545,8 @@ async function loadUsuariosSelect(){
 function togglePass(inputId, btn){
   const input=document.getElementById(inputId);
   if(!input)return;
-  if(input.type==='password'){input.type='text';btn.textContent='🙈';}
-  else{input.type='password';btn.textContent='👁';}
+  if(input.type==='password'){input.type='text';btn.innerHTML='<i class="ti ti-eye-off" style="font-size:16px"></i>';}
+  else{input.type='password';btn.innerHTML='<i class="ti ti-eye" style="font-size:16px"></i>';}
 }
 
 function openCreateUser(){
