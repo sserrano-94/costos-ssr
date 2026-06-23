@@ -720,12 +720,12 @@ let allGenerales=[];
 let allInventario=[];
 const BASE_URL='https://raw.githubusercontent.com/sserrano-94/costos-ssr/main/';
 const GEO={
-  'COSCACHITA':{numero:'236328',padre:'FANTASTICO (A:1997)',madre:'FICHA (A:1990)'},
-  'COLCHAGUINA':{numero:'326022',padre:'REVOLTOSO (A:2011)',madre:'COSCACHITA (A:2011)'},
-  'SUREÑO':{numero:'316204',padre:'MEDIO A MEDIO T.E. (A:2010)',madre:'COSCACHITA (A:2011)'},
-  'ESPUELA':{numero:'196650',padre:'ACERO (A:1992)',madre:'AMOROCHA (A:1988)'},
-  'MITI MOTA':{numero:'298036',padre:'ERMITAÑO (A:1996)',madre:'QUINCHA (A:1994)'},
-  'RECINTO':{numero:'334788',padre:'REVOLTOSO (A:2011)',madre:'COSCACHITA (A:2011)'},
+  'COSCACHITA':{numero:'236328',padre:'FANTASTICO',madre:'FICHA'},
+  'COLCHAGUINA':{numero:'326022',padre:'REVOLTOSO',madre:'COSCACHITA'},
+  'SUREÑO':{numero:'316204',padre:'MEDIO A MEDIO T.E.',madre:'COSCACHITA'},
+  'ESPUELA':{numero:'196650',padre:'ACERO',madre:'AMOROCHA'},
+  'MITI MOTA':{numero:'298036',padre:'ERMITAÑO',madre:'QUINCHA'},
+  'RECINTO':{numero:'334788',padre:'REVOLTOSO',madre:'COSCACHITA'},
 };
 
 let allEntries=[],allHorses=[];
@@ -819,9 +819,9 @@ async function loadAll(){
         if(!extraPhotos[p.horse].includes(p.url))extraPhotos[p.horse].push(p.url);
       });
     }catch(e){}
-    dot.className='conn-dot ok';
-    lbl.textContent='Conectado';
-  }catch(e){dot.className='conn-dot err';lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
+    if(dot)dot.className='conn-dot ok';
+    if(lbl)lbl.textContent='Conectado';
+  }catch(e){if(dot)dot.className='conn-dot err';if(lbl)lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
   renderResumen();renderExpBlocks();
   
 }
@@ -980,7 +980,7 @@ function renderResumen(){
             <tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr>
           </thead>
         <tbody>
-          ${rows.map(r=>`<tr><td>${r.h}</td>${r.cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${clp(r.rt)}</strong></td></tr>`).join('')}
+          ${rows.map(r=>`<tr><td>${r.h}</td>${r.cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${r.rt>0?clp(r.rt):clp(0)}</strong></td></tr>`).join('')}
           <tr><td>TOTAL</td>${colT.map(v=>`<td>${clp(v)}</td>`).join('')}<td>${clp(yt)}</td></tr>
         </tbody></table>
       </div>
