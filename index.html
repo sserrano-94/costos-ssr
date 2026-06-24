@@ -2704,7 +2704,7 @@ function toggleAperos(){
 async function loadAperos(){
   const uid=isSubuser&&parentUserId?parentUserId:currentUser?.id;
   const f=uid?`&user_id=eq.${uid}`:'';
-  allAperos=await sbFetch('aperos?select=*&order=created_at.desc'+f);
+  allAperos=await sbFetch('aperos?select=*&order=created_at.asc'+f);
   renderAperos();
 }
 
