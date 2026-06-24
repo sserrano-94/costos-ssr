@@ -362,7 +362,10 @@ select:focus,input:focus{border-color:var(--accent)}
     <div style="margin-bottom:16px;border:2px solid #8b5e2a;border-radius:10px;overflow:hidden">
       <div style="background:#7a5c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleAperos()">
         <span style="font-size:13px;font-weight:700;color:#fdf6ec">🐎 APEROS</span>
-        <span id="aperos-arrow" style="color:#f0d9a8;font-size:12px;transition:transform .2s">▼</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="exportAperosPDF(event)" style="background:#c9a96e;color:#3d2b0f;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">📄 PDF</button>
+          <span id="aperos-arrow" style="color:#f0d9a8;font-size:12px;transition:transform .2s">▼</span>
+        </div>
       </div>
       <div id="aperos-body" style="display:none">
         <div style="padding:8px 12px;display:flex;align-items:center;justify-content:space-between;background:#fdf6ec;border-bottom:1px solid #e0c898">
@@ -2873,6 +2876,97 @@ async function saveEditApero(id){
   document.getElementById('view-apero-modal').remove();
   await loadAperos();
   toast('Apero actualizado');
+}
+
+async function exportAperosPDF(e){
+  e.stopPropagation();
+  if(!allAperos.length){toast('No hay aperos para exportar','err');return;}
+  toast('Generando PDF...');
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF('p','mm','a4');
+  const PW=210,ML=14,MT=20;
+  let y=MT;
+
+  // Title
+  doc.setFillColor(122,92,46);
+  doc.rect(0,0,PW,18,'F');
+  doc.setFontSize(14);doc.setFont('helvetica','bold');doc.setTextColor(253,246,236);
+  doc.text('MANCOS — Registro de Aperos',ML,12);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');
+  doc.text(new Date().toLocaleDateString('es-CL'),PW-ML,12,{align:'right'});
+  y=28;
+
+  const orden=['Monturas','Estribos','Lazos-Maneas','Bocados','Riendas','Espuelas','Botas','Cabezadas-Bosalillos'];
+  const sorted=[...orden,...[...new Set(allAperos.map(a=>a.tipo))].filter(t=>!orden.includes(t))];
+
+  for(const tipo of sorted){
+    const lista=allAperos.filter(a=>a.tipo===tipo);
+    if(!lista.length)continue;
+
+    // Tipo header
+    if(y>260){doc.addPage();y=MT;}
+    doc.setFillColor(200,168,107);
+    doc.rect(ML,y,PW-ML*2,7,'F');
+    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(61,43,15);
+    doc.text(tipo.toUpperCase(),ML+3,y+5);
+    y+=12;
+
+    for(const a of lista){
+      if(y>240){doc.addPage();y=MT;}
+      const imgW=50,imgH=40;
+      const txtX=ML+imgW+6;
+      const txtW=PW-ML*2-imgW-6;
+
+      // Photo
+      if(a.foto_url){
+        try{
+          await new Promise((res,rej)=>{
+            const img=new Image();img.crossOrigin='anonymous';
+            img.onload=()=>{
+              const canvas=document.createElement('canvas');
+              canvas.width=img.width;canvas.height=img.height;
+              canvas.getContext('2d').drawImage(img,0,0);
+              const fmt=a.foto_url.toLowerCase().includes('.png')?'PNG':'JPEG';
+              doc.addImage(canvas.toDataURL('image/jpeg'),fmt,ML,y,imgW,imgH);
+              res();
+            };
+            img.onerror=()=>{doc.setFillColor(200,168,107);doc.rect(ML,y,imgW,imgH,'F');res();};
+            img.src=a.foto_url;
+          });
+        }catch(e){doc.setFillColor(200,168,107);doc.rect(ML,y,imgW,imgH,'F');}
+      } else {
+        doc.setFillColor(200,168,107);doc.rect(ML,y,imgW,imgH,'F');
+        doc.setFontSize(20);doc.setTextColor(122,92,46);
+        doc.text('🐴',ML+imgW/2,y+imgH/2+4,{align:'center'});
+      }
+
+      // Text
+      doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(26,25,23);
+      doc.text(a.nombre,txtX,y+8);
+      doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(122,92,46);
+      doc.text(a.tipo,txtX,y+15);
+      if(a.talabartero){
+        doc.setTextColor(100,100,100);
+        doc.text('Maestro/Talabartero: '+a.talabartero,txtX,y+22);
+      }
+
+      // Border
+      doc.setDrawColor(224,200,152);doc.setLineWidth(0.3);
+      doc.rect(ML,y,PW-ML*2,imgH);
+      y+=imgH+5;
+    }
+    y+=4;
+  }
+
+  // Page numbers
+  const pc=doc.getNumberOfPages();
+  for(let i=1;i<=pc;i++){
+    doc.setPage(i);doc.setFontSize(8);doc.setTextColor(160,120,64);doc.setFont('helvetica','normal');
+    doc.text('MANCOS — Aperos | Pág.'+i+' de '+pc,PW/2,290,{align:'center'});
+  }
+
+  doc.save('MANCOS_Aperos_'+new Date().toLocaleDateString('es-CL').replace(/\//g,'-')+'.pdf');
+  toast('PDF descargado');
 }
 
 async function deleteApero(id){
