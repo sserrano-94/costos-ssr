@@ -103,6 +103,15 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .year-table tr:last-child td{border-bottom:none;font-weight:700;background:#f7f6f3;color:var(--accent)}
 .year-table tbody tr:hover:not(:last-child) td{background:var(--accent-light)}
 .cell-empty{color:#ddd}
+.apero-filter{padding:4px 10px;background:#fff;color:#7a5c2e;border:1px solid #c9a96e;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;transition:all .15s}
+.apero-filter.active{background:#7a5c2e;color:#fdf6ec;border-color:#7a5c2e}
+.apero-card{background:#fff;border:1px solid #e0c898;border-radius:8px;overflow:hidden;cursor:pointer;transition:all .15s}
+.apero-card:hover{border-color:#c9a96e;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.apero-card-img{width:100%;height:90px;object-fit:cover;background:#c8a86b;display:flex;align-items:center;justify-content:center;font-size:28px;color:#7a5c2e}
+.apero-card-body{padding:8px}
+.apero-card-name{font-size:11px;font-weight:600;color:#1a1917;margin-bottom:2px}
+.apero-card-tipo{font-size:9px;color:#a07840}
+.apero-card-tala{font-size:9px;color:#7a5c2e;margin-top:2px}
 .exp-block{margin-bottom:10px}
 .exp-y-hdr{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;cursor:pointer;box-shadow:var(--shadow);user-select:none}
 .exp-y-hdr:hover{background:var(--accent-light)}
@@ -353,6 +362,27 @@ select:focus,input:focus{border-color:var(--accent)}
     <div style="display:flex;justify-content:flex-end;margin-top:16px">
       <input type="number" id="inv-new-year-input" placeholder="2027" min="2024" max="2040" style="width:80px;height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none">
       <button style="height:28px;padding:0 12px;font-size:11px;font-weight:500;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:6px" onclick="addInvYear()">+ Agregar año</button>
+    </div>
+
+    <!-- APEROS SECTION -->
+    <div style="margin-top:20px;border:2px solid #8b5e2a;border-radius:10px;overflow:hidden">
+      <div style="background:#7a5c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:13px;font-weight:700;color:#fdf6ec">🐎 APEROS</span>
+        <button onclick="openAddApero()" id="add-apero-btn" style="background:#c9a96e;color:#3d2b0f;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer">+ Agregar apero</button>
+      </div>
+      <div style="padding:10px 12px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #e0c898;background:#fdf6ec" id="apero-filtros">
+        <button onclick="filterAperos('Todos')" class="apero-filter active" data-tipo="Todos">Todos</button>
+        <button onclick="filterAperos('Monturas')" class="apero-filter" data-tipo="Monturas">Monturas</button>
+        <button onclick="filterAperos('Bocados')" class="apero-filter" data-tipo="Bocados">Bocados</button>
+        <button onclick="filterAperos('Riendas')" class="apero-filter" data-tipo="Riendas">Riendas</button>
+        <button onclick="filterAperos('Espuelas')" class="apero-filter" data-tipo="Espuelas">Espuelas</button>
+        <button onclick="filterAperos('Lazos-Maneas')" class="apero-filter" data-tipo="Lazos-Maneas">Lazos-Maneas</button>
+        <button onclick="filterAperos('Botas')" class="apero-filter" data-tipo="Botas">Botas</button>
+        <button onclick="filterAperos('Cabezadas-Bosalillos')" class="apero-filter" data-tipo="Cabezadas-Bosalillos">Cabezadas-Bosalillos</button>
+      </div>
+      <div id="aperos-grid" style="padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;background:#fffdf7;min-height:80px">
+        <div style="color:#a07840;font-size:12px;text-align:center;padding:20px;grid-column:1/-1">Cargando aperos...</div>
+      </div>
     </div>
   </div>
 </main>
@@ -1794,7 +1824,7 @@ function showTab(name){
   if(name==='ingresar'){renderExpBlocks();}
   if(name==='caballos')renderCaballos();
   if(name==='calendario'){loadEvents().then(()=>{calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();});}
-  if(name==='inventario'){loadInventario().then(()=>renderInvBlocks());}
+  if(name==='inventario'){loadInventario().then(()=>renderInvBlocks());loadAperos();}
 }
 
 // ===== CALENDARIO =====
@@ -2652,6 +2682,151 @@ function generarPDF(year,month){
   doc.save('InformeSSR_'+year+'_'+String(month).padStart(2,'0')+'.pdf');
   toast('✓ PDF descargado');
 }
+// ===== APEROS =====
+let allAperos=[];
+let aperoFiltroActivo='Todos';
+
+async function loadAperos(){
+  const uid=isSubuser&&parentUserId?parentUserId:currentUser?.id;
+  const f=uid?`&user_id=eq.${uid}`:'';
+  allAperos=await sbFetch('aperos?select=*&order=created_at.desc'+f);
+  renderAperos();
+}
+
+function filterAperos(tipo){
+  aperoFiltroActivo=tipo;
+  document.querySelectorAll('.apero-filter').forEach(b=>b.classList.toggle('active',b.dataset.tipo===tipo));
+  renderAperos();
+}
+
+function renderAperos(){
+  const grid=document.getElementById('aperos-grid');
+  if(!grid)return;
+  const lista=aperoFiltroActivo==='Todos'?allAperos:allAperos.filter(a=>a.tipo===aperoFiltroActivo);
+  if(!lista.length){grid.innerHTML='<div style="color:#a07840;font-size:12px;text-align:center;padding:20px;grid-column:1/-1">No hay aperos registrados</div>';return;}
+  grid.innerHTML=lista.map(a=>`
+    <div class="apero-card" onclick="viewApero('${a.id}')">
+      ${a.foto_url?`<img src="${a.foto_url}" style="width:100%;height:90px;object-fit:cover">`:`<div class="apero-card-img">🐴</div>`}
+      <div class="apero-card-body">
+        <div class="apero-card-name">${a.nombre}</div>
+        <div class="apero-card-tipo">${a.tipo}</div>
+        ${a.talabartero?`<div class="apero-card-tala">${a.talabartero}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function openAddApero(){
+  if(!canEdit){toast('Sin permisos','err');return;}
+  const modal=document.createElement('div');
+  modal.id='add-apero-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
+  modal.innerHTML=`
+    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:90%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
+      <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;font-weight:600;color:#fdf6ec">🐎 Agregar apero</span>
+        <span onclick="document.getElementById('add-apero-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+      </div>
+      <div style="padding:18px">
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Tipo de apero</label>
+          <select id="apero-tipo" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+            <option value="Monturas">Monturas</option>
+            <option value="Bocados">Bocados</option>
+            <option value="Riendas">Riendas</option>
+            <option value="Espuelas">Espuelas</option>
+            <option value="Lazos-Maneas">Lazos-Maneas</option>
+            <option value="Botas">Botas</option>
+            <option value="Cabezadas-Bosalillos">Cabezadas-Bosalillos</option>
+          </select>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Nombre</label>
+          <input type="text" id="apero-nombre" placeholder="Ej: Montura chilena" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Maestro / Talabartero</label>
+          <input type="text" id="apero-tala" placeholder="Nombre del artesano" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Foto</label>
+          <input type="file" id="apero-foto" accept="image/*" style="width:100%;font-size:12px">
+          <div id="apero-foto-preview" style="display:none;margin-top:8px"><img id="apero-foto-img" style="width:100%;height:120px;object-fit:cover;border-radius:6px;border:1px solid #c9a96e"></div>
+        </div>
+        <div id="apero-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
+        <button onclick="saveApero()" style="width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">GUARDAR</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+  document.getElementById('apero-foto').addEventListener('change',function(){
+    const file=this.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      document.getElementById('apero-foto-img').src=e.target.result;
+      document.getElementById('apero-foto-preview').style.display='block';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveApero(){
+  const tipo=document.getElementById('apero-tipo').value;
+  const nombre=document.getElementById('apero-nombre').value.trim();
+  const talabartero=document.getElementById('apero-tala').value.trim();
+  const err=document.getElementById('apero-err');
+  if(!nombre){err.style.display='block';err.textContent='Ingresa el nombre del apero';return;}
+  err.style.display='none';
+
+  let foto_url=null;
+  const fotoFile=document.getElementById('apero-foto').files[0];
+  if(fotoFile){
+    try{
+      const ext=fotoFile.name.split('.').pop();
+      const path=`aperos/${currentUser.id}/${Date.now()}.${ext}`;
+      const{data:upData,error:upErr}=await supabaseClient.storage.from('horse-photos').upload(path,fotoFile,{upsert:true});
+      if(!upErr){
+        const{data:urlData}=supabaseClient.storage.from('horse-photos').getPublicUrl(path);
+        foto_url=urlData.publicUrl;
+      }
+    }catch(e){}
+  }
+
+  await sbFetch('aperos',{method:'POST',body:JSON.stringify({tipo,nombre,talabartero:talabartero||null,foto_url,user_id:currentUser?.id})});
+  document.getElementById('add-apero-modal').remove();
+  await loadAperos();
+  toast('Apero agregado: '+nombre);
+}
+
+function viewApero(id){
+  const a=allAperos.find(x=>x.id===id);
+  if(!a)return;
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
+  modal.innerHTML=`
+    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:90%;max-width:340px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
+      <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;font-weight:600;color:#fdf6ec">${a.nombre}</span>
+        <span onclick="this.closest('[style]').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+      </div>
+      ${a.foto_url?`<img src="${a.foto_url}" style="width:100%;height:180px;object-fit:cover">`:`<div style="height:120px;background:#c8a86b;display:flex;align-items:center;justify-content:center;font-size:48px">🐴</div>`}
+      <div style="padding:16px">
+        <div style="margin-bottom:8px"><span style="font-size:11px;color:#a07840;text-transform:uppercase">Tipo</span><div style="font-size:13px;font-weight:600;color:#3d2b0f">${a.tipo}</div></div>
+        ${a.talabartero?`<div style="margin-bottom:8px"><span style="font-size:11px;color:#a07840;text-transform:uppercase">Maestro/Talabartero</span><div style="font-size:13px;font-weight:600;color:#3d2b0f">${a.talabartero}</div></div>`:''}
+        ${canEdit?`<button onclick="deleteApero('${a.id}',this)" style="width:100%;height:34px;background:#fdf0ee;color:#c0392b;border:1px solid #f5c6c6;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px">🗑 Eliminar apero</button>`:''}
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+}
+
+async function deleteApero(id,btn){
+  if(!confirm('¿Eliminar este apero?'))return;
+  await sbFetch('aperos?id=eq.'+id,{method:'DELETE'});
+  btn.closest('[style]').remove();
+  await loadAperos();
+  toast('Apero eliminado');
+}
+
 // ===== INVENTARIO =====
 async function loadInventario(){
   try{
