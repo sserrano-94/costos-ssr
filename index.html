@@ -377,7 +377,7 @@ select:focus,input:focus{border-color:var(--accent)}
             <button onclick="filterAperos('Cabezadas-Bosalillos')" class="apero-filter" data-tipo="Cabezadas-Bosalillos">Cabezadas-Bosalillos</button>
             <button onclick="filterAperos('Estribos')" class="apero-filter" data-tipo="Estribos">Estribos</button>
           </div>
-          <button onclick="openAddApero()" style="background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;margin-left:8px">+ Agregar</button>
+          <button onclick="openAddApero(aperoFiltroActivo)" style="background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;margin-left:8px">+ Agregar</button>
         </div>
         <div id="aperos-grid" style="padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;background:#fffdf7;min-height:60px">
           <div style="color:#a07840;font-size:12px;text-align:center;padding:20px;grid-column:1/-1">Sin aperos registrados</div>
@@ -2730,7 +2730,7 @@ function renderAperos(){
     </div>`).join('');
 }
 
-function openAddApero(){
+function openAddApero(tipoDefault){
   if(!canEdit){toast('Sin permisos','err');return;}
   const modal=document.createElement('div');
   modal.id='add-apero-modal';
@@ -2745,14 +2745,7 @@ function openAddApero(){
         <div style="margin-bottom:12px">
           <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Tipo de apero</label>
           <select id="apero-tipo" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
-            <option value="Bocados">Bocados</option>
-            <option value="Monturas">Monturas</option>
-            <option value="Riendas">Riendas</option>
-            <option value="Espuelas">Espuelas</option>
-            <option value="Lazos-Maneas">Lazos-Maneas</option>
-            <option value="Botas">Botas</option>
-            <option value="Cabezadas-Bosalillos">Cabezadas-Bosalillos</option>
-            <option value="Estribos">Estribos</option>
+            ${['Bocados','Monturas','Riendas','Espuelas','Lazos-Maneas','Botas','Cabezadas-Bosalillos','Estribos'].map(t=>`<option value="${t}" ${(tipoDefault&&tipoDefault!=='Todos'&&tipoDefault===t)?'selected':''}>${t}</option>`).join('')}
           </select>
         </div>
         <div style="margin-bottom:12px">
@@ -2807,8 +2800,8 @@ async function saveApero(){
     }catch(e){}
   }
 
-  await sbFetch('aperos',{method:'POST',body:JSON.stringify({tipo,nombre,talabartero:talabartero||null,foto_url,user_id:currentUser?.id})});
   document.getElementById('add-apero-modal').remove();
+  await sbFetch('aperos',{method:'POST',body:JSON.stringify({tipo,nombre,talabartero:talabartero||null,foto_url,user_id:currentUser?.id})});
   await loadAperos();
   toast('Apero agregado: '+nombre);
 }
