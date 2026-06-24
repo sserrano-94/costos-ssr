@@ -1542,7 +1542,22 @@ async function addHorse(){
     document.getElementById('new-horse-preview').style.display='none';
     renderCaballos();renderResumen();renderExpBlocks();
     toast('Caballo '+nombre+' agregado');
-  }catch(e){toast('Error: '+e.message,'err');}
+  }catch(e){
+    btn.innerHTML='Agregar caballo';btn.disabled=false;
+    if(e.message&&e.message.includes('caballos_nombre_key')){
+      const confirmar=confirm('Ya tienes un caballo registrado con el nombre "'+nombre+'".\n\n¿Quieres guardarlo de todas formas con un nombre diferente?');
+      if(confirmar){
+        const nuevoNombre=prompt('Ingresa un nombre diferente:',nombre+' 2');
+        if(nuevoNombre&&nuevoNombre.trim()){
+          document.getElementById('new-horse-name').value=nuevoNombre.trim();
+          toast('Cambia el nombre y vuelve a intentarlo','err');
+        }
+      }
+      return;
+    }
+    toast('Error: '+e.message,'err');
+    return;
+  }
   btn.innerHTML='Agregar caballo';btn.disabled=false;
 }
 
