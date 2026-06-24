@@ -375,6 +375,7 @@ select:focus,input:focus{border-color:var(--accent)}
             <button onclick="filterAperos('Lazos-Maneas')" class="apero-filter" data-tipo="Lazos-Maneas">Lazos-Maneas</button>
             <button onclick="filterAperos('Botas')" class="apero-filter" data-tipo="Botas">Botas</button>
             <button onclick="filterAperos('Cabezadas-Bosalillos')" class="apero-filter" data-tipo="Cabezadas-Bosalillos">Cabezadas-Bosalillos</button>
+            <button onclick="filterAperos('Estribos')" class="apero-filter" data-tipo="Estribos">Estribos</button>
           </div>
           <button onclick="openAddApero()" style="background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;margin-left:8px">+ Agregar</button>
         </div>
@@ -2751,6 +2752,7 @@ function openAddApero(){
             <option value="Lazos-Maneas">Lazos-Maneas</option>
             <option value="Botas">Botas</option>
             <option value="Cabezadas-Bosalillos">Cabezadas-Bosalillos</option>
+            <option value="Estribos">Estribos</option>
           </select>
         </div>
         <div style="margin-bottom:12px">
@@ -2815,28 +2817,75 @@ function viewApero(id){
   const a=allAperos.find(x=>x.id===id);
   if(!a)return;
   const modal=document.createElement('div');
+  modal.id='view-apero-modal';
   modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
+  const tipos=['Bocados','Monturas','Riendas','Espuelas','Lazos-Maneas','Botas','Cabezadas-Bosalillos','Estribos'];
   modal.innerHTML=`
-    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:90%;max-width:340px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
+    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:90%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
       <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:14px;font-weight:600;color:#fdf6ec">${a.nombre}</span>
-        <span onclick="this.closest('[style]').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+        <span style="font-size:14px;font-weight:600;color:#fdf6ec">🐎 ${a.nombre}</span>
+        <span onclick="document.getElementById('view-apero-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
       </div>
-      ${a.foto_url?`<img src="${a.foto_url}" style="width:100%;height:180px;object-fit:cover">`:`<div style="height:120px;background:#c8a86b;display:flex;align-items:center;justify-content:center;font-size:48px">🐴</div>`}
+      ${a.foto_url?`<img src="${a.foto_url}" style="width:100%;height:160px;object-fit:cover">`:`<div style="height:100px;background:#c8a86b;display:flex;align-items:center;justify-content:center;font-size:40px">🐴</div>`}
       <div style="padding:16px">
+        ${canEdit?`
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Tipo</label>
+          <select id="edit-apero-tipo" style="width:100%;height:34px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:12px;box-sizing:border-box;background:#fff;outline:none">
+            ${tipos.map(t=>`<option value="${t}" ${a.tipo===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Nombre</label>
+          <input type="text" id="edit-apero-nombre" value="${a.nombre}" style="width:100%;height:34px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:12px;box-sizing:border-box;outline:none">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Maestro / Talabartero</label>
+          <input type="text" id="edit-apero-tala" value="${a.talabartero||''}" style="width:100%;height:34px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:12px;box-sizing:border-box;outline:none">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Cambiar foto</label>
+          <input type="file" id="edit-apero-foto" accept="image/*" style="width:100%;font-size:11px">
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="saveEditApero('${a.id}')" style="flex:1;height:34px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">GUARDAR</button>
+          <button onclick="deleteApero('${a.id}')" style="height:34px;padding:0 12px;background:#fdf0ee;color:#c0392b;border:1px solid #f5c6c6;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">🗑</button>
+        </div>
+        `:`
         <div style="margin-bottom:8px"><span style="font-size:11px;color:#a07840;text-transform:uppercase">Tipo</span><div style="font-size:13px;font-weight:600;color:#3d2b0f">${a.tipo}</div></div>
-        ${a.talabartero?`<div style="margin-bottom:8px"><span style="font-size:11px;color:#a07840;text-transform:uppercase">Maestro/Talabartero</span><div style="font-size:13px;font-weight:600;color:#3d2b0f">${a.talabartero}</div></div>`:''}
-        ${canEdit?`<button onclick="deleteApero('${a.id}',this)" style="width:100%;height:34px;background:#fdf0ee;color:#c0392b;border:1px solid #f5c6c6;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px">🗑 Eliminar apero</button>`:''}
+        ${a.talabartero?`<div><span style="font-size:11px;color:#a07840;text-transform:uppercase">Maestro/Talabartero</span><div style="font-size:13px;font-weight:600;color:#3d2b0f">${a.talabartero}</div></div>`:''}
+        `}
       </div>
     </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
 }
 
-async function deleteApero(id,btn){
+async function saveEditApero(id){
+  const tipo=document.getElementById('edit-apero-tipo').value;
+  const nombre=document.getElementById('edit-apero-nombre').value.trim();
+  const talabartero=document.getElementById('edit-apero-tala').value.trim();
+  if(!nombre){toast('Ingresa el nombre','err');return;}
+  let foto_url=allAperos.find(a=>a.id===id)?.foto_url||null;
+  const fotoFile=document.getElementById('edit-apero-foto').files[0];
+  if(fotoFile){
+    try{
+      const ext=fotoFile.name.split('.').pop();
+      const path=`aperos/${currentUser.id}/${Date.now()}.${ext}`;
+      const{data:upData,error:upErr}=await supabaseClient.storage.from('fotos-caballos').upload(path,fotoFile,{upsert:true});
+      if(!upErr){const{data:urlData}=supabaseClient.storage.from('fotos-caballos').getPublicUrl(path);foto_url=urlData.publicUrl;}
+    }catch(e){}
+  }
+  await sbFetch('aperos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({tipo,nombre,talabartero:talabartero||null,foto_url})});
+  document.getElementById('view-apero-modal').remove();
+  await loadAperos();
+  toast('Apero actualizado');
+}
+
+async function deleteApero(id){
   if(!confirm('¿Eliminar este apero?'))return;
   await sbFetch('aperos?id=eq.'+id,{method:'DELETE'});
-  btn.closest('[style]').remove();
+  const m=document.getElementById('view-apero-modal');if(m)m.remove();
   await loadAperos();
   toast('Apero eliminado');
 }
