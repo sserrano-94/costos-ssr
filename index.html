@@ -2797,9 +2797,9 @@ async function saveApero(){
     try{
       const ext=fotoFile.name.split('.').pop();
       const path=`aperos/${currentUser.id}/${Date.now()}.${ext}`;
-      const{data:upData,error:upErr}=await supabaseClient.storage.from('horse-photos').upload(path,fotoFile,{upsert:true});
+      const{data:upData,error:upErr}=await supabaseClient.storage.from('fotos-caballos').upload(path,fotoFile,{upsert:true});
       if(!upErr){
-        const{data:urlData}=supabaseClient.storage.from('horse-photos').getPublicUrl(path);
+        const{data:urlData}=supabaseClient.storage.from('fotos-caballos').getPublicUrl(path);
         foto_url=urlData.publicUrl;
       }
     }catch(e){}
