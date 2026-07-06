@@ -15,16 +15,21 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 /* LOGIN */
-.login-card{width:90%;max-width:340px;background:#fdf6ec;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.15)}
+.login-card{width:90%;max-width:340px;background:#fdf6ec;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(61,43,15,0.25),0 2px 8px rgba(61,43,15,0.12);animation:loginIn 0.5s ease}
+@keyframes loginIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .login-top{background:#7a5c2e;padding:24px 20px 18px;text-align:center;border-bottom:3px solid #c9a96e}
-.login-icon{width:110px;height:110px;margin:0 auto 10px;background:#c8a870;border-radius:50%;display:flex;align-items:center;justify-content:center;border:4px solid #3d2b0f;font-size:32px;overflow:hidden}
+.login-icon{width:110px;height:110px;margin:0 auto 14px;background:#c8a870;border-radius:50%;display:flex;align-items:center;justify-content:center;border:4px solid #3d2b0f;font-size:32px;overflow:hidden}
 .login-title{font-family:'Dancing Script',cursive;font-size:26px;font-weight:700;color:#fdf6ec}
 .login-sub{font-size:10px;color:#f0d9a8;letter-spacing:3px;margin-top:4px;text-transform:uppercase}
 .login-form{padding:20px 20px 24px}
 .login-field-wrap{margin-bottom:12px}
 .login-label{font-size:10px;font-weight:600;color:#7a5c2e;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px}
-.login-input{width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;background:#fff;font-size:12px;color:#3d2b0f;box-sizing:border-box;outline:none}
-.login-btn{width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
+.login-input{width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;background:#fff;font-size:12px;color:#3d2b0f;box-sizing:border-box;outline:none;transition:border-color .2s,box-shadow .2s}
+.login-input:focus{border-color:#7a5c2e;box-shadow:0 0 0 3px rgba(122,92,46,0.15)}
+.login-btn{width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .1s,box-shadow .2s;box-shadow:0 2px 6px rgba(61,43,15,0.2)}
+.login-btn:hover{background:#5f4622;box-shadow:0 4px 10px rgba(61,43,15,0.3)}
+.login-btn:active{transform:translateY(1px);box-shadow:0 1px 3px rgba(61,43,15,0.2)}
+.login-btn:disabled{opacity:0.7;cursor:default}
 #login-screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:999}@media(max-width:600px){#login-screen{align-items:flex-start;padding-top:12vh}}
 .login-box{background:var(--surface);border:2px solid #1a1917;border-radius:var(--radius);padding:36px 32px;box-shadow:0 4px 24px rgba(0,0,0,0.15);width:320px;text-align:center;outline:2px solid #1a1917;outline-offset:6px}
 .login-box h2{font-size:18px;font-weight:600;margin-bottom:6px}
@@ -70,7 +75,7 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .horse-list-arrow.open{transform:rotate(180deg)}
 .horse-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;padding:4px 10px;border-radius:4px}
 .wood-texture{background-image:repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 5px),repeating-linear-gradient(180deg,transparent,transparent 6px,rgba(255,255,255,0.04) 6px,rgba(255,255,255,0.04) 7px)}
-.wood-login-bg{background-color:#e8dcc8;background-image:repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(139,90,43,0.04) 2px,rgba(139,90,43,0.04) 4px),repeating-linear-gradient(180deg,transparent,transparent 8px,rgba(101,60,20,0.03) 8px,rgba(101,60,20,0.03) 9px)}
+.wood-login-bg{background-color:#e8dcc8;background-image:radial-gradient(ellipse at center,transparent 40%,rgba(101,60,20,0.18) 100%),repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(139,90,43,0.04) 2px,rgba(139,90,43,0.04) 4px),repeating-linear-gradient(180deg,transparent,transparent 8px,rgba(101,60,20,0.03) 8px,rgba(101,60,20,0.03) 9px)}
 .horse-del:hover{color:var(--red);background:#fdecea}
 .horse-detail{display:none;border-top:1px solid var(--border)}
 .horse-detail.open{display:block}
