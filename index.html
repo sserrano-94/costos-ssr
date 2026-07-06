@@ -789,6 +789,7 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const MONTHS_S=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const MONTHS_F=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const CATS=['Trabajo + Pesebrera','Fardos','Alimento','Vitaminas / Antiparasitario / Hormonas','Herraje','Veterinario','Flete','Inscripción','Otros'];
+const CATS_ORDER=Object.fromEntries(CATS.map((c,i)=>[c,i]));
 const CATS_GEN=['Arreglador','Peticero','Luz / Agua','Viruta / Camas','Veterinario General'];
 let allGenerales=[];
 let allInventario=[];
@@ -1195,7 +1196,8 @@ function buildExpGenMonth(year,month,yg){
   const msid='gen_'+year+'_m'+month;
   const usedCats=me.map(e=>e.categoria);
 
-  const existingRows=me.map(e=>{
+  const me_sorted=me.slice().sort((a,b)=>(CATS_ORDER[a.cat]??99)-(CATS_ORDER[b.cat]??99));
+  const existingRows=me_sorted.map(e=>{
     const valEl=canEdit?`<span class="cat-val" onclick="editGenVal(this,${e.id},'${msid}',${year},${month})" title="Clic para editar">${clp(e.monto)}</span>`:`<span class="cat-val" style="cursor:default">${clp(e.monto)}</span>`;
     const delBtn=canEdit?`<button class="cat-del" onclick="delGenEntry(${e.id},'${msid}',${year},${month})">×</button>`:'';
     return `<div class="cat-row" id="gcr${e.id}">
@@ -1243,7 +1245,8 @@ function buildExpMonth(horse,year,month,he,parentSid){
   const me=he.filter(e=>e.month===month);
   const mt=me.reduce((s,e)=>s+Number(e.amount),0);
   const msid=parentSid+'_m'+month;
-  const existingRows=me.map(e=>{
+  const me_sorted=me.slice().sort((a,b)=>(CATS_ORDER[a.cat]??99)-(CATS_ORDER[b.cat]??99));
+  const existingRows=me_sorted.map(e=>{
     const delBtn=canEdit?`<button class="cat-del" onclick="delCatEntry(${e.id},'${parentSid}',${year},${month})">×</button>`:'';
     const valEl=canEdit
       ?`<span class="cat-val" onclick="editCatVal(this,${e.id},'${parentSid}',${year},${month})" title="Clic para editar">${clp(e.amount)}</span>`
