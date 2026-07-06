@@ -239,12 +239,13 @@ select:focus,input:focus{border-color:var(--accent)}
       <div class="login-sub">Administración de Caballos</div>
     </div>
     <div class="login-form">
-      <div class="login-field-wrap"><label class="login-label">Correo</label><input type="email" id="login-email" placeholder="tu@email.com" class="login-input"></div>
+      <div class="login-field-wrap"><label class="login-label">Correo</label><input type="email" id="login-email" placeholder="tu@email.com" class="login-input" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()"></div>
       <div class="login-field-wrap" style="margin-bottom:16px"><label class="login-label">Contraseña</label><div style="position:relative;display:flex;align-items:center">
-  <input type="password" id="login-pass" placeholder="••••••••" class="login-input" style="padding-right:36px" onkeydown="if(event.key==='Enter')doLogin()">
+  <input type="password" id="login-pass" placeholder="••••••••" class="login-input" style="padding-right:36px" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
   <span onclick="togglePass('login-pass',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none"><i class="ti ti-eye" style="font-size:16px"></i></span>
 </div></div>
-      <button onclick="doLogin()" class="login-btn">ENTRAR</button>
+      <button onclick="doLogin()" class="login-btn" id="login-btn">ENTRAR</button>
+      <div style="text-align:center;margin-top:10px"><span onclick="forgotPassword()" style="font-size:11px;color:#7a5c2e;cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</span></div>
       <div id="login-err" style="display:none;margin-top:10px;color:#c0392b;font-size:12px;text-align:center"></div>
       <div id="login-loading" style="display:none;margin-top:10px;color:#7a5c2e;font-size:12px;text-align:center">Ingresando...</div>
 
@@ -485,14 +486,32 @@ function initSupabase(){
   }
 }
 
+async function forgotPassword(){
+  initSupabase();
+  const email=document.getElementById('login-email').value.trim();
+  if(!email){
+    const errEl=document.getElementById('login-err');
+    errEl.style.display='block';
+    errEl.textContent='Escribe tu correo arriba y vuelve a apretar el enlace';
+    return;
+  }
+  const{error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+  const errEl=document.getElementById('login-err');
+  errEl.style.display='block';
+  if(error){errEl.textContent='Error: '+error.message;errEl.style.color='#c0392b';}
+  else{errEl.textContent='📧 Te enviamos un correo para restablecer tu contraseña';errEl.style.color='#1a7a4a';}
+}
+
 async function doLogin(){
   initSupabase();
   const email=document.getElementById('login-email').value.trim();
   const pass=document.getElementById('login-pass').value;
   const errEl=document.getElementById('login-err');
   const loadEl=document.getElementById('login-loading');
+  const btnEl=document.getElementById('login-btn');
   errEl.style.display='none';
   loadEl.style.display='block';
+  if(btnEl){btnEl.disabled=true;btnEl.textContent='INGRESANDO...';}
   try{
     const {data,error}=await supabaseClient.auth.signInWithPassword({email,password:pass});
     if(error)throw error;
@@ -506,8 +525,10 @@ async function doLogin(){
     }
     if(perfil && perfil.rol==='bloqueado'){
       await supabaseClient.auth.signOut();
-      const errEl=document.getElementById('login-err');
-      if(errEl){errEl.style.display='block';errEl.textContent='Tu cuenta ha sido bloqueada. Contacta al administrador.';}
+      const errEl2=document.getElementById('login-err');
+      if(errEl2){errEl2.style.display='block';errEl2.textContent='Tu cuenta ha sido bloqueada. Contacta al administrador.';}
+      loadEl.style.display='none';
+      if(btnEl){btnEl.disabled=false;btnEl.textContent='ENTRAR';}
       return;
     }
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
@@ -517,7 +538,9 @@ async function doLogin(){
     startApp();
   }catch(e){
     loadEl.style.display='none';
-    errEl.textContent=e.message==='Invalid login credentials'?'Email o contraseña incorrectos':e.message;
+    const btnEl2=document.getElementById('login-btn');
+    if(btnEl2){btnEl2.disabled=false;btnEl2.textContent='ENTRAR';}
+    errEl.textContent=e.message==='Invalid login credentials'?'Correo o contraseña incorrectos':e.message;
     errEl.style.display='block';
   }
 }
@@ -749,8 +772,10 @@ async function checkSession(){
     }
     if(perfil && perfil.rol==='bloqueado'){
       await supabaseClient.auth.signOut();
-      const errEl=document.getElementById('login-err');
-      if(errEl){errEl.style.display='block';errEl.textContent='Tu cuenta ha sido bloqueada. Contacta al administrador.';}
+      const errEl2=document.getElementById('login-err');
+      if(errEl2){errEl2.style.display='block';errEl2.textContent='Tu cuenta ha sido bloqueada. Contacta al administrador.';}
+      loadEl.style.display='none';
+      if(btnEl){btnEl.disabled=false;btnEl.textContent='ENTRAR';}
       return;
     }
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
