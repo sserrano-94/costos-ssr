@@ -321,6 +321,13 @@ select:focus,input:focus{border-color:var(--accent)}
       <div class="section-header" style="margin-bottom:0"><h2>Caballos</h2><p>Todos los caballos — activos e inactivos</p></div>
       <button onclick="toggleAddHorse()" style="height:32px;padding:0 16px;font-size:12px;font-weight:500;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar caballo</button>
     </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Ordenar por</span>
+      <select id="horses-sort" onchange="renderCaballos()" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+        <option value="edad-asc">Edad</option>
+        <option value="estado">Estado</option>
+      </select>
+    </div>
     <div class="horses-grid" id="horses-grid"></div>
     <div class="card" id="add-horse-card" style="font-size:11px;display:none">
       <div style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Agregar caballo</div>
@@ -1574,10 +1581,19 @@ async function deactivateHorse(nombre,sid){
 }
 
 function renderCaballos(){
+  const sortBy=document.getElementById('horses-sort')?.value||'edad-asc';
+  const ESTADO_ORDER=['Potrillo/Potranca','Manso de montura','Topeando','Corriendo en la casa','Corriendo','Reproducción'];
   const all=[...allHorses].sort((a,b)=>{
+    if(sortBy==='nombre')return a.nombre.localeCompare(b.nombre,'es');
+    if(sortBy==='estado'){
+      const ia=ESTADO_ORDER.indexOf(a.estado||''),ib=ESTADO_ORDER.indexOf(b.estado||'');
+      const va=ia===-1?99:ia,vb=ib===-1?99:ib;
+      if(va!==vb)return va-vb;
+      return a.nombre.localeCompare(b.nombre,'es');
+    }
     const da=a.fecha_nacimiento?new Date(a.fecha_nacimiento):new Date();
     const db=b.fecha_nacimiento?new Date(b.fecha_nacimiento):new Date();
-    return da-db;
+    return sortBy==='edad-asc'?db-da:da-db;
   });
   document.getElementById('horses-grid').innerHTML=all.map(h=>{
     const total=allEntries.filter(e=>e.horse===h.nombre).reduce((s,e)=>s+Number(e.amount),0);
