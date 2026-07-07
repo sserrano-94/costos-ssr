@@ -1009,6 +1009,19 @@ function getHorseImg(nombre){
 }
 function renderResumen(){
   const horses=sortedActive();
+  // Empty state for new users with no horses
+  if(!horses.length&&!allEntries.length){
+    document.getElementById('horse-list').innerHTML=`
+      <div style="text-align:center;padding:40px 20px;background:var(--surface);border:2px dashed #c9a96e;border-radius:12px;margin-bottom:16px">
+        <div style="font-size:44px;margin-bottom:12px">🐴</div>
+        <div style="font-size:17px;font-weight:700;color:#3d2b0f;margin-bottom:8px">¡Bienvenido a MANCOS!</div>
+        <div style="font-size:13px;color:#a07840;margin-bottom:18px;line-height:1.5">Aún no tienes caballos registrados.<br>Para comenzar, crea tu primer caballo y luego podrás registrar sus costos, eventos y aperos.</div>
+        <button onclick="showTab('caballos')" style="background:#7a5c2e;color:#fdf6ec;border:none;border-radius:8px;padding:12px 24px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(61,43,15,0.2)">🐴 Registrar mi primer caballo</button>
+      </div>`;
+    const yb=document.getElementById('year-blocks');
+    if(yb)yb.innerHTML='';
+    return;
+  }
   document.getElementById('horse-list').innerHTML=horses.map(nombre=>{
     const info=allHorses.find(h=>h.nombre===nombre);
     const edad=info?calcAge(info.fecha_nacimiento):'—';
