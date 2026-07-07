@@ -560,7 +560,7 @@ async function doLogin(){
     if(error)throw error;
     currentUser=data.user;
     // Check role
-    let {data:perfil}=await supabaseClient.from('perfiles').select('rol').eq('id',currentUser.id).single();
+    let {data:perfil}=await supabaseClient.from('perfiles').select('rol,parent_user_id,criadero').eq('id',currentUser.id).single();
     // Auto-create profile if not exists
     if(!perfil){
       await supabaseClient.from('perfiles').insert({id:currentUser.id,email:currentUser.email,rol:'admin',nombre:currentUser.email.split('@')[0]});
@@ -577,6 +577,11 @@ async function doLogin(){
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
     canEdit = perfil && (perfil.rol==='admin' || perfil.rol==='super_admin' || perfil.rol==='usuario' || perfil.rol==='subusuario');
     isSubuser = perfil && perfil.rol==='subusuario';
+    userCriadero = perfil?.criadero||'';
+    if(isSubuser&&perfil?.parent_user_id){
+      const{data:pp}=await supabaseClient.from('perfiles').select('criadero').eq('id',perfil.parent_user_id).single();
+      if(pp?.criadero)userCriadero=pp.criadero;
+    }
     parentUserId = perfil?.parent_user_id||null;
     startApp();
   }catch(e){
@@ -671,6 +676,7 @@ function openCreateUser(){
       </div>
       <div style="padding:20px">
         <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Correo</label><input type="email" id="new-user-email" placeholder="correo@ejemplo.com" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
+        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Criadero / Corral / Dueño</label><input type="text" id="new-user-criadero" placeholder="Ej: Criadero Ronquido" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
         <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Contraseña</label><input type="password" id="new-user-pass" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
         <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Rol</label>
           <select id="new-user-rol" onchange="document.getElementById('parent-user-field').style.display=this.value==='subusuario'?'block':'none'" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
@@ -707,6 +713,7 @@ async function doCreateUser(){
   const pass=document.getElementById('new-user-pass').value;
   const rol=document.getElementById('new-user-rol').value;
   const parentId=document.getElementById('new-user-parent')?.value||null;
+  const criadero=document.getElementById('new-user-criadero')?.value.trim()||null;
   const err=document.getElementById('create-user-err');
   if(!email){err.style.display='block';err.textContent='Ingresa un correo';return;}
   if(!pass||pass.length<6){err.style.display='block';err.textContent='Mínimo 6 caracteres';return;}
@@ -717,10 +724,10 @@ async function doCreateUser(){
     const{data:d2,error:e2}=await supabaseClient.auth.signUp({email,password:pass});
     if(e2){err.style.display='block';err.textContent=e2.message;return;}
     if(d2?.user){
-      await supabaseClient.from('perfiles').upsert({id:d2.user.id,email,rol,nombre:email.split('@')[0],parent_user_id:rol==='subusuario'?parentId:null});
+      await supabaseClient.from('perfiles').upsert({id:d2.user.id,email,rol,nombre:email.split('@')[0],parent_user_id:rol==='subusuario'?parentId:null,criadero});
     }
   } else if(data?.user){
-    await supabaseClient.from('perfiles').upsert({id:data.user.id,email,rol,nombre:email.split('@')[0],parent_user_id:rol==='subusuario'?parentId:null});
+    await supabaseClient.from('perfiles').upsert({id:data.user.id,email,rol,nombre:email.split('@')[0],parent_user_id:rol==='subusuario'?parentId:null,criadero});
   }
   document.getElementById('create-user-modal').remove();
   toast('Cuenta creada: '+email+' ('+rol+')');
@@ -772,6 +779,10 @@ async function loadUsersList(){
           <option value="bloqueado" ${u.rol==='bloqueado'?'selected':''}>Bloqueado</option>
         </select>
       </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:10px;color:var(--text-soft);white-space:nowrap">Criadero:</span>
+        <input type="text" value="${(u.criadero||'').replace(/"/g,'&quot;')}" placeholder="Criadero / Corral / Dueño" onchange="changeCriadero('${u.id}',this.value)" style="font-size:10px;padding:3px 6px;border:1px solid var(--gold);border-radius:4px;flex:1;outline:none">
+      </div>
       ${u.rol==='subusuario'?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px">
         <span style="font-size:10px;color:#a07840">Usuario asociado:</span>
         <select onchange="changeParentUser('${u.id}',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid var(--gold);border-radius:4px;background:#fff;color:var(--ink);flex:1">
@@ -779,6 +790,13 @@ async function loadUsersList(){
         </select>
       </div>`:''}
     </div>`).join('');
+}
+
+async function changeCriadero(uid,val){
+  initSupabase();
+  await supabaseClient.from('perfiles').update({criadero:val.trim()||null}).eq('id',uid);
+  if(currentUser&&uid===currentUser.id)userCriadero=val.trim();
+  toast('Criadero actualizado');
 }
 
 async function changeParentUser(uid,parentId){
@@ -807,7 +825,7 @@ async function checkSession(){
   const {data:{session}}=await supabaseClient.auth.getSession();
   if(session){
     currentUser=session.user;
-    let {data:perfil}=await supabaseClient.from('perfiles').select('rol').eq('id',currentUser.id).single();
+    let {data:perfil}=await supabaseClient.from('perfiles').select('rol,parent_user_id,criadero').eq('id',currentUser.id).single();
     // Auto-create profile if not exists
     if(!perfil){
       await supabaseClient.from('perfiles').insert({id:currentUser.id,email:currentUser.email,rol:'admin',nombre:currentUser.email.split('@')[0]});
@@ -824,6 +842,11 @@ async function checkSession(){
     isAdmin = perfil && (perfil.rol==='super_admin' || perfil.rol==='admin');
     canEdit = perfil && (perfil.rol==='admin' || perfil.rol==='super_admin' || perfil.rol==='usuario' || perfil.rol==='subusuario');
     isSubuser = perfil && perfil.rol==='subusuario';
+    userCriadero = perfil?.criadero||'';
+    if(isSubuser&&perfil?.parent_user_id){
+      const{data:pp}=await supabaseClient.from('perfiles').select('criadero').eq('id',perfil.parent_user_id).single();
+      if(pp?.criadero)userCriadero=pp.criadero;
+    }
     parentUserId = perfil?.parent_user_id||null;
     startApp();
   } else {
@@ -839,7 +862,7 @@ function startApp(){
   badge.innerHTML=badgeLabel;
   badge.className=isAdmin?'user-badge':'user-badge readonly';
   badge.title='Opciones de usuario';
-  const ddEmail=document.getElementById('user-dropdown-email');if(ddEmail)ddEmail.textContent=currentUser?.email||'';
+  const ddEmail=document.getElementById('user-dropdown-email');if(ddEmail)ddEmail.innerHTML=(userCriadero?'<div style="color:var(--ink);font-size:12px">'+userCriadero+'</div>':'')+(currentUser?.email||'');
   if(isAdmin){const mu=document.getElementById('manage-users-btn');if(mu)mu.style.display='flex';const cu=document.getElementById('create-user-btn');if(cu)cu.style.display='flex';}
   badge.onclick=(e)=>{e.stopPropagation();document.getElementById('user-dropdown').classList.toggle('open');};
   document.addEventListener('click',()=>document.getElementById('user-dropdown')?.classList.remove('open'),{once:false});
@@ -2833,6 +2856,7 @@ function generarPDF(year,month){
   doc.text('ADMINISTRACIÓN DE CABALLOS',ML+28,23.5);
   doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(...CREAM);
   doc.text('Informe '+MESES_F[month-1]+' '+year,PW-MR,15,{align:'right'});
+  if(userCriadero){doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(253,246,236);doc.text(userCriadero,PW-MR,27.5,{align:'right'});}
   doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.setTextColor(240,217,168);
   doc.text('Generado: '+new Date().toLocaleDateString('es-CL'),PW-MR,21.5,{align:'right'});
   y=45;
@@ -2950,11 +2974,11 @@ function generarPDF(year,month){
     doc.setPage(i);
     doc.setDrawColor(...GOLD);doc.setLineWidth(0.4);doc.line(ML,285,PW-MR,285);
     doc.setFontSize(8);doc.setTextColor(...SOFT);doc.setFont('helvetica','normal');
-    doc.text('MANCOS — Administración de Caballos',ML,290);
+    doc.text('MANCOS — Administración de Caballos'+(userCriadero?'  ·  '+userCriadero:''),ML,290);
     doc.text('Informe '+MESES_F[month-1]+' '+year+'  ·  Pág. '+i+' de '+pc,PW-MR,290,{align:'right'});
   }
 
-  doc.save('MANCOS_Informe_'+year+'_'+String(month).padStart(2,'0')+'.pdf');
+  doc.save('MANCOS_Informe_'+(userCriadero?userCriadero.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ ]/g,'').replace(/ /g,'_')+'_':'')+year+'_'+String(month).padStart(2,'0')+'.pdf');
   toast('✓ PDF descargado');
 }
 // ===== APEROS =====
@@ -3161,7 +3185,7 @@ async function exportAperosPDF(e){
   doc.setFillColor(122,92,46);
   doc.rect(0,0,PW,18,'F');
   doc.setFontSize(14);doc.setFont('helvetica','bold');doc.setTextColor(253,246,236);
-  doc.text('MANCOS — Registro de Aperos',ML,12);
+  doc.text('MANCOS — Registro de Aperos'+(userCriadero?' · '+userCriadero:''),ML,12);
   doc.setFontSize(9);doc.setFont('helvetica','normal');
   doc.text(new Date().toLocaleDateString('es-CL'),PW-ML,12,{align:'right'});
   y=28;
