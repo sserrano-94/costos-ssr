@@ -324,8 +324,8 @@ select:focus,input:focus{border-color:var(--accent)}
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Ordenar por</span>
       <select id="horses-sort" onchange="renderCaballos()" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
-        <option value="edad-asc">Edad</option>
         <option value="estado">Estado</option>
+        <option value="edad-asc">Edad</option>
       </select>
     </div>
     <div class="horses-grid" id="horses-grid"></div>
@@ -1581,10 +1581,12 @@ async function deactivateHorse(nombre,sid){
 }
 
 function renderCaballos(){
-  const sortBy=document.getElementById('horses-sort')?.value||'edad-asc';
+  const sortBy=document.getElementById('horses-sort')?.value||'estado';
   const ESTADO_ORDER=['Potrillo/Potranca','Manso de montura','Topeando','Corriendo en la casa','Corriendo','Reproducción'];
   const all=[...allHorses].sort((a,b)=>{
-    if(sortBy==='nombre')return a.nombre.localeCompare(b.nombre,'es');
+    // Inactive horses always last
+    const inA=a.activo===false?1:0, inB=b.activo===false?1:0;
+    if(inA!==inB)return inA-inB;
     if(sortBy==='estado'){
       const ia=ESTADO_ORDER.indexOf(a.estado||''),ib=ESTADO_ORDER.indexOf(b.estado||'');
       const va=ia===-1?99:ia,vb=ib===-1?99:ib;
@@ -1593,7 +1595,7 @@ function renderCaballos(){
     }
     const da=a.fecha_nacimiento?new Date(a.fecha_nacimiento):new Date();
     const db=b.fecha_nacimiento?new Date(b.fecha_nacimiento):new Date();
-    return sortBy==='edad-asc'?db-da:da-db;
+    return db-da;
   });
   document.getElementById('horses-grid').innerHTML=all.map(h=>{
     const total=allEntries.filter(e=>e.horse===h.nombre).reduce((s,e)=>s+Number(e.amount),0);
