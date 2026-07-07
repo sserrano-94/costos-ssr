@@ -214,6 +214,7 @@ select:focus,input:focus{border-color:var(--accent)}
   .logo{font-size:11px;gap:5px}
   .logo-badge{font-size:8px;padding:1px 4px}
   .logo span[style]{font-size:14px!important}
+  #header-criadero{font-size:8px!important;padding-left:6px!important;margin-left:4px!important}
   .conn-status{font-size:9px;gap:3px}
   .user-badge{font-size:8px;padding:1px 5px}
   .conn-dot{width:5px;height:5px}
@@ -287,7 +288,7 @@ select:focus,input:focus{border-color:var(--accent)}
 </div>
 
 <header>
-  <div class="logo"><span class="logo-badge">SSR</span><span style="font-family:'Dancing Script',cursive;font-size:22px">MANCOS</span></div>
+  <div class="logo"><span class="logo-badge">SSR</span><span style="font-family:'Dancing Script',cursive;font-size:22px">MANCOS</span><span id="header-criadero" style="font-size:11px;color:var(--cream-soft);font-weight:500;margin-left:6px;border-left:1px solid rgba(253,246,236,0.35);padding-left:10px;letter-spacing:0.5px"></span></div>
   <div style="display:flex;align-items:center;gap:10px">
   <span onclick="refreshData(this)" title="Actualizar datos" style="cursor:pointer;color:var(--cream-soft);display:flex;align-items:center"><i class="ti ti-refresh" style="font-size:17px"></i></span>
   <div class="user-menu-wrap">
@@ -862,6 +863,7 @@ function startApp(){
   badge.innerHTML=badgeLabel;
   badge.className=isAdmin?'user-badge':'user-badge readonly';
   badge.title='Opciones de usuario';
+  const hc=document.getElementById('header-criadero');if(hc)hc.textContent=userCriadero||'';
   const ddEmail=document.getElementById('user-dropdown-email');if(ddEmail)ddEmail.innerHTML=(userCriadero?'<div style="color:var(--ink);font-size:12px">'+userCriadero+'</div>':'')+(currentUser?.email||'');
   if(isAdmin){const mu=document.getElementById('manage-users-btn');if(mu)mu.style.display='flex';const cu=document.getElementById('create-user-btn');if(cu)cu.style.display='flex';}
   badge.onclick=(e)=>{e.stopPropagation();document.getElementById('user-dropdown').classList.toggle('open');};
