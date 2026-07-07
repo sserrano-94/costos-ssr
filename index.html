@@ -980,7 +980,7 @@ function _mancosModal(msg, opts){
         </div>
         <div style="padding:18px">
           <div style="font-size:13px;color:var(--ink);line-height:1.5;white-space:pre-line">${msg}</div>
-          ${isPrompt?`<input type="text" id="_mancos-input" value="${(opts.def||'').replace(/"/g,'&quot;')}" style="width:100%;height:36px;margin-top:12px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">`:''}
+          ${isPrompt?`<input type="text" id="_mancos-input" value="${String(opts.def??'').replace(/"/g,'&quot;')}" style="width:100%;height:36px;margin-top:12px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">`:''}
           <div style="display:flex;gap:8px;margin-top:16px">
             <button id="_mancos-ok" style="flex:1;height:36px;background:${danger?'var(--red)':'var(--wood)'};color:var(--cream);border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">${danger?'Sí, continuar':'Aceptar'}</button>
             <button id="_mancos-cancel" style="flex:1;height:36px;background:#fff;color:var(--text-soft);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">Cancelar</button>
@@ -2791,50 +2791,83 @@ function generarPDF(year,month){
   let y=20;
   const MESES_F=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const clpP=n=>n?'$'+Math.round(n).toLocaleString('es-CL'):'$0';
-  const checkY=(h=10)=>{if(y+h>280){doc.addPage();y=20;}};
+  // MANCOS palette
+  const WOOD=[122,92,46],INK=[61,43,15],GOLD=[201,169,110],CREAM=[253,246,236],SOFT=[160,120,64],GRAY=[120,110,100];
+  let secN=0;
 
-  // Header
-  doc.setFillColor(43,95,166);doc.rect(0,0,PW,14,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('MANCOS — Informe '+year,ML,9.5);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.text('Generado: '+new Date().toLocaleDateString('es-CL'),PW-ML,9.5,{align:'right'});
-  y=24;
+  const checkY=(h=10)=>{if(y+h>278){doc.addPage();y=22;}};
 
-  // SECCIÓN 1: CABALLOS
+  function sectionHeader(title){
+    secN++;checkY(16);
+    doc.setFillColor(...GOLD);doc.roundedRect(ML,y-4.5,CW,8.5,1.5,1.5,'F');
+    doc.setFillColor(...WOOD);doc.roundedRect(ML,y-4.5,9,8.5,1.5,1.5,'F');
+    doc.setTextColor(...CREAM);doc.setFontSize(11);doc.setFont('helvetica','bold');
+    doc.text(String(secN),ML+4.5,y+1.2,{align:'center'});
+    doc.setTextColor(...INK);
+    doc.text(title,ML+13,y+1.2);
+    y+=11;
+  }
+  function subLabel(txt){checkY(7);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...WOOD);doc.text(txt,ML,y);y+=5;doc.setTextColor(40,38,35);doc.setFont('helvetica','normal');}
+  function emptyLine(){doc.setFont('helvetica','italic');doc.setFontSize(9.5);doc.setTextColor(...GRAY);doc.text('   Sin información aún.',ML,y);y+=5.5;doc.setTextColor(40,38,35);doc.setFont('helvetica','normal');doc.setFontSize(10);}
+  function itemLine(label,value){checkY(5.5);doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(40,38,35);
+    doc.setFillColor(...GOLD);doc.circle(ML+2.2,y-1.2,0.8,'F');
+    doc.text(label,ML+6,y);
+    if(value!==undefined){doc.setFont('helvetica','bold');doc.setTextColor(...WOOD);doc.text(value,PW-MR,y,{align:'right'});}
+    y+=5;}
+
+  // ===== COVER HEADER =====
+  doc.setFillColor(...WOOD);doc.rect(0,0,PW,34,'F');
+  doc.setFillColor(...GOLD);doc.rect(0,34,PW,1.6,'F');
+  // logo from login icon (data URI)
+  try{
+    const logoSrc=document.querySelector('.login-icon img')?.src;
+    if(logoSrc&&logoSrc.startsWith('data:image')){
+      doc.setFillColor(...GOLD);doc.circle(ML+11,17,12.5,'F');
+      doc.setFillColor(200,168,112);doc.circle(ML+11,17,11.3,'F');
+      doc.addImage(logoSrc,'PNG',ML+2.2,8.2,17.6,17.6);
+    }
+  }catch(e){}
+  doc.setTextColor(...CREAM);doc.setFontSize(24);doc.setFont('helvetica','bold');
+  doc.text('MANCOS',ML+28,17);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(240,217,168);
+  doc.text('ADMINISTRACIÓN DE CABALLOS',ML+28,23.5);
+  doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(...CREAM);
+  doc.text('Informe '+MESES_F[month-1]+' '+year,PW-MR,15,{align:'right'});
+  doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.setTextColor(240,217,168);
+  doc.text('Generado: '+new Date().toLocaleDateString('es-CL'),PW-MR,21.5,{align:'right'});
+  y=45;
+
+  // ===== SECCIÓN 1: CABALLOS =====
   const activos=sortedActive();
   const inactivos=allHorses.filter(h=>h.activo===false);
   const estados={};
   allHorses.filter(h=>h.activo!==false).forEach(h=>{if(h.estado)estados[h.estado]=(estados[h.estado]||0)+1;});
-  doc.setTextColor(43,95,166);doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('1. Caballos',ML,y);y+=6;
-  doc.setDrawColor(43,95,166);doc.line(ML,y,ML+CW,y);y+=5;
-  doc.setTextColor(30,30,30);doc.setFontSize(10);doc.setFont('helvetica','normal');
-  doc.text('Total activos: '+activos.length+' | Inactivos: '+inactivos.length,ML,y);y+=6;
+  sectionHeader('Caballos');
+  // summary chips row
+  doc.setFillColor(...CREAM);doc.setDrawColor(...GOLD);doc.setLineWidth(0.3);
+  doc.roundedRect(ML,y-3,40,9,1.5,1.5,'FD');doc.roundedRect(ML+45,y-3,40,9,1.5,1.5,'FD');
+  doc.setFontSize(8);doc.setTextColor(...SOFT);doc.setFont('helvetica','bold');
+  doc.text('ACTIVOS',ML+3,y);doc.text('INACTIVOS',ML+48,y);
+  doc.setFontSize(12);doc.setTextColor(...INK);
+  doc.text(String(activos.length),ML+3,y+4.5);doc.text(String(inactivos.length),ML+48,y+4.5);
+  y+=13;
   if(Object.keys(estados).length){
-    doc.setFont('helvetica','bold');doc.text('Caballos por estado:',ML,y);y+=5;
-    doc.setFont('helvetica','normal');
-    Object.entries(estados).forEach(([est,cnt])=>{checkY(5);doc.text('  • '+est+': '+cnt+' caballo'+(cnt>1?'s':''),ML,y);y+=4.5;});
+    subLabel('Caballos por estado');
+    Object.entries(estados).forEach(([est,cnt])=>{itemLine(est,cnt+' caballo'+(cnt>1?'s':''));});
     const sinEstado=activos.filter(n=>!allHorses.find(h=>h.nombre===n&&h.estado)).length;
-    if(sinEstado>0){checkY(5);doc.text('  • Sin estado definido: '+sinEstado,ML,y);y+=4.5;}
-    y+=3;
+    if(sinEstado>0)itemLine('Sin estado definido',String(sinEstado));
+    y+=2;
   }
-  doc.setFont('helvetica','bold');doc.text('Listado de caballos activos:',ML,y);y+=5;doc.setFont('helvetica','normal');
+  subLabel('Listado de caballos activos');
   activos.forEach(nombre=>{
-    checkY(5);
     const info=allHorses.find(h=>h.nombre===nombre);
     const edad=info?calcAge(info.fecha_nacimiento):'—';
-    doc.text('  • '+nombre+' — '+edad,ML,y);y+=4.5;
+    itemLine(nombre,edad);
   });
-  y+=6;
+  y+=4;
 
-  // SECCIÓN 2: COSTOS
-  checkY(15);
+  // ===== SECCIÓN 2: COSTOS =====
   const nomMes=MESES_F[month-1];
-  doc.setTextColor(43,95,166);doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('2. Costos — '+nomMes+' '+year,ML,y);y+=6;
-  doc.setDrawColor(43,95,166);doc.line(ML,y,ML+CW,y);y+=5;
-  doc.setTextColor(30,30,30);doc.setFontSize(10);
   const ye=allEntries.filter(e=>e.year===year&&e.month===month);
   const yg=allGenerales.filter(e=>e.year===year&&e.month===month);
   const yr2=allRodeos.filter(r=>r.year===year);
@@ -2843,52 +2876,85 @@ function generarPDF(year,month){
   const totGen=yg.reduce((s,e)=>s+Number(e.monto),0);
   const totRod=yrc2.reduce((s,e)=>s+Number(e.monto),0);
   const totMes=totCab+totGen;
+  sectionHeader('Costos — '+nomMes+' '+year);
 
-  doc.setFont('helvetica','bold');doc.text('Gastos generales:',ML,y);y+=5;
-  if(!yg.length){doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);doc.text('  Sin información aún.',ML,y);y+=5;doc.setTextColor(30,30,30);}
-  else{doc.setFont('helvetica','normal');[...new Set(yg.map(e=>e.categoria))].forEach(cat=>{checkY(5);doc.text('  • '+cat+': '+clpP(yg.filter(e=>e.categoria===cat).reduce((s,e)=>s+Number(e.monto),0)),ML,y);y+=4.5;});doc.setFont('helvetica','bold');doc.text('  Total generales: '+clpP(totGen),ML,y);y+=6;}
-
-  checkY(10);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);doc.text('Gastos por caballo:',ML,y);y+=5;
+  subLabel('Gastos generales');
+  if(!yg.length)emptyLine();
+  else{
+    [...new Set(yg.map(e=>e.categoria))].forEach(cat=>{itemLine(cat,clpP(yg.filter(e=>e.categoria===cat).reduce((s,e)=>s+Number(e.monto),0)));});
+    checkY(5);doc.setFont('helvetica','bold');doc.setTextColor(...WOOD);doc.text('Total generales',ML+6,y);doc.text(clpP(totGen),PW-MR,y,{align:'right'});y+=6;
+  }
+  subLabel('Gastos por caballo');
   const hConCostos=sortedActive(year).filter(h=>ye.some(e=>e.horse===h));
-  if(!hConCostos.length){doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);doc.text('  Sin información aún.',ML,y);y+=5;doc.setTextColor(30,30,30);}
-  else{doc.setFont('helvetica','normal');doc.setTextColor(30,30,30);hConCostos.forEach(h=>{checkY(5);doc.text('  • '+h+': '+clpP(ye.filter(e=>e.horse===h).reduce((s,e)=>s+Number(e.amount),0)),ML,y);y+=4.5;});doc.setFont('helvetica','bold');doc.text('  Total caballos: '+clpP(totCab),ML,y);y+=6;}
+  if(!hConCostos.length)emptyLine();
+  else{
+    hConCostos.forEach(h=>{itemLine(h,clpP(ye.filter(e=>e.horse===h).reduce((s,e)=>s+Number(e.amount),0)));});
+    checkY(5);doc.setFont('helvetica','bold');doc.setTextColor(...WOOD);doc.text('Total caballos',ML+6,y);doc.text(clpP(totCab),PW-MR,y,{align:'right'});y+=6;
+  }
+  // Total mes highlight box
+  checkY(12);
+  doc.setFillColor(...WOOD);doc.roundedRect(ML,y-2,CW,10,2,2,'F');
+  doc.setTextColor(...CREAM);doc.setFontSize(11.5);doc.setFont('helvetica','bold');
+  doc.text('TOTAL '+nomMes.toUpperCase()+' '+year,ML+4,y+4.5);
+  doc.text(clpP(totMes),PW-MR-4,y+4.5,{align:'right'});
+  y+=16;
 
-  checkY(8);doc.setFillColor(232,238,248);doc.rect(ML,y-1,CW,8,'F');
-  doc.setTextColor(43,95,166);doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('TOTAL MES: '+clpP(totMes),ML+2,y+4.5);y+=12;
+  // ===== SECCIÓN 3: RODEOS =====
+  sectionHeader('Rodeos '+year);
+  if(!yr2.length)emptyLine();
+  else{
+    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(40,38,35);
+    doc.text('Se han corrido '+yr2.length+' rodeo'+(yr2.length>1?'s':'')+' durante el año, con un promedio de '+clpP(totRod/yr2.length)+' por rodeo.',ML,y,{maxWidth:CW});y+=8;
+    yr2.forEach(r=>{
+      const rc=yrc2.filter(c=>c.rodeo_id===r.id);
+      const tot=rc.reduce((s,c)=>s+Number(c.monto),0);
+      itemLine(r.nombre+'  ('+new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL')+')',clpP(tot));
+    });
+    y+=3;
+  }
 
-  // SECCIÓN 3: RODEOS
-  checkY(15);doc.setTextColor(43,95,166);doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('3. Rodeos '+year,ML,y);y+=6;doc.setDrawColor(43,95,166);doc.line(ML,y,ML+CW,y);y+=5;
-  doc.setTextColor(30,30,30);doc.setFontSize(10);
-  if(!yr2.length){doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);doc.text('Sin información aún.',ML,y);y+=8;doc.setTextColor(30,30,30);}
-  else{doc.setFont('helvetica','normal');doc.text('Se han corrido '+yr2.length+' rodeo'+(yr2.length>1?'s':'')+' durante el año, con un promedio de '+clpP(totRod/yr2.length)+' por rodeo.',ML,y,{maxWidth:CW});y+=8;yr2.forEach(r=>{checkY(6);const rc=yrc2.filter(c=>c.rodeo_id===r.id);const tot=rc.reduce((s,c)=>s+Number(c.monto),0);doc.setFont('helvetica','bold');doc.text('  • '+r.nombre+' ('+new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL')+')',ML,y);doc.setFont('helvetica','normal');doc.text(clpP(tot),PW-MR,y,{align:'right'});y+=4.5;});y+=3;}
-
-  // SECCIÓN 4: CALENDARIO
-  checkY(15);doc.setTextColor(43,95,166);doc.setFontSize(13);doc.setFont('helvetica','bold');
-  const mesAct=new Date().getMonth(),anioAct=new Date().getFullYear();
-  doc.text('4. Calendario — '+MESES_F[month-1]+' '+year,ML,y);y+=6;doc.setDrawColor(43,95,166);doc.line(ML,y,ML+CW,y);y+=5;
-  doc.setTextColor(30,30,30);doc.setFontSize(10);
+  // ===== SECCIÓN 4: CALENDARIO =====
+  sectionHeader('Calendario — '+MESES_F[month-1]+' '+year);
   const evMes=allEvents.filter(e=>{const d=new Date(e.fecha+'T12:00:00');return d.getMonth()===(month-1)&&d.getFullYear()===year;}).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
-  if(!evMes.length){doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);doc.text('Sin eventos este mes.',ML,y);y+=8;doc.setTextColor(30,30,30);}
-  else{doc.setFillColor(232,238,248);doc.rect(ML,y-1,CW,7,'F');doc.setFont('helvetica','bold');doc.setTextColor(43,95,166);doc.text('Fecha',ML+1,y+4);doc.text('Caballo',ML+28,y+4);doc.text('Tipo',ML+68,y+4);doc.text('Descripción',ML+108,y+4);y+=8;doc.setFont('helvetica','normal');doc.setTextColor(30,30,30);evMes.forEach(ev=>{checkY(6);doc.text(new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-CL'),ML+1,y);doc.text(ev.horse.substring(0,14),ML+28,y);doc.text(ev.tipo.substring(0,18),ML+68,y);doc.text((ev.descripcion||'').substring(0,20),ML+108,y);y+=5;});y+=3;}
+  if(!evMes.length)emptyLine();
+  else{
+    doc.setFillColor(...CREAM);doc.setDrawColor(...GOLD);doc.setLineWidth(0.3);
+    doc.roundedRect(ML,y-4,CW,7,1,1,'FD');
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(...SOFT);
+    doc.text('FECHA',ML+2,y+0.5);doc.text('CABALLO',ML+30,y+0.5);doc.text('TIPO',ML+72,y+0.5);doc.text('DESCRIPCIÓN',ML+112,y+0.5);y+=8;
+    doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(40,38,35);
+    evMes.forEach((ev,i)=>{
+      checkY(6);
+      if(i%2===1){doc.setFillColor(250,247,240);doc.rect(ML,y-3.6,CW,5.4,'F');}
+      doc.text(new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-CL'),ML+2,y);
+      doc.text(ev.horse.substring(0,16),ML+30,y);
+      doc.text(ev.tipo.substring(0,18),ML+72,y);
+      doc.text((ev.descripcion||'').substring(0,24),ML+112,y);
+      y+=5.4;
+    });
+    y+=3;
+  }
 
-  // SECCIÓN 5: INVENTARIO
-  checkY(15);doc.setTextColor(43,95,166);doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('5. Inventario',ML,y);y+=6;doc.setDrawColor(43,95,166);doc.line(ML,y,ML+CW,y);y+=5;
-  doc.setTextColor(30,30,30);doc.setFontSize(10);
+  // ===== SECCIÓN 5: INVENTARIO =====
+  sectionHeader('Inventario');
   const invY=allInventario.filter(i=>i.year===year);
   [['Remedios',invY.filter(i=>i.tipo==='remedio'),i=>i.stock_ml+(i.envase_unidad||'ml')+'/'+i.envase_ml+(i.envase_unidad||'ml')],['Alimentos',invY.filter(i=>i.tipo==='alimento'),i=>i.stock_sacos+' sacos'],['Fardos',invY.filter(i=>i.tipo==='fardo'),i=>i.stock_fardos+' fardos']].forEach(([titulo,items,stockFn])=>{
-    checkY(8);doc.setFont('helvetica','bold');doc.text(titulo+':',ML,y);y+=5;
-    if(!items.length){doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);doc.text('  Sin información aún.',ML,y);y+=5;doc.setTextColor(30,30,30);}
-    else{doc.setFont('helvetica','normal');doc.setTextColor(30,30,30);items.forEach(item=>{checkY(5);doc.text('  • '+item.nombre+' | Precio: '+clpP(item.precio)+' | Stock: '+stockFn(item),ML,y,{maxWidth:CW-4});y+=5;});y+=2;}
+    subLabel(titulo);
+    if(!items.length)emptyLine();
+    else{items.forEach(item=>{itemLine(item.nombre+'  ·  Precio '+clpP(item.precio),stockFn(item));});y+=2;}
   });
 
-  // Footer
+  // ===== FOOTER =====
   const pc=doc.internal.getNumberOfPages();
-  for(let i=1;i<=pc;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(150,150,150);doc.setFont('helvetica','normal');doc.text('MANCOS — '+year+' | Pág. '+i+' de '+pc,PW/2,290,{align:'center'});}
+  for(let i=1;i<=pc;i++){
+    doc.setPage(i);
+    doc.setDrawColor(...GOLD);doc.setLineWidth(0.4);doc.line(ML,285,PW-MR,285);
+    doc.setFontSize(8);doc.setTextColor(...SOFT);doc.setFont('helvetica','normal');
+    doc.text('MANCOS — Administración de Caballos',ML,290);
+    doc.text('Informe '+MESES_F[month-1]+' '+year+'  ·  Pág. '+i+' de '+pc,PW-MR,290,{align:'right'});
+  }
 
-  doc.save('InformeSSR_'+year+'_'+String(month).padStart(2,'0')+'.pdf');
+  doc.save('MANCOS_Informe_'+year+'_'+String(month).padStart(2,'0')+'.pdf');
   toast('✓ PDF descargado');
 }
 // ===== APEROS =====
