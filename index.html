@@ -11,33 +11,33 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MANCOS">
 <meta name="theme-color" content="#7a5c2e">
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root{--bg:#fffdf7;--surface:#ffffff;--border:#e0c898;--text:#1a1917;--text-soft:#a07840;--accent:#7a5c2e;--accent-light:#f5e9d0;--green:#1a7a4a;--red:#c0392b;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.07)}
+:root{--bg:#fffdf7;--surface:#ffffff;--border:#e0c898;--text:#1a1917;--text-soft:#a07840;--accent:#7a5c2e;--accent-light:#f5e9d0;--green:#1a7a4a;--red:#c0392b;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.07);--wood:#7a5c2e;--wood-dark:#5f4622;--wood-border:#8b5e2a;--gold:#c9a96e;--gold-warm:#c8a86b;--gold-soft:#e8c87a;--cream:#fdf6ec;--cream-soft:#f0d9a8;--ink:#3d2b0f}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 /* LOGIN */
-.login-card{width:90%;max-width:340px;background:#fdf6ec;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(61,43,15,0.25),0 2px 8px rgba(61,43,15,0.12);animation:loginIn 0.5s ease}
+.login-card{width:90%;max-width:340px;background:var(--cream);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(61,43,15,0.25),0 2px 8px rgba(61,43,15,0.12);animation:loginIn 0.5s ease}
 @keyframes loginIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.login-top{background:linear-gradient(160deg,#8a6a38 0%,#7a5c2e 45%,#5f4622 100%);padding:26px 20px 20px;text-align:center;border-bottom:3px solid #c9a96e;position:relative}
-.login-icon{width:112px;height:112px;margin:0 auto 14px;background:#c8a870;border-radius:50%;display:flex;align-items:center;justify-content:center;border:4px solid #3d2b0f;font-size:32px;overflow:hidden;box-shadow:0 0 0 4px rgba(201,169,110,0.45),0 6px 16px rgba(0,0,0,0.3)}
-.login-title{font-family:'Dancing Script',cursive;font-size:30px;font-weight:700;color:#fdf6ec;text-shadow:0 2px 6px rgba(0,0,0,0.25)}
-.login-sub{font-size:10px;color:#f0d9a8;letter-spacing:3px;margin-top:4px;text-transform:uppercase}
+.login-top{background:linear-gradient(160deg,#8a6a38 0%,var(--wood) 45%,var(--wood-dark) 100%);padding:26px 20px 20px;text-align:center;border-bottom:3px solid var(--gold);position:relative}
+.login-icon{width:112px;height:112px;margin:0 auto 14px;background:#c8a870;border-radius:50%;display:flex;align-items:center;justify-content:center;border:4px solid var(--ink);font-size:32px;overflow:hidden;box-shadow:0 0 0 4px rgba(201,169,110,0.45),0 6px 16px rgba(0,0,0,0.3)}
+.login-title{font-family:'Dancing Script',cursive;font-size:30px;font-weight:700;color:var(--cream);text-shadow:0 2px 6px rgba(0,0,0,0.25)}
+.login-sub{font-size:10px;color:var(--cream-soft);letter-spacing:3px;margin-top:4px;text-transform:uppercase}
 .login-form{padding:20px 20px 24px}
 .login-field-wrap{margin-bottom:12px}
-.login-label{font-size:10px;font-weight:600;color:#7a5c2e;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px}
-.login-input{width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;background:#fff;font-size:12px;color:#3d2b0f;box-sizing:border-box;outline:none;transition:border-color .2s,box-shadow .2s}
-.login-input:focus{border-color:#7a5c2e;box-shadow:0 0 0 3px rgba(122,92,46,0.15)}
-.login-btn{width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .1s,box-shadow .2s;box-shadow:0 2px 6px rgba(61,43,15,0.2)}
-.login-btn:hover{background:#5f4622;box-shadow:0 4px 10px rgba(61,43,15,0.3)}
+.login-label{font-size:10px;font-weight:600;color:var(--wood);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px}
+.login-input{width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;background:#fff;font-size:12px;color:var(--ink);box-sizing:border-box;outline:none;transition:border-color .2s,box-shadow .2s}
+.login-input:focus{border-color:var(--wood);box-shadow:0 0 0 3px rgba(122,92,46,0.15)}
+.login-btn{width:100%;height:38px;background:var(--wood);color:var(--cream);border:none;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .1s,box-shadow .2s;box-shadow:0 2px 6px rgba(61,43,15,0.2)}
+.login-btn:hover{background:var(--wood-dark);box-shadow:0 4px 10px rgba(61,43,15,0.3)}
 .login-btn:active{transform:translateY(1px);box-shadow:0 1px 3px rgba(61,43,15,0.2)}
 .login-btn:disabled{opacity:0.7;cursor:default}
 .login-chips{display:flex;gap:10px;margin-top:20px;animation:loginIn 0.7s ease}
-.login-chip{display:flex;align-items:center;gap:5px;padding:6px 14px;background:rgba(253,246,236,0.75);border:1px solid #c9a96e;border-radius:20px;font-size:11px;font-weight:600;color:#7a5c2e;backdrop-filter:blur(2px)}
+.login-chip{display:flex;align-items:center;gap:5px;padding:6px 14px;background:rgba(253,246,236,0.75);border:1px solid var(--gold);border-radius:20px;font-size:11px;font-weight:600;color:var(--wood);backdrop-filter:blur(2px)}
 .login-chip i{font-size:13px}
 @media(max-width:600px){.login-chips{flex-wrap:wrap;justify-content:center;padding:0 16px}}
 #login-screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:999}@media(max-width:600px){#login-screen{align-items:flex-start;padding-top:12vh}}
@@ -50,30 +50,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .login-field input:focus{border-color:var(--accent)}
 .login-err{font-size:12px;color:var(--red);margin-bottom:10px;display:none}
 .login-hint{font-size:11px;color:var(--text-soft);margin-top:12px}
-header{background:#7a5c2e;border-bottom:1px solid #8b5e2a;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:10}
-.logo{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;color:#fdf6ec}
-.logo-badge{background:#c9a96e;color:#3d2b0f;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px}
-.conn-status{display:flex;align-items:center;gap:6px;font-size:12px;color:#f0d9a8}
+header{background:var(--wood);border-bottom:1px solid var(--wood-border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:10}
+.logo{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;color:var(--cream)}
+.logo-badge{background:var(--gold);color:var(--ink);font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px}
+.conn-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--cream-soft)}
 .conn-dot{width:7px;height:7px;border-radius:50%;background:#ccc}
 .conn-dot.ok{background:var(--green)}.conn-dot.err{background:var(--red)}
-.user-badge{font-size:11px;padding:2px 8px;border-radius:4px;background:#c9a96e;color:#3d2b0f;font-weight:500;cursor:pointer}
-.user-badge.readonly{background:#8b6e4a;color:#fdf6ec}
+.user-badge{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--gold);color:var(--ink);font-weight:500;cursor:pointer}
+.user-badge.readonly{background:#8b6e4a;color:var(--cream)}
 .user-menu-wrap{position:relative;display:inline-block}
-.user-dropdown{display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1.5px solid #c9a96e;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:170px;z-index:999;overflow:hidden}
+.user-dropdown{display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1.5px solid var(--gold);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:170px;z-index:999;overflow:hidden}
 .user-dropdown.open{display:block}
-.user-dropdown-item{padding:10px 14px;font-size:12px;font-weight:500;color:#3d2b0f;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0e4c8}
+.user-dropdown-item{padding:10px 14px;font-size:12px;font-weight:500;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0e4c8}
 .user-dropdown-item:last-child{border-bottom:none}
-.user-dropdown-item:hover{background:#fdf6ec}
+.user-dropdown-item:hover{background:var(--cream)}
 .user-dropdown-item.danger{color:#c0392b}
 .user-dropdown-item.danger:hover{background:#fdf0ee}
-nav{background-color:#c8a86b;background-image:repeating-linear-gradient(92deg,transparent,transparent 2px,rgba(101,60,20,0.07) 2px,rgba(101,60,20,0.07) 4px),repeating-linear-gradient(180deg,transparent,transparent 5px,rgba(255,255,255,0.06) 5px,rgba(255,255,255,0.06) 6px);border-top:2px solid #8b5e2a;border-bottom:2px solid #8b5e2a;padding:8px 24px;display:flex;gap:8px;overflow-x:auto}
-.nav-tab{padding:8px 18px;font-size:13px;font-weight:500;color:#3d2b0f;border:1.5px solid #8b5e2a;border-radius:20px;background:#e8c87a;cursor:pointer;white-space:nowrap;transition:all .15s}
-.nav-tab:hover{background:#d4b05a;color:#3d2b0f;border-color:#7a5020}
-.nav-tab.active{color:#3d2b0f;background:#fdf6ec;border-color:#8b5e2a;font-weight:700}
+nav{background-color:var(--gold-warm);background-image:repeating-linear-gradient(92deg,transparent,transparent 2px,rgba(101,60,20,0.07) 2px,rgba(101,60,20,0.07) 4px),repeating-linear-gradient(180deg,transparent,transparent 5px,rgba(255,255,255,0.06) 5px,rgba(255,255,255,0.06) 6px);border-top:2px solid var(--wood-border);border-bottom:2px solid var(--wood-border);padding:8px 24px;display:flex;gap:8px;overflow-x:auto}
+.nav-tab{padding:8px 18px;font-size:13px;font-weight:500;color:var(--ink);border:1.5px solid var(--wood-border);border-radius:20px;background:var(--gold-soft);cursor:pointer;white-space:nowrap;transition:all .15s}
+.nav-tab:hover{background:#d4b05a;color:var(--ink);border-color:#7a5020}
+.nav-tab.active{color:var(--ink);background:var(--cream);border-color:var(--wood-border);font-weight:700}
 main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .section{display:none}.section.active{display:block}
 .section-header{margin-bottom:16px}
-.section-header h2{font-size:18px;font-weight:600;margin-bottom:2px}
+.section-header h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:2px;color:var(--ink)}
 .section-header p{font-size:13px;color:var(--text-soft)}
 .horse-list{display:flex;flex-direction:column;gap:4px;margin-bottom:24px}
 .horse-list-item{background:var(--surface);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow);overflow:hidden}
@@ -118,15 +118,15 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .year-table tr:last-child td{border-bottom:none;font-weight:700;background:#f7f6f3;color:var(--accent)}
 .year-table tbody tr:hover:not(:last-child) td{background:var(--accent-light)}
 .cell-empty{color:#ddd}
-.apero-filter{padding:4px 10px;background:#fff;color:#7a5c2e;border:1px solid #c9a96e;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;transition:all .15s}
-.apero-filter.active{background:#7a5c2e;color:#fdf6ec;border-color:#7a5c2e}
+.apero-filter{padding:4px 10px;background:#fff;color:var(--wood);border:1px solid var(--gold);border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;transition:all .15s}
+.apero-filter.active{background:var(--wood);color:var(--cream);border-color:var(--wood)}
 .apero-card{background:#fff;border:1px solid #e0c898;border-radius:8px;overflow:hidden;cursor:pointer;transition:all .15s}
-.apero-card:hover{border-color:#c9a96e;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
-.apero-card-img{width:100%;height:90px;object-fit:cover;background:#c8a86b;display:flex;align-items:center;justify-content:center;font-size:28px;color:#7a5c2e}
+.apero-card:hover{border-color:var(--gold);box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.apero-card-img{width:100%;height:90px;object-fit:cover;background:var(--gold-warm);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--wood)}
 .apero-card-body{padding:8px}
 .apero-card-name{font-size:11px;font-weight:600;color:#1a1917;margin-bottom:2px}
 .apero-card-tipo{font-size:9px;color:#a07840}
-.apero-card-tala{font-size:9px;color:#7a5c2e;margin-top:2px}
+.apero-card-tala{font-size:9px;color:var(--wood);margin-top:2px}
 .exp-block{margin-bottom:10px}
 .exp-y-hdr{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;cursor:pointer;box-shadow:var(--shadow);user-select:none}
 .exp-y-hdr:hover{background:var(--accent-light)}
@@ -190,6 +190,10 @@ select:focus,input:focus{border-color:var(--accent)}
 .btn-primary:disabled{opacity:.6;cursor:not-allowed}
 .empty{text-align:center;padding:20px;color:var(--text-soft);font-size:12px}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideOpen{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.year-body.open,.horse-body.open,#aperos-body{animation:slideOpen .22s ease}
+.nav-tab,.apero-card,.horse-card{transition:transform .12s ease,box-shadow .12s ease}
+.apero-card:hover,.horse-card:hover{transform:translateY(-2px)}
 #toast{position:fixed;bottom:24px;right:24px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;display:none;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes toastOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(10px)}}
@@ -229,6 +233,7 @@ select:focus,input:focus{border-color:var(--accent)}
   .horses-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
   .apero-filtros-wrap{flex-wrap:nowrap!important;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
   .apero-filtros-wrap .apero-filter{flex-shrink:0}
+  #horse-list>div:first-child{grid-template-columns:1fr 1fr 1fr!important;gap:6px!important}
   .year-body{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .year-table{min-width:600px}
   .login-card{width:85%;max-width:320px}
@@ -246,6 +251,11 @@ select:focus,input:focus{border-color:var(--accent)}
 <body>
 
 <!-- LOGIN SCREEN -->
+<div id="splash" style="position:fixed;inset:0;z-index:100000;background:linear-gradient(160deg,#8a6a38 0%,var(--wood) 45%,var(--wood-dark) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+  <i class="ti ti-horse" style="font-size:64px;color:var(--cream)"></i>
+  <div style="font-family:'Dancing Script',cursive;font-size:38px;font-weight:700;color:var(--cream);text-shadow:0 2px 8px rgba(0,0,0,0.3)">MANCOS</div>
+  <div style="width:22px;height:22px;border:3px solid rgba(253,246,236,0.3);border-top-color:var(--cream);border-radius:50%;animation:spin 0.8s linear infinite"></div>
+</div>
 <div id="login-screen" class="wood-login-bg">
   <div style="display:flex;flex-direction:column;align-items:center">
   <div class="login-card">
@@ -261,9 +271,9 @@ select:focus,input:focus{border-color:var(--accent)}
   <span onclick="togglePass('login-pass',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none"><i class="ti ti-eye" style="font-size:16px"></i></span>
 </div></div>
       <button onclick="doLogin()" class="login-btn" id="login-btn">ENTRAR</button>
-      <div style="text-align:center;margin-top:10px"><span onclick="forgotPassword()" style="font-size:11px;color:#7a5c2e;cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</span></div>
+      <div style="text-align:center;margin-top:10px"><span onclick="forgotPassword()" style="font-size:11px;color:var(--wood);cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</span></div>
       <div id="login-err" style="display:none;margin-top:10px;color:#c0392b;font-size:12px;text-align:center"></div>
-      <div id="login-loading" style="display:none;margin-top:10px;color:#7a5c2e;font-size:12px;text-align:center">Ingresando...</div>
+      <div id="login-loading" style="display:none;margin-top:10px;color:var(--wood);font-size:12px;text-align:center">Ingresando...</div>
 
     </div>
   </div>
@@ -278,6 +288,8 @@ select:focus,input:focus{border-color:var(--accent)}
 
 <header>
   <div class="logo"><span class="logo-badge">SSR</span><span style="font-family:'Dancing Script',cursive;font-size:22px">MANCOS</span></div>
+  <div style="display:flex;align-items:center;gap:10px">
+  <span onclick="refreshData(this)" title="Actualizar datos" style="cursor:pointer;color:var(--cream-soft);display:flex;align-items:center"><i class="ti ti-refresh" style="font-size:17px"></i></span>
   <div class="user-menu-wrap">
     <span id="user-badge" class="user-badge"></span>
     <div class="user-dropdown" id="user-dropdown">
@@ -286,6 +298,7 @@ select:focus,input:focus{border-color:var(--accent)}
       <div class="user-dropdown-item" id="create-user-btn" style="display:none" onclick="openCreateUser()"><i class="ti ti-user-plus" style="font-size:14px"></i> Crear cuenta</div>
       <div class="user-dropdown-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:14px"></i> Cerrar sesión</div>
     </div>
+  </div>
   </div>
 </header>
 <nav>
@@ -395,13 +408,13 @@ select:focus,input:focus{border-color:var(--accent)}
       <div class="section-header" style="margin-bottom:0"><h2>Inventario</h2><p>Remedios, alimentos y fardos por año</p></div>
     </div>
     <!-- APEROS SECTION -->
-    <div style="margin-bottom:16px;border:2px solid #8b5e2a;border-radius:10px;overflow:hidden">
-      <div style="background:#7a5c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleAperos()">
-        <span style="font-size:13px;font-weight:700;color:#fdf6ec"><i class="ti ti-horseshoe" style="font-size:14px;vertical-align:-2px"></i> APEROS</span>
-          <span id="aperos-arrow" style="color:#f0d9a8;font-size:12px;transition:transform .2s">▼</span>
+    <div style="margin-bottom:16px;border:2px solid var(--wood-border);border-radius:10px;overflow:hidden">
+      <div style="background:var(--wood);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleAperos()">
+        <span style="font-size:13px;font-weight:700;color:var(--cream)"><i class="ti ti-horseshoe" style="font-size:14px;vertical-align:-2px"></i> APEROS</span>
+          <span id="aperos-arrow" style="color:var(--cream-soft);font-size:12px;transition:transform .2s">▼</span>
       </div>
       <div id="aperos-body" style="display:none">
-        <div style="padding:8px 12px;display:flex;align-items:center;justify-content:space-between;background:#fdf6ec;border-bottom:1px solid #e0c898">
+        <div style="padding:8px 12px;display:flex;align-items:center;justify-content:space-between;background:var(--cream);border-bottom:1px solid #e0c898">
           <div style="display:flex;gap:6px;flex-wrap:wrap" id="apero-filtros" class="apero-filtros-wrap">
             <button onclick="filterAperos('Todos')" class="apero-filter active" data-tipo="Todos">Todos</button>
             <button onclick="filterAperos('Monturas')" class="apero-filter" data-tipo="Monturas">Monturas</button>
@@ -416,8 +429,8 @@ select:focus,input:focus{border-color:var(--accent)}
             <button onclick="filterAperos('Otros')" class="apero-filter" data-tipo="Otros">Otros</button>
           </div>
           <div style="display:flex;gap:6px;margin-left:8px">
-            <button onclick="exportAperosPDF(event)" style="background:#c9a96e;color:#3d2b0f;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap"><i class="ti ti-file-download" style="font-size:12px;vertical-align:-2px"></i> PDF</button>
-            <button onclick="openAddApero(aperoFiltroActivo)" style="background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">+ Agregar</button>
+            <button onclick="exportAperosPDF(event)" style="background:var(--gold);color:var(--ink);border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap"><i class="ti ti-file-download" style="font-size:12px;vertical-align:-2px"></i> PDF</button>
+            <button onclick="openAddApero(aperoFiltroActivo)" style="background:var(--wood);color:var(--cream);border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">+ Agregar</button>
           </div>
         </div>
         <div id="aperos-grid" style="padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;background:#fffdf7;min-height:60px">
@@ -581,22 +594,22 @@ function openChangePassword(){
   modal.id='change-pass-modal';
   modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
   modal.innerHTML=`
-    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:90%;max-width:340px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
-      <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:14px;font-weight:600;color:#fdf6ec"><i class="ti ti-key" style="font-size:14px"></i> Cambiar contraseña</span>
-        <span onclick="document.getElementById('change-pass-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+    <div style="background:var(--cream);border-radius:12px;overflow:hidden;width:90%;max-width:340px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
+      <div style="background:var(--wood);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;font-weight:600;color:var(--cream)"><i class="ti ti-key" style="font-size:14px"></i> Cambiar contraseña</span>
+        <span onclick="document.getElementById('change-pass-modal').remove()" style="color:var(--cream-soft);cursor:pointer;font-size:18px">✕</span>
       </div>
       <div style="padding:20px">
-        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Nueva contraseña</label><div style="position:relative;display:flex;align-items:center">
-  <input type="password" id="new-pass-1" placeholder="••••••••" style="width:100%;height:36px;padding:0 36px 0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Nueva contraseña</label><div style="position:relative;display:flex;align-items:center">
+  <input type="password" id="new-pass-1" placeholder="••••••••" style="width:100%;height:36px;padding:0 36px 0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
   <span onclick="togglePass('new-pass-1',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none"><i class="ti ti-eye" style="font-size:16px"></i></span>
 </div></div>
-        <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Confirmar contraseña</label><div style="position:relative;display:flex;align-items:center">
-  <input type="password" id="new-pass-2" placeholder="••••••••" style="width:100%;height:36px;padding:0 36px 0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+        <div style="margin-bottom:16px"><label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Confirmar contraseña</label><div style="position:relative;display:flex;align-items:center">
+  <input type="password" id="new-pass-2" placeholder="••••••••" style="width:100%;height:36px;padding:0 36px 0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
   <span onclick="togglePass('new-pass-2',this)" style="position:absolute;right:10px;cursor:pointer;font-size:16px;color:#a07840;user-select:none"><i class="ti ti-eye" style="font-size:16px"></i></span>
 </div></div>
         <div id="pass-change-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
-        <button onclick="doChangePassword()" style="width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">GUARDAR</button>
+        <button onclick="doChangePassword()" style="width:100%;height:38px;background:var(--wood);color:var(--cream);border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">GUARDAR</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -651,29 +664,29 @@ function openCreateUser(){
   modal.id='create-user-modal';
   modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
   modal.innerHTML=`
-    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:90%;max-width:340px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
-      <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:14px;font-weight:600;color:#fdf6ec"><i class="ti ti-user-plus" style="font-size:14px"></i> Crear cuenta</span>
-        <span onclick="document.getElementById('create-user-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+    <div style="background:var(--cream);border-radius:12px;overflow:hidden;width:90%;max-width:340px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
+      <div style="background:var(--wood);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;font-weight:600;color:var(--cream)"><i class="ti ti-user-plus" style="font-size:14px"></i> Crear cuenta</span>
+        <span onclick="document.getElementById('create-user-modal').remove()" style="color:var(--cream-soft);cursor:pointer;font-size:18px">✕</span>
       </div>
       <div style="padding:20px">
-        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Correo</label><input type="email" id="new-user-email" placeholder="correo@ejemplo.com" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
-        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Contraseña</label><input type="password" id="new-user-pass" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
-        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Rol</label>
-          <select id="new-user-rol" onchange="document.getElementById('parent-user-field').style.display=this.value==='subusuario'?'block':'none'" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Correo</label><input type="email" id="new-user-email" placeholder="correo@ejemplo.com" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
+        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Contraseña</label><input type="password" id="new-user-pass" placeholder="••••••••" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none"></div>
+        <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Rol</label>
+          <select id="new-user-rol" onchange="document.getElementById('parent-user-field').style.display=this.value==='subusuario'?'block':'none'" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
             <option value="subusuario">Subusuario</option>
             <option value="usuario">Usuario</option>
             <option value="readonly">Lectura</option>
           </select>
         </div>
         <div id="parent-user-field" style="margin-bottom:16px;display:block">
-          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Usuario asociado</label>
-          <select id="new-user-parent" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+          <label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Usuario asociado</label>
+          <select id="new-user-parent" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
             <option value="">Cargando...</option>
           </select>
         </div>
         <div id="create-user-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
-        <button onclick="doCreateUser()" style="width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">CREAR</button>
+        <button onclick="doCreateUser()" style="width:100%;height:38px;background:var(--wood);color:var(--cream);border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">CREAR</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -719,10 +732,10 @@ async function openManageUsers(){
   modal.id='manage-users-modal';
   modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
   modal.innerHTML=`
-    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:92%;max-width:420px;box-shadow:0 4px 24px rgba(0,0,0,0.2);max-height:80vh;display:flex;flex-direction:column">
-      <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-        <span style="font-size:14px;font-weight:600;color:#fdf6ec"><i class="ti ti-users" style="font-size:14px"></i> Gestionar usuarios</span>
-        <span onclick="document.getElementById('manage-users-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+    <div style="background:var(--cream);border-radius:12px;overflow:hidden;width:92%;max-width:420px;box-shadow:0 4px 24px rgba(0,0,0,0.2);max-height:80vh;display:flex;flex-direction:column">
+      <div style="background:var(--wood);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <span style="font-size:14px;font-weight:600;color:var(--cream)"><i class="ti ti-users" style="font-size:14px"></i> Gestionar usuarios</span>
+        <span onclick="document.getElementById('manage-users-modal').remove()" style="color:var(--cream-soft);cursor:pointer;font-size:18px">✕</span>
       </div>
       <div id="users-list" style="overflow-y:auto;padding:16px;flex:1">
         <div style="text-align:center;color:#a07840;font-size:13px">Cargando...</div>
@@ -751,7 +764,7 @@ async function loadUsersList(){
           <div style="font-size:12px;font-weight:600;color:#1a1917">${u.email}</div>
           <div style="font-size:10px;color:#a07840">${u.nombre||''}</div>
         </div>
-        <select onchange="changeUserRol('${u.id}',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid #c9a96e;border-radius:4px;background:#fff;color:#3d2b0f">
+        <select onchange="changeUserRol('${u.id}',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid var(--gold);border-radius:4px;background:#fff;color:var(--ink)">
           <option value="subusuario" ${u.rol==='subusuario'?'selected':''}>Subusuario</option>
           <option value="usuario" ${u.rol==='usuario'?'selected':''}>Usuario</option>
           <option value="readonly" ${u.rol==='readonly'?'selected':''}>Lectura</option>
@@ -761,7 +774,7 @@ async function loadUsersList(){
       </div>
       ${u.rol==='subusuario'?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px">
         <span style="font-size:10px;color:#a07840">Usuario asociado:</span>
-        <select onchange="changeParentUser('${u.id}',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid #c9a96e;border-radius:4px;background:#fff;color:#3d2b0f;flex:1">
+        <select onchange="changeParentUser('${u.id}',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid var(--gold);border-radius:4px;background:#fff;color:var(--ink);flex:1">
           ${parentOpts.replace(`value="${u.parent_user_id||''}"`,`value="${u.parent_user_id||''}" selected`)}
         </select>
       </div>`:''}
@@ -815,9 +828,11 @@ async function checkSession(){
     startApp();
   } else {
     document.getElementById('login-screen').style.display='flex';
+    hideSplash();
   }
 }
 function startApp(){
+  hideSplash();
   document.getElementById('login-screen').style.display='none';
   const badge=document.getElementById('user-badge');
   const badgeLabel=isAdmin?'<i class="ti ti-pencil" style="font-size:10px;vertical-align:-2px"></i> '+( currentUser?.email?.split('@')[0]||'Admin'):'<i class="ti ti-eye" style="font-size:10px;vertical-align:-2px"></i> '+( currentUser?.email?.split('@')[0]||'Invitado');
@@ -947,8 +962,64 @@ function unfmtMiles(v){return Number(String(v).replace(/\./g,''))||0;}
 // Spinner helper
 function spinnerHTML(txt='Cargando...'){
   return `<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:20px;color:#a07840;font-size:12px;grid-column:1/-1">
-    <div style="width:16px;height:16px;border:2px solid #e0c898;border-top-color:#7a5c2e;border-radius:50%;animation:spin 0.8s linear infinite"></div>${txt}</div>`;
+    <div style="width:16px;height:16px;border:2px solid #e0c898;border-top-color:var(--wood);border-radius:50%;animation:spin 0.8s linear infinite"></div>${txt}</div>`;
 }
+
+// ===== MANCOS MODAL SYSTEM (replaces native confirm/prompt) =====
+function _mancosModal(msg, opts){
+  return new Promise(resolve=>{
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(30,20,8,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;animation:loginIn .15s ease';
+    const isPrompt=opts.type==='prompt';
+    const danger=/eliminar|irreversible|definitivamente|borrar/i.test(msg);
+    ov.innerHTML=`
+      <div style="background:var(--cream);border-radius:12px;overflow:hidden;width:88%;max-width:340px;box-shadow:0 12px 40px rgba(61,43,15,0.35)">
+        <div style="background:${danger?'var(--red)':'var(--wood)'};padding:13px 18px;display:flex;align-items:center;gap:8px">
+          <i class="ti ${danger?'ti-alert-triangle':'ti-help-circle'}" style="font-size:17px;color:var(--cream)"></i>
+          <span style="font-size:13px;font-weight:700;color:var(--cream)">${danger?'Confirmar acción':'MANCOS'}</span>
+        </div>
+        <div style="padding:18px">
+          <div style="font-size:13px;color:var(--ink);line-height:1.5;white-space:pre-line">${msg}</div>
+          ${isPrompt?`<input type="text" id="_mancos-input" value="${(opts.def||'').replace(/"/g,'&quot;')}" style="width:100%;height:36px;margin-top:12px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">`:''}
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <button id="_mancos-ok" style="flex:1;height:36px;background:${danger?'var(--red)':'var(--wood)'};color:var(--cream);border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">${danger?'Sí, continuar':'Aceptar'}</button>
+            <button id="_mancos-cancel" style="flex:1;height:36px;background:#fff;color:var(--text-soft);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">Cancelar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    const inp=document.getElementById('_mancos-input');
+    if(inp){inp.focus();inp.select();inp.addEventListener('keydown',e=>{if(e.key==='Enter')done(true);});}
+    function done(ok){
+      const val=isPrompt?(ok?(inp.value):null):ok;
+      ov.remove();resolve(val);
+    }
+    document.getElementById('_mancos-ok').onclick=()=>done(true);
+    document.getElementById('_mancos-cancel').onclick=()=>done(false);
+    ov.addEventListener('click',e=>{if(e.target===ov)done(false);});
+  });
+}
+async function refreshData(el){
+  const ic=el.querySelector('i');
+  ic.style.animation='spin 0.8s linear infinite';
+  try{
+    await loadAll();
+    const active=document.querySelector('.section.active');
+    if(active){
+      const id=active.id.replace('tab-','');
+      if(id==='caballos')renderCaballos();
+      if(id==='inventario'){await loadInventario();renderInvBlocks();loadAperos();}
+      if(id==='calendario'){await loadEvents();renderCalendar();}
+      if(id==='ingresar')renderExpBlocks();
+    }
+    toast('Datos actualizados');
+  }catch(e){toast('Error al actualizar','err');}
+  ic.style.animation='';
+}
+function hideSplash(){const s=document.getElementById('splash');if(s){s.style.opacity='0';s.style.transition='opacity .3s';setTimeout(()=>s.remove(),320);}}
+function mancosConfirm(msg){return _mancosModal(msg,{type:'confirm'});}
+function mancosPrompt(msg,def){return _mancosModal(msg,{type:'prompt',def});}
+
 async function loadAll(){
   const dot=document.getElementById('conn-dot'),lbl=document.getElementById('conn-label');
   try{
@@ -1037,17 +1108,37 @@ function renderResumen(){
   // Empty state for new users with no horses
   if(!horses.length&&!allEntries.length){
     document.getElementById('horse-list').innerHTML=`
-      <div style="text-align:center;padding:40px 20px;background:var(--surface);border:2px dashed #c9a96e;border-radius:12px;margin-bottom:16px">
-        <div style="margin-bottom:12px"><i class="ti ti-horse" style="font-size:46px;color:#7a5c2e"></i></div>
-        <div style="font-size:17px;font-weight:700;color:#3d2b0f;margin-bottom:8px">¡Bienvenido a MANCOS!</div>
+      <div style="text-align:center;padding:40px 20px;background:var(--surface);border:2px dashed var(--gold);border-radius:12px;margin-bottom:16px">
+        <div style="margin-bottom:12px"><i class="ti ti-horse" style="font-size:46px;color:var(--wood)"></i></div>
+        <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:8px">¡Bienvenido a MANCOS!</div>
         <div style="font-size:13px;color:#a07840;margin-bottom:18px;line-height:1.5">Aún no tienes caballos registrados.<br>Para comenzar, crea tu primer caballo y luego podrás registrar sus costos, eventos y aperos.</div>
-        <button onclick="showTab('caballos')" style="background:#7a5c2e;color:#fdf6ec;border:none;border-radius:8px;padding:12px 24px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(61,43,15,0.2)"><i class="ti ti-horse" style="font-size:14px;vertical-align:-2px"></i> Registrar mi primer caballo</button>
+        <button onclick="showTab('caballos')" style="background:var(--wood);color:var(--cream);border:none;border-radius:8px;padding:12px 24px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(61,43,15,0.2)"><i class="ti ti-horse" style="font-size:14px;vertical-align:-2px"></i> Registrar mi primer caballo</button>
       </div>`;
     const yb=document.getElementById('year-blocks');
     if(yb)yb.innerHTML='';
     return;
   }
-  document.getElementById('horse-list').innerHTML=horses.map(nombre=>{
+  // Dashboard metrics
+  const now=new Date();const cy=now.getFullYear(),cm=now.getMonth()+1;
+  const gastoMes=allEntries.filter(e=>e.year===cy&&e.month===cm).reduce((s,e)=>s+Number(e.amount),0)
+    +allGenerales.filter(e=>e.year===cy&&e.month===cm).reduce((s,e)=>s+Number(e.monto||0),0);
+  const gastoAno=allEntries.filter(e=>e.year===cy).reduce((s,e)=>s+Number(e.amount),0)
+    +allGenerales.filter(e=>e.year===cy).reduce((s,e)=>s+Number(e.monto||0),0);
+  const dashHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow)">
+      <div style="font-size:9px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:4px"><i class="ti ti-horse" style="font-size:12px"></i> Caballos activos</div>
+      <div style="font-size:22px;font-weight:700;color:var(--ink);margin-top:2px">${horses.length}</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow)">
+      <div style="font-size:9px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:4px"><i class="ti ti-coin" style="font-size:12px"></i> Gasto este mes</div>
+      <div style="font-size:22px;font-weight:700;color:var(--wood);margin-top:2px">${clp(gastoMes)||'$0'}</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow)">
+      <div style="font-size:9px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:4px"><i class="ti ti-chart-bar" style="font-size:12px"></i> Gasto ${cy}</div>
+      <div style="font-size:22px;font-weight:700;color:var(--wood);margin-top:2px">${clp(gastoAno)||'$0'}</div>
+    </div>
+  </div>`;
+  document.getElementById('horse-list').innerHTML=dashHTML+horses.map(nombre=>{
     const info=allHorses.find(h=>h.nombre===nombre);
     const edad=info?calcAge(info.fecha_nacimiento):'—';
     const geo=GEO[nombre]||{};
@@ -1083,7 +1174,7 @@ function renderResumen(){
         </div>
         ${fdate?`<div style="font-size:8px;color:var(--text-soft);margin-top:1px;line-height:1">${fdate}</div>`:''}
       </div>`;
-    }).join('')+(canEdit?`<div style="display:inline-block;margin:2px;vertical-align:top"><div onclick="openPhotoUpload('${nombre.replace(/'/g,"\'")}','${sid}')" title="Agregar foto" style="height:60px;width:60px;border:2px dashed #c9a96e;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#a07840;background:#fdf6ec"><i class="ti ti-plus" style="font-size:22px"></i></div></div>`:'');
+    }).join('')+(canEdit?`<div style="display:inline-block;margin:2px;vertical-align:top"><div onclick="openPhotoUpload('${nombre.replace(/'/g,"\'")}','${sid}')" title="Agregar foto" style="height:60px;width:60px;border:2px dashed var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#a07840;background:var(--cream)"><i class="ti ti-plus" style="font-size:22px"></i></div></div>`:'');
     const delBtn='';
     return `<div style="display:flex;align-items:center;gap:4px">
     <div class="horse-list-item" style="flex:1">
@@ -1180,9 +1271,9 @@ function updateChartButtons(year){
     const btn=document.getElementById('cf-'+year+'-'+f);
     if(!btn)return;
     const active=chartFilters[year]===f;
-    btn.style.background=active?'#7a5c2e':'var(--bg)';
-    btn.style.color=active?'#fdf6ec':'var(--text-soft)';
-    btn.style.borderColor=active?'#7a5c2e':'var(--border)';
+    btn.style.background=active?'var(--wood)':'var(--bg)';
+    btn.style.color=active?'var(--cream)':'var(--text-soft)';
+    btn.style.borderColor=active?'var(--wood)':'var(--border)';
   });
 }
 
@@ -1205,8 +1296,8 @@ function renderChart(year){
     }
     return val;
   });
-  const colorMap={CABALLOS:'#7a5c2e',GENERALES:'#185FA5',RODEOS:'#1a7a4a',TOTAL:'#c9a96e'};
-  const barColor=colorMap[filter]||'#c9a96e';
+  const colorMap={CABALLOS:'var(--wood)',GENERALES:'#185FA5',RODEOS:'#1a7a4a',TOTAL:'var(--gold)'};
+  const barColor=colorMap[filter]||'var(--gold)';
   if(chartInstances[year])chartInstances[year].destroy();
   chartInstances[year]=new Chart(canvas,{
     type:'bar',
@@ -1457,7 +1548,7 @@ async function saveCatEntry(horse,year,month,cat,cid,parentSid,mnum){
 
 async function delCatEntry(id,parentSid,year,month){
   if(!canEdit){toast('Sin permisos','err');return;}
-  if(!confirm('¿Eliminar?'))return;
+  if(!await mancosConfirm('¿Eliminar?'))return;
   try{
     const entry=allEntries.find(e=>e.id===id);
     await sbFetch('costos?id=eq.'+id,{method:'DELETE'});
@@ -1565,7 +1656,7 @@ document.getElementById('new-horse-photo').addEventListener('change',function(){
 
 async function deactivateHorse(nombre,sid){
   if(!canEdit){toast('Sin permisos','err');return;}
-  if(!confirm('¿Desactivar '+nombre+'? Sus datos se conservan.'))return;
+  if(!await mancosConfirm('¿Desactivar '+nombre+'? Sus datos se conservan.'))return;
   const info=allHorses.find(h=>h.nombre===nombre);
   if(info){
     try{await sbFetch('caballos?id=eq.'+info.id,{method:'PATCH',body:JSON.stringify({activo:false})});}
@@ -1613,7 +1704,7 @@ function renderCaballos(){
       ${isAdmin?`<button onclick="toggleEditHorse(${h.id})" style="position:absolute;top:4px;right:4px;background:none;border:none;cursor:pointer;font-size:11px;color:#ccc;padding:2px 4px;border-radius:3px" title="Editar"><i class="ti ti-pencil" style="font-size:12px;vertical-align:-2px"></i></button>`:''}
       <div style="flex:1;width:100%">
         <div class="horse-name">${h.nombre}${inactive?'<span class="badge-inactive">inactivo</span>':''}</div>
-        <div class="horse-meta"><span><i class="ti ti-id" style="font-size:11px;vertical-align:-2px"></i> ${numero}</span><span><i class="ti ti-cake" style="font-size:11px;vertical-align:-2px"></i> ${dob}</span><span><i class="ti ti-clock" style="font-size:11px;vertical-align:-2px"></i> ${edad}</span>${padre?`<span>♂ ${padre}</span>`:''} ${madre?`<span>♀ ${madre}</span>`:''} ${h.estado?`<span style="background:#e8f0fe;color:var(--accent);border-radius:3px;padding:1px 5px;font-size:9px">${h.estado}</span>`:''}</div>
+        <div class="horse-meta"><span><i class="ti ti-id" style="font-size:11px;vertical-align:-2px"></i> ${numero}</span><span><i class="ti ti-cake" style="font-size:11px;vertical-align:-2px"></i> ${dob}</span><span><i class="ti ti-clock" style="font-size:11px;vertical-align:-2px"></i> ${edad}</span>${padre?`<span>♂ ${padre}</span>`:''} ${madre?`<span>♀ ${madre}</span>`:''} ${h.estado?`<span style="background:${({'Potrillo/Potranca':'#f0e4c8','Manso de montura':'#fdf0dc','Topeando':'#fde8d0','Corriendo en la casa':'#e0f0e8','Corriendo':'#d8ecdc','Reproducción':'#e2ecf8'})[h.estado]||'#eee'};color:${({'Potrillo/Potranca':'#8a6d2f','Manso de montura':'#a06820','Topeando':'#b05e18','Corriendo en la casa':'#2a7a50','Corriendo':'#1a7a4a','Reproducción':'#2b5fa6'})[h.estado]||'#666'};border-radius:10px;padding:2px 8px;font-size:9px;font-weight:700;display:inline-block;margin-top:2px">${h.estado}</span>`:''}</div>
         <div>${reactivateBtn}</div>
         <div id="edit-horse-${h.id}" style="display:none;margin-top:8px">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
@@ -1693,9 +1784,9 @@ async function addHorse(){
   }catch(e){
     btn.innerHTML='Agregar caballo';btn.disabled=false;
     if(e.message&&e.message.includes('caballos_nombre_key')){
-      const confirmar=confirm('Ya tienes un caballo registrado con el nombre "'+nombre+'".\n\n¿Quieres guardarlo de todas formas con un nombre diferente?');
+      const confirmar=await mancosConfirm('Ya tienes un caballo registrado con el nombre "'+nombre+'".\n\n¿Quieres guardarlo de todas formas con un nombre diferente?');
       if(confirmar){
-        const nuevoNombre=prompt('Ingresa un nombre diferente:',nombre+' 2');
+        const nuevoNombre=await mancosPrompt('Ingresa un nombre diferente:',nombre+' 2');
         if(nuevoNombre&&nuevoNombre.trim()){
           document.getElementById('new-horse-name').value=nuevoNombre.trim();
           toast('Cambia el nombre y vuelve a intentarlo','err');
@@ -1715,7 +1806,7 @@ function toggleAddEvent(){
 }
 
 async function deleteExtraPhoto(nombre, url, btn){
-  if(!confirm('¿Eliminar esta foto?'))return;
+  if(!await mancosConfirm('¿Eliminar esta foto?'))return;
   try{
     // Delete from fotos_caballos table
     const encoded=encodeURIComponent(url);
@@ -1805,7 +1896,7 @@ async function setPrincipalPhoto(sid, url, nombre){
 }
 
 async function deleteMainPhoto(nombre, sid){
-  if(!confirm('¿Eliminar la foto principal de '+nombre+'?'))return;
+  if(!await mancosConfirm('¿Eliminar la foto principal de '+nombre+'?'))return;
   try{
     const url=extraPhotos[nombre]&&extraPhotos[nombre][0];
     if(url){
@@ -1833,7 +1924,7 @@ function setMainPhotoClickable(sid, src){
 }
 
 async function deleteExtraPhotoFromMain(sid, url, nombre){
-  if(!confirm('¿Eliminar esta foto permanentemente?'))return;
+  if(!await mancosConfirm('¿Eliminar esta foto permanentemente?'))return;
   try{
     await sbFetch('fotos_caballos?url=eq.'+encodeURIComponent(url),{method:'DELETE'});
     // Remove from extraPhotos
@@ -1851,7 +1942,7 @@ async function deleteExtraPhotoFromMain(sid, url, nombre){
 }
 
 async function deactivateHorseFromEdit(nombre,id){
-  if(!confirm('¿Desactivar '+nombre+'? Sus datos se conservan y puede reactivarlo desde CABALLOS.'))return;
+  if(!await mancosConfirm('¿Desactivar '+nombre+'? Sus datos se conservan y puede reactivarlo desde CABALLOS.'))return;
   try{
     await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({activo:false})});
     const h=allHorses.find(h=>h.id===id);if(h)h.activo=false;
@@ -1861,8 +1952,8 @@ async function deactivateHorseFromEdit(nombre,id){
 }
 
 async function deleteHorsePermanently(nombre,id){
-  if(!confirm('¿Eliminar '+nombre+' DEFINITIVAMENTE? Se borrarán todos sus datos y no se puede recuperar.'))return;
-  if(!confirm('¿Estás seguro? Esta acción es irreversible.'))return;
+  if(!await mancosConfirm('¿Eliminar '+nombre+' DEFINITIVAMENTE? Se borrarán todos sus datos y no se puede recuperar.'))return;
+  if(!await mancosConfirm('¿Estás seguro? Esta acción es irreversible.'))return;
   try{
     await sbFetch('costos?horse=eq.'+encodeURIComponent(nombre),{method:'DELETE'});
     await sbFetch('eventos?horse=eq.'+encodeURIComponent(nombre),{method:'DELETE'});
@@ -2120,7 +2211,7 @@ async function addManualEvent(){
 }
 
 async function deleteEvent(id){
-  if(!confirm('¿Eliminar evento?'))return;
+  if(!await mancosConfirm('¿Eliminar evento?'))return;
   try{
     await sbFetch('eventos?id=eq.'+id,{method:'DELETE'});
     allEvents=allEvents.filter(e=>e.id!==id);
@@ -2140,7 +2231,7 @@ async function saveCatEntryWithDate(horse,year,month,cat,cid,parentSid,mnum){
   const needsDate = cat==='Herraje' || cat==='Vitaminas / Antiparasitario / Hormonas';
   let eventDate = null;
   if(needsDate){
-    const rawDate = prompt('Fecha para '+cat+' de '+horse+' (DD-MM-AAAA):');
+    const rawDate = await mancosPrompt('Fecha para '+cat+' de '+horse+' (DD-MM-AAAA):');
     if(!rawDate){eventDate=null;}
     else if(/^\d{2}-\d{2}-\d{4}$/.test(rawDate)){
       const parts=rawDate.split('-');
@@ -2231,7 +2322,7 @@ async function addRodeo(){
 }
 
 async function deleteRodeo(id){
-  if(!confirm('¿Eliminar este rodeo y sus costos?'))return;
+  if(!await mancosConfirm('¿Eliminar este rodeo y sus costos?'))return;
   try{
     // Delete costs first, then rodeo
     await sbFetch('rodeos_costos?rodeo_id=eq.'+id,{method:'DELETE'});
@@ -2280,7 +2371,7 @@ async function saveRodeoCosto(rodeoId, cat, inputId, noteId){
 }
 
 async function deleteRodeoCosto(id,rodeoId){
-  if(!confirm('¿Eliminar?'))return;
+  if(!await mancosConfirm('¿Eliminar?'))return;
   try{
     await sbFetch('rodeos_costos?id=eq.'+id,{method:'DELETE'});
     allRodeosCostos=allRodeosCostos.filter(c=>c.id!==id);
@@ -2455,7 +2546,7 @@ function editGenVal(el,id,msid,year,month){
 }
 
 async function delGenEntry(id,msid,year,month){
-  if(!confirm('¿Eliminar?'))return;
+  if(!await mancosConfirm('¿Eliminar?'))return;
   try{
     await sbFetch('costos_generales?id=eq.'+id,{method:'DELETE'});
     allGenerales=allGenerales.filter(e=>e.id!==id);
@@ -2504,7 +2595,7 @@ async function saveModalCost(){
   const needsDate=cat==='Herraje'||cat==='Vitaminas / Antiparasitario / Hormonas';
   let eventDate=null;
   if(needsDate){
-    const rawDate=prompt('Fecha para '+cat+' de '+horse+' (DD-MM-AAAA):');
+    const rawDate=await mancosPrompt('Fecha para '+cat+' de '+horse+' (DD-MM-AAAA):');
     if(rawDate){
       if(/^\d{2}-\d{2}-\d{4}$/.test(rawDate)){
         const parts=rawDate.split('-');
@@ -2601,7 +2692,7 @@ function openAddRodeoModal(year){
 }
 
 async function deleteRodeoAndRefresh(id,year){
-  if(!confirm('¿Eliminar este rodeo y sus costos?'))return;
+  if(!await mancosConfirm('¿Eliminar este rodeo y sus costos?'))return;
   try{
     await sbFetch('rodeos_costos?rodeo_id=eq.'+id,{method:'DELETE'});
     await sbFetch('rodeos?id=eq.'+id,{method:'DELETE'});
@@ -2663,7 +2754,7 @@ async function saveRodeoGastoModal(){
 }
 
 async function deleteRodeoCostoAndRefresh(id, rodeoId, year){
-  if(!confirm('¿Eliminar?'))return;
+  if(!await mancosConfirm('¿Eliminar?'))return;
   try{
     await sbFetch('rodeos_costos?id=eq.'+id,{method:'DELETE'});
     allRodeosCostos=allRodeosCostos.filter(c=>c.id!==id);
@@ -2676,16 +2767,16 @@ async function deleteRodeoCostoAndRefresh(id, rodeoId, year){
 }
 
 // ===== EXPORT PDF =====
-function exportPDFPrompt(){
+async function exportPDFPrompt(){
   const years=[...new Set([...allEntries.map(e=>e.year),...allGenerales.map(e=>e.year),...allRodeos.map(r=>r.year)])].sort((a,b)=>b-a);
   const defaultYear=years[0]||new Date().getFullYear();
-  const inputYear=prompt('Año del informe (disponibles: '+years.join(', ')+')',defaultYear);
+  const inputYear=await mancosPrompt('Año del informe (disponibles: '+years.join(', ')+')',defaultYear);
   if(!inputYear)return;
   const year=+inputYear;
   if(!year){toast('Año inválido','err');return;}
   const MESES_N=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const defaultMonth=new Date().getMonth()+1;
-  const inputMonth=prompt('Mes del informe (1-12). Ej: 1=Enero, 6=Junio, 12=Diciembre',defaultMonth);
+  const inputMonth=await mancosPrompt('Mes del informe (1-12). Ej: 1=Enero, 6=Junio, 12=Diciembre',defaultMonth);
   if(!inputMonth)return;
   const month=+inputMonth;
   if(!month||month<1||month>12){toast('Mes inválido','err');return;}
@@ -2835,7 +2926,7 @@ function renderAperos(){
   if(!lista.length){grid.innerHTML='<div style="color:#a07840;font-size:12px;text-align:center;padding:20px;grid-column:1/-1">No hay aperos registrados</div>';return;}
   grid.innerHTML=lista.map(a=>`
     <div class="apero-card" onclick="viewApero('${a.id}')">
-      ${a.foto_url?`<img src="${a.foto_url}" style="width:100%;height:90px;object-fit:cover">`:`<div class="apero-card-img"><i class="ti ti-horseshoe" style="font-size:30px;color:#7a5c2e"></i></div>`}
+      ${a.foto_url?`<img src="${a.foto_url}" style="width:100%;height:90px;object-fit:cover">`:`<div class="apero-card-img"><i class="ti ti-horseshoe" style="font-size:30px;color:var(--wood)"></i></div>`}
       <div class="apero-card-body">
         <div class="apero-card-name">${a.nombre}</div>
         <div class="apero-card-tipo">${a.tipo}</div>
@@ -2850,33 +2941,33 @@ function openAddApero(tipoDefault){
   modal.id='add-apero-modal';
   modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
   modal.innerHTML=`
-    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:90%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
-      <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:14px;font-weight:600;color:#fdf6ec"><i class="ti ti-horseshoe" style="font-size:14px;vertical-align:-2px"></i> Agregar apero</span>
-        <span onclick="document.getElementById('add-apero-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+    <div style="background:var(--cream);border-radius:12px;overflow:hidden;width:90%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
+      <div style="background:var(--wood);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;font-weight:600;color:var(--cream)"><i class="ti ti-horseshoe" style="font-size:14px;vertical-align:-2px"></i> Agregar apero</span>
+        <span onclick="document.getElementById('add-apero-modal').remove()" style="color:var(--cream-soft);cursor:pointer;font-size:18px">✕</span>
       </div>
       <div style="padding:18px">
         <div style="margin-bottom:12px">
-          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Tipo de apero</label>
-          <select id="apero-tipo" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+          <label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Tipo de apero</label>
+          <select id="apero-tipo" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
             ${['Bocados','Monturas','Riendas','Espuelas','Lazos-Maneas','Botas','Cabezadas-Bosalillos','Estribos','Mantas','Otros'].map(t=>`<option value="${t}" ${(tipoDefault&&tipoDefault!=='Todos'&&tipoDefault===t)?'selected':''}>${t}</option>`).join('')}
           </select>
         </div>
         <div style="margin-bottom:12px">
-          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Nombre</label>
-          <input type="text" id="apero-nombre" placeholder="Ej: Riendero de un 8" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+          <label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Nombre</label>
+          <input type="text" id="apero-nombre" placeholder="Ej: Riendero de un 8" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
         </div>
         <div style="margin-bottom:12px">
-          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Maestro / Talabartero</label>
-          <input type="text" id="apero-tala" placeholder="Nombre del artesano" style="width:100%;height:36px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+          <label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Maestro / Talabartero</label>
+          <input type="text" id="apero-tala" placeholder="Nombre del artesano" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
         </div>
         <div style="margin-bottom:16px">
-          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Foto</label>
+          <label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Foto</label>
           <input type="file" id="apero-foto" accept="image/*" style="width:100%;font-size:12px">
-          <div id="apero-foto-preview" style="display:none;margin-top:8px"><img id="apero-foto-img" style="width:100%;height:120px;object-fit:cover;border-radius:6px;border:1px solid #c9a96e"></div>
+          <div id="apero-foto-preview" style="display:none;margin-top:8px"><img id="apero-foto-img" style="width:100%;height:120px;object-fit:cover;border-radius:6px;border:1px solid var(--gold)"></div>
         </div>
         <div id="apero-err" style="display:none;color:#c0392b;font-size:12px;margin-bottom:10px;text-align:center"></div>
-        <button onclick="saveApero()" style="width:100%;height:38px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">GUARDAR</button>
+        <button onclick="saveApero()" style="width:100%;height:38px;background:var(--wood);color:var(--cream);border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">GUARDAR</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -2930,39 +3021,39 @@ function viewApero(id){
   modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
   const tipos=['Bocados','Monturas','Riendas','Espuelas','Lazos-Maneas','Botas','Cabezadas-Bosalillos','Estribos','Mantas','Otros'];
   modal.innerHTML=`
-    <div style="background:#fdf6ec;border-radius:12px;overflow:hidden;width:90%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
-      <div style="background:#7a5c2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:14px;font-weight:600;color:#fdf6ec"><i class="ti ti-horseshoe" style="font-size:14px;vertical-align:-2px"></i> ${a.nombre}</span>
-        <span onclick="document.getElementById('view-apero-modal').remove()" style="color:#f0d9a8;cursor:pointer;font-size:18px">✕</span>
+    <div style="background:var(--cream);border-radius:12px;overflow:hidden;width:90%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,0.2)">
+      <div style="background:var(--wood);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;font-weight:600;color:var(--cream)"><i class="ti ti-horseshoe" style="font-size:14px;vertical-align:-2px"></i> ${a.nombre}</span>
+        <span onclick="document.getElementById('view-apero-modal').remove()" style="color:var(--cream-soft);cursor:pointer;font-size:18px">✕</span>
       </div>
-      ${a.foto_url?`<img src="${a.foto_url}" style="width:100%;height:160px;object-fit:cover">`:`<div style="height:100px;background:#c8a86b;display:flex;align-items:center;justify-content:center;font-size:40px"><i class="ti ti-horseshoe" style="font-size:40px;color:#7a5c2e"></i></div>`}
+      ${a.foto_url?`<img src="${a.foto_url}" style="width:100%;height:160px;object-fit:cover">`:`<div style="height:100px;background:var(--gold-warm);display:flex;align-items:center;justify-content:center;font-size:40px"><i class="ti ti-horseshoe" style="font-size:40px;color:var(--wood)"></i></div>`}
       <div style="padding:16px">
         ${canEdit?`
         <div style="margin-bottom:12px">
-          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Tipo</label>
-          <select id="edit-apero-tipo" style="width:100%;height:34px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:12px;box-sizing:border-box;background:#fff;outline:none">
+          <label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Tipo</label>
+          <select id="edit-apero-tipo" style="width:100%;height:34px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:12px;box-sizing:border-box;background:#fff;outline:none">
             ${tipos.map(t=>`<option value="${t}" ${a.tipo===t?'selected':''}>${t}</option>`).join('')}
           </select>
         </div>
         <div style="margin-bottom:12px">
-          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Nombre</label>
-          <input type="text" id="edit-apero-nombre" value="${a.nombre}" style="width:100%;height:34px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:12px;box-sizing:border-box;outline:none">
+          <label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Nombre</label>
+          <input type="text" id="edit-apero-nombre" value="${a.nombre}" style="width:100%;height:34px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:12px;box-sizing:border-box;outline:none">
         </div>
         <div style="margin-bottom:12px">
-          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Maestro / Talabartero</label>
-          <input type="text" id="edit-apero-tala" value="${a.talabartero||''}" style="width:100%;height:34px;padding:0 10px;border:1.5px solid #c9a96e;border-radius:6px;font-size:12px;box-sizing:border-box;outline:none">
+          <label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Maestro / Talabartero</label>
+          <input type="text" id="edit-apero-tala" value="${a.talabartero||''}" style="width:100%;height:34px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:12px;box-sizing:border-box;outline:none">
         </div>
         <div style="margin-bottom:12px">
-          <label style="font-size:11px;font-weight:600;color:#7a5c2e;text-transform:uppercase;display:block;margin-bottom:4px">Cambiar foto</label>
+          <label style="font-size:11px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Cambiar foto</label>
           <input type="file" id="edit-apero-foto" accept="image/*" style="width:100%;font-size:11px">
         </div>
         <div style="display:flex;gap:8px">
-          <button onclick="saveEditApero('${a.id}')" style="flex:1;height:34px;background:#7a5c2e;color:#fdf6ec;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">GUARDAR</button>
+          <button onclick="saveEditApero('${a.id}')" style="flex:1;height:34px;background:var(--wood);color:var(--cream);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">GUARDAR</button>
           <button onclick="deleteApero('${a.id}')" style="height:34px;padding:0 12px;background:#fdf0ee;color:#c0392b;border:1px solid #f5c6c6;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer"><i class="ti ti-trash" style="font-size:14px;vertical-align:-2px"></i></button>
         </div>
         `:`
-        <div style="margin-bottom:8px"><span style="font-size:11px;color:#a07840;text-transform:uppercase">Tipo</span><div style="font-size:13px;font-weight:600;color:#3d2b0f">${a.tipo}</div></div>
-        ${a.talabartero?`<div><span style="font-size:11px;color:#a07840;text-transform:uppercase">Maestro/Talabartero</span><div style="font-size:13px;font-weight:600;color:#3d2b0f">${a.talabartero}</div></div>`:''}
+        <div style="margin-bottom:8px"><span style="font-size:11px;color:#a07840;text-transform:uppercase">Tipo</span><div style="font-size:13px;font-weight:600;color:var(--ink)">${a.tipo}</div></div>
+        ${a.talabartero?`<div><span style="font-size:11px;color:#a07840;text-transform:uppercase">Maestro/Talabartero</span><div style="font-size:13px;font-weight:600;color:var(--ink)">${a.talabartero}</div></div>`:''}
         `}
       </div>
     </div>`;
@@ -3083,7 +3174,7 @@ async function exportAperosPDF(e){
 }
 
 async function deleteApero(id){
-  if(!confirm('¿Eliminar este apero?'))return;
+  if(!await mancosConfirm('¿Eliminar este apero?'))return;
   await sbFetch('aperos?id=eq.'+id,{method:'DELETE'});
   const m=document.getElementById('view-apero-modal');if(m)m.remove();
   await loadAperos();
@@ -3197,7 +3288,7 @@ function openInvUso(itemId){
   document.getElementById('inv-uso-mes').value=new Date().getMonth()+1;
   document.getElementById('inv-uso-modal').style.display='flex';
 }
-window.addEventListener('load', function(){ checkSession(); });
+window.addEventListener('load', function(){ checkSession(); setTimeout(hideSplash,6000); });
 document.addEventListener('DOMContentLoaded',function(){
   const cantEl=document.getElementById('inv-uso-cantidad');
   if(cantEl)cantEl.addEventListener('input',function(){
@@ -3232,7 +3323,7 @@ async function saveInvUso(){
   btn.disabled=false;btn.textContent='Registrar uso';
 }
 async function delInvItem(id){
-  if(!confirm('¿Eliminar este item y su evento del calendario?'))return;
+  if(!await mancosConfirm('¿Eliminar este item y su evento del calendario?'))return;
   try{
     const item=allInventario.find(i=>i.id===id);
     // Delete matching calendar event if fecha_compra exists
