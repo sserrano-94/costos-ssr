@@ -412,10 +412,15 @@ select:focus,input:focus{border-color:var(--accent)}
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Tipo</label>
             <input type="text" id="ev-tipo" placeholder="Ej: Veterinario" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
           </div>
-          <div style="margin-bottom:16px">
+          <div style="margin-bottom:12px">
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Descripción</label>
             <input type="text" id="ev-desc" placeholder="Detalle opcional" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
           </div>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;background:#fff;border:1.5px solid var(--gold);border-radius:6px;padding:9px 12px">
+            <input type="checkbox" id="ev-recordatorio" style="cursor:pointer;width:15px;height:15px;accent-color:var(--wood)">
+            <span style="font-size:12px;font-weight:600;color:var(--ink)"><i class="ti ti-bell" style="font-size:13px;vertical-align:-2px;color:var(--wood)"></i> Es recordatorio</span>
+            <span style="font-size:10px;color:var(--text-soft);margin-left:auto">te avisará al entrar</span>
+          </label>
           <button onclick="addManualEvent()" style="width:100%;height:38px;font-size:13px;font-weight:700;border-radius:6px;border:none;background:var(--wood);color:var(--cream);cursor:pointer">+ Agregar evento</button>
         </div>
       </div>
@@ -1086,6 +1091,7 @@ async function loadAll(){
     if(dot)dot.className='conn-dot ok';
     if(lbl)lbl.textContent='Conectado';
   }catch(e){if(dot)dot.className='conn-dot err';if(lbl)lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
+  try{await loadEvents();}catch(e){}
   renderResumen();renderExpBlocks();
   
 }
@@ -2199,7 +2205,7 @@ function renderCalendar(){
       const tag=document.createElement('div');
       tag.style.cssText=`font-size:9px;padding:2px 5px;border-radius:4px;margin-bottom:3px;background:${c.bg};border:1px solid ${c.border};color:${c.text};white-space:normal;word-break:break-word;line-height:1.3;`;
       tag.title=ev.horse+': '+ev.tipo+(ev.descripcion?' — '+ev.descripcion:'');
-      tag.textContent=ev.horse;
+      tag.innerHTML=(ev.recordatorio?'<i class="ti ti-bell" style="font-size:9px;vertical-align:-1px"></i> ':'')+ev.horse;
       tag.style.whiteSpace='nowrap';tag.style.overflow='hidden';tag.style.textOverflow='ellipsis';tag.style.fontWeight='600';
       cell.appendChild(tag);
     });
@@ -2266,13 +2272,14 @@ async function addManualEvent(){
   if(!horses.length||!fecha||!tipo){toast('Selecciona al menos un caballo, fecha y tipo','err');return;}
   try{
     for(const horse of horses){
-      const res=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha,tipo,descripcion:desc,user_id:currentUser?.id})});
+      const res=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha,tipo,descripcion:desc,user_id:currentUser?.id,recordatorio:document.getElementById('ev-recordatorio')?.checked||false})});
       allEvents=[...allEvents,...res];
     }
     document.getElementById('ev-date').value='';
     document.getElementById('ev-tipo').value='';
     document.getElementById('ev-desc').value='';
     document.getElementById('ev-horse-select').value='';
+    const rc=document.getElementById('ev-recordatorio');if(rc)rc.checked=false;
     toggleAddEvent();
     renderCalendar();
     toast('✓ '+horses.length+' evento(s) agregado(s)');
