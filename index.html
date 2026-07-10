@@ -2149,7 +2149,8 @@ function renderCalendar(){
       const tag=document.createElement('div');
       tag.style.cssText=`font-size:9px;padding:2px 5px;border-radius:4px;margin-bottom:3px;background:${c.bg};border:1px solid ${c.border};color:${c.text};white-space:normal;word-break:break-word;line-height:1.3;`;
       tag.title=ev.horse+': '+ev.tipo+(ev.descripcion?' — '+ev.descripcion:'');
-      tag.textContent=ev.horse+' · '+tipoCorto;
+      tag.textContent=ev.horse;
+      tag.style.whiteSpace='nowrap';tag.style.overflow='hidden';tag.style.textOverflow='ellipsis';tag.style.fontWeight='600';
       cell.appendChild(tag);
     });
 
@@ -2174,14 +2175,15 @@ function renderCalendar(){
   const sel=document.getElementById('cal-horse-filter');
   const cur=sel.value;
   const horses=sortedActive();
-  sel.innerHTML='<option value="">Todos los caballos</option>'+horses.map(h=>`<option value="${h}">${h}</option>`).join('');
+  sel.innerHTML='<option value="">Todos los caballos</option>'+[...horses].sort((a,b)=>a.localeCompare(b,'es')).map(h=>`<option value="${h}">${h}</option>`).join('');
   if(cur)sel.value=cur;
 
   // Update ev-horse checkboxes
   const evChecks=document.getElementById('ev-horse-checks');
   if(evChecks){
     const checked=Array.from(evChecks.querySelectorAll('input:checked')).map(i=>i.value);
-    evChecks.innerHTML=horses.map(h=>`<label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 8px">
+    const horsesAZ=[...horses].sort((a,b)=>a.localeCompare(b,'es'));
+    evChecks.innerHTML=horsesAZ.map(h=>`<label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 8px">
       <input type="checkbox" value="${h}" ${checked.includes(h)?'checked':''} style="cursor:pointer"> ${h}
     </label>`).join('');
   }
