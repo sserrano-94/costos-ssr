@@ -2106,10 +2106,32 @@ const EVENT_COLORS_PAST = {
   'default': {bg:'#f0f0f0',border:'#aaa',dot:'#aaa',text:'#888'}
 };
 
-function getEventColor(tipo, fecha){
+// Strong classic colors first, then distinct hues
+const HORSE_PALETTE=[
+  {bg:'#fdecea',border:'#c0392b',dot:'#c0392b',text:'#96281b'},   // rojo
+  {bg:'#e8f0fb',border:'#2b5fa6',dot:'#2b5fa6',text:'#1e4377'},   // azul
+  {bg:'#e6f4ec',border:'#1a7a4a',dot:'#1a7a4a',text:'#14603a'},   // verde
+  {bg:'#fef3e2',border:'#e67e22',dot:'#e67e22',text:'#b05e18'},   // naranjo
+  {bg:'#f3ecfa',border:'#8e44ad',dot:'#8e44ad',text:'#6d3389'},   // morado
+  {bg:'#e4f5f5',border:'#148f8f',dot:'#148f8f',text:'#0f6b6b'},   // turquesa
+  {bg:'#fdeaf3',border:'#c2427e',dot:'#c2427e',text:'#992f61'},   // rosado fuerte
+  {bg:'#f3ede4',border:'#7a5c2e',dot:'#7a5c2e',text:'#5f4622'},   // café
+  {bg:'#f9f6df',border:'#9a9a1f',dot:'#9a9a1f',text:'#75751a'},   // oliva
+  {bg:'#e9e9f8',border:'#5b5bd6',dot:'#5b5bd6',text:'#4444a8'},   // índigo
+  {bg:'#fdefe6',border:'#a04000',dot:'#a04000',text:'#7d3200'},   // terracota
+  {bg:'#e6f2f9',border:'#2980b9',dot:'#2980b9',text:'#1f6390'},   // celeste
+];
+function getHorseColor(horse){
+  const names=[...new Set([...allHorses.map(h=>h.nombre),...allEvents.map(e=>e.horse)])].sort((a,b)=>a.localeCompare(b,'es'));
+  let idx=names.indexOf(horse);
+  if(idx===-1){idx=0;for(let i=0;i<horse.length;i++)idx=(idx*31+horse.charCodeAt(i))>>>0;}
+  return HORSE_PALETTE[idx%HORSE_PALETTE.length];
+}
+function getEventColor(tipo, fecha, horse){
   const isPast = fecha && new Date(fecha+'T12:00:00') < new Date();
-  const colors = isPast ? EVENT_COLORS_PAST : EVENT_COLORS;
-  return colors[tipo] || colors['default'];
+  if(isPast) return EVENT_COLORS_PAST[tipo] || EVENT_COLORS_PAST['default'];
+  if(horse) return getHorseColor(horse);
+  return EVENT_COLORS[tipo] || EVENT_COLORS['default'];
 }
 
 async function loadEvents(){
@@ -2172,7 +2194,7 @@ function renderCalendar(){
     cell.appendChild(dayNum);
 
     dayEvents.forEach(ev=>{
-      const c=getEventColor(ev.tipo, ev.fecha);
+      const c=getEventColor(ev.tipo, ev.fecha, ev.horse);
       const tipoCorto=ev.tipo==='Vitaminas / Antiparasitario / Hormonas'?'Vitaminas':ev.tipo;
       const tag=document.createElement('div');
       tag.style.cssText=`font-size:9px;padding:2px 5px;border-radius:4px;margin-bottom:3px;background:${c.bg};border:1px solid ${c.border};color:${c.text};white-space:normal;word-break:break-word;line-height:1.3;`;
@@ -2221,7 +2243,7 @@ function renderEventsList(events){
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:4px 8px;margin-bottom:4px">
         <div style="font-size:10px;font-weight:600;margin-bottom:3px">${horse}</div>
         ${evs.map(ev=>{
-          const c=getEventColor(ev.tipo, ev.fecha);
+          const c=getEventColor(ev.tipo, ev.fecha, ev.horse);
           const fecha=new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-CL');
           const delBtn=isAdmin?`<button onclick="deleteEvent(${ev.id})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:11px;padding:0 3px">×</button>`:'';
           return `<div style="display:flex;align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--border)">
