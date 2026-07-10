@@ -390,16 +390,35 @@ select:focus,input:focus{border-color:var(--accent)}
     </div>
     <!-- Event list below calendar -->
     <div id="cal-events-list" style="margin-top:16px"></div>
-    <!-- Add manual event -->
-    <div id="add-event-card" class="card" style="margin-top:8px;display:none">
-      <div style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;margin-bottom:10px">Agregar evento manual</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:10px">
-        <div style="display:flex;flex-direction:column;gap:3px;grid-column:1/-1"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Caballos (uno o más)</label><div id="ev-horse-checks" style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0"></div></div>
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Fecha</label><input type="date" id="ev-date" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Tipo</label><input type="text" id="ev-tipo" placeholder="Ej: Veterinario" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Descripción</label><input type="text" id="ev-desc" placeholder="Detalle opcional" style="height:28px;font-size:11px;padding:0 8px;border:1px solid var(--border);border-radius:5px"></div>
+    <!-- Add manual event MODAL -->
+    <div id="add-event-card" style="display:none;position:fixed;inset:0;background:rgba(30,20,8,0.45);z-index:9998;align-items:center;justify-content:center">
+      <div style="background:var(--cream);border-radius:12px;overflow:hidden;width:90%;max-width:380px;box-shadow:0 12px 40px rgba(61,43,15,0.35)">
+        <div style="background:var(--wood);padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:700;color:var(--cream)"><i class="ti ti-calendar-plus" style="font-size:15px;vertical-align:-2px"></i> Agregar evento</span>
+          <span onclick="toggleAddEvent()" style="color:var(--cream-soft);cursor:pointer;font-size:18px">✕</span>
+        </div>
+        <div style="padding:18px">
+          <div style="margin-bottom:12px">
+            <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Caballo</label>
+            <select id="ev-horse-select" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+              <option value="">Selecciona caballo...</option>
+            </select>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Fecha</label>
+            <input type="date" id="ev-date" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Tipo</label>
+            <input type="text" id="ev-tipo" placeholder="Ej: Veterinario" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+          </div>
+          <div style="margin-bottom:16px">
+            <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Descripción</label>
+            <input type="text" id="ev-desc" placeholder="Detalle opcional" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+          </div>
+          <button onclick="addManualEvent()" style="width:100%;height:38px;font-size:13px;font-weight:700;border-radius:6px;border:none;background:var(--wood);color:var(--cream);cursor:pointer">+ Agregar evento</button>
+        </div>
       </div>
-      <button onclick="addManualEvent()" style="height:28px;padding:0 14px;font-size:11px;font-weight:600;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer">+ Agregar evento</button>
     </div>
   </div>
 
@@ -1827,7 +1846,16 @@ async function addHorse(){
 
 function toggleAddEvent(){
   const card=document.getElementById('add-event-card');
-  card.style.display=card.style.display==='none'?'block':'none';
+  const opening=card.style.display==='none';
+  card.style.display=opening?'flex':'none';
+  if(opening){
+    const sel=document.getElementById('ev-horse-select');
+    const horsesAZ=[...sortedActive()].sort((a,b)=>a.localeCompare(b,'es'));
+    const cur=sel.value;
+    sel.innerHTML='<option value="">Selecciona caballo...</option><option value="__ALL__">— Todos los caballos —</option>'+horsesAZ.map(h=>`<option value="${h}">${h}</option>`).join('');
+    if(cur)sel.value=cur;
+    card.onclick=e=>{if(e.target===card)toggleAddEvent();};
+  }
 }
 
 async function deleteExtraPhoto(nombre, url, btn){
@@ -2178,15 +2206,6 @@ function renderCalendar(){
   sel.innerHTML='<option value="">Todos los caballos</option>'+[...horses].sort((a,b)=>a.localeCompare(b,'es')).map(h=>`<option value="${h}">${h}</option>`).join('');
   if(cur)sel.value=cur;
 
-  // Update ev-horse checkboxes
-  const evChecks=document.getElementById('ev-horse-checks');
-  if(evChecks){
-    const checked=Array.from(evChecks.querySelectorAll('input:checked')).map(i=>i.value);
-    const horsesAZ=[...horses].sort((a,b)=>a.localeCompare(b,'es'));
-    evChecks.innerHTML=horsesAZ.map(h=>`<label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 8px">
-      <input type="checkbox" value="${h}" ${checked.includes(h)?'checked':''} style="cursor:pointer"> ${h}
-    </label>`).join('');
-  }
 }
 
 function renderEventsList(events){
@@ -2217,7 +2236,8 @@ function renderEventsList(events){
 
 async function addManualEvent(){
   if(!canEdit){toast('Sin permisos','err');return;}
-  const horses=Array.from(document.querySelectorAll('#ev-horse-checks input:checked')).map(i=>i.value);
+  const selVal=document.getElementById('ev-horse-select').value;
+  const horses=selVal==='__ALL__'?[...sortedActive()]:(selVal?[selVal]:[]);
   const fecha=document.getElementById('ev-date').value;
   const tipo=document.getElementById('ev-tipo').value.trim();
   const desc=document.getElementById('ev-desc').value.trim();
@@ -2230,8 +2250,8 @@ async function addManualEvent(){
     document.getElementById('ev-date').value='';
     document.getElementById('ev-tipo').value='';
     document.getElementById('ev-desc').value='';
-    // Uncheck all
-    document.querySelectorAll('#ev-horse-checks input').forEach(i=>i.checked=false);
+    document.getElementById('ev-horse-select').value='';
+    toggleAddEvent();
     renderCalendar();
     toast('✓ '+horses.length+' evento(s) agregado(s)');
   }catch(e){toast('Error: '+e.message,'err');}
