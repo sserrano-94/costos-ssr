@@ -1214,14 +1214,17 @@ function renderResumen(){
     }).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
     if(upcoming.length){
       remindHTML=`<div style="background:linear-gradient(135deg,#fdf3dc,#fbe9c4);border:1.5px solid var(--gold);border-radius:10px;padding:12px 14px;margin-bottom:14px">
-        <div style="font-size:11px;font-weight:700;color:var(--wood);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px"><i class="ti ti-bell-ringing" style="font-size:13px;vertical-align:-2px"></i> Recordatorios próximos</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:11px;font-weight:700;color:var(--wood);text-transform:uppercase;letter-spacing:1px"><i class="ti ti-bell-ringing" style="font-size:13px;vertical-align:-2px"></i> Recordatorios próximos</span>
+          <button id="btn-resolver-sel" onclick="resolverSeleccionados()" style="display:none;height:24px;padding:0 10px;font-size:10px;font-weight:700;border-radius:5px;border:none;background:var(--wood);color:var(--cream);cursor:pointer"><i class="ti ti-checks" style="font-size:11px;vertical-align:-2px"></i> Resolver (<span id="sel-count">0</span>)</button>
+        </div>
         ${upcoming.map(e=>{
           const d=new Date(e.fecha+'T12:00:00');d.setHours(0,0,0,0);
           const days=Math.round((d-today)/86400000);
           const when=days<0?'hace '+Math.abs(days)+(Math.abs(days)===1?' día':' días'):days===0?'HOY':days===1?'mañana':'en '+days+' días';
           const wcolor=days<=0?'var(--red)':'var(--wood)';
           return `<div style="font-size:12px;color:var(--ink);padding:4px 0;display:flex;align-items:center;gap:8px">
-            ${canEdit?`<span onclick="resolverRecordatorio(${e.id})" title="Marcar como resuelto" style="width:17px;height:17px;border:1.5px solid var(--wood);border-radius:4px;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:#fff"><i class="ti ti-check" style="font-size:12px;color:transparent"></i></span>`:''}
+            ${canEdit?`<span onclick="toggleReminderSel(${e.id},this)" title="Seleccionar" style="width:17px;height:17px;border:1.5px solid var(--wood);border-radius:4px;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:#fff"><i class="ti ti-check" style="font-size:12px;color:transparent"></i></span>`:''}
             <span style="flex:1"><b>${e.horse}</b> — ${e.tipo}${e.descripcion?' · '+e.descripcion:''}</span>
             <span style="font-weight:700;color:${wcolor};white-space:nowrap">${when}</span>
           </div>`;
@@ -2246,13 +2249,32 @@ function getEventColor(tipo, fecha, horse){
 }
 
 
-async function resolverRecordatorio(id){
-  if(!await mancosConfirm('¿Marcar este recordatorio como resuelto?'))return;
+let selectedReminders=new Set();
+function toggleReminderSel(id,el){
+  const ic=el.querySelector('i');
+  if(selectedReminders.has(id)){
+    selectedReminders.delete(id);
+    el.style.background='#fff';ic.style.color='transparent';
+  }else{
+    selectedReminders.add(id);
+    el.style.background='var(--wood)';ic.style.color='var(--cream)';
+  }
+  const btn=document.getElementById('btn-resolver-sel');
+  const cnt=document.getElementById('sel-count');
+  if(btn){btn.style.display=selectedReminders.size?'inline-block':'none';}
+  if(cnt)cnt.textContent=selectedReminders.size;
+}
+async function resolverSeleccionados(){
+  if(!selectedReminders.size)return;
+  const n=selectedReminders.size;
+  if(!await mancosConfirm('¿Marcar '+n+' recordatorio'+(n>1?'s':'')+' como resuelto'+(n>1?'s':'')+'?'))return;
   try{
-    await sbFetch('eventos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({resuelto:true}),headers:{'Prefer':'return=minimal'}});
-    const ev=allEvents.find(e=>e.id===id);if(ev)ev.resuelto=true;
+    const ids=[...selectedReminders].join(',');
+    await sbFetch('eventos?id=in.('+ids+')',{method:'PATCH',body:JSON.stringify({resuelto:true}),headers:{'Prefer':'return=minimal'}});
+    allEvents.forEach(e=>{if(selectedReminders.has(e.id))e.resuelto=true;});
+    selectedReminders.clear();
     renderResumen();
-    toast('✓ Recordatorio resuelto');
+    toast('✓ '+n+' recordatorio'+(n>1?'s resueltos':' resuelto'));
   }catch(e){toast('Error al actualizar','err');}
 }
 
