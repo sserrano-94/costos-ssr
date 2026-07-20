@@ -3258,6 +3258,23 @@ async function saveApero(){
   toast('Apero agregado: '+nombre);
 }
 
+
+// Fullscreen photo viewer
+function viewFotoFull(url,titulo){
+  const ov=document.createElement('div');
+  ov.id='foto-full-overlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(15,10,4,0.92);z-index:100001;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
+  ov.innerHTML=`
+    <div style="position:absolute;top:14px;right:18px;display:flex;align-items:center;gap:14px">
+      <span onclick="document.getElementById('foto-full-overlay').remove()" style="color:#fff;cursor:pointer;font-size:26px;line-height:1">✕</span>
+    </div>
+    ${titulo?`<div style="color:var(--cream-soft);font-size:14px;font-weight:600;margin-bottom:12px">${titulo}</div>`:''}
+    <img src="${url}" style="max-width:100%;max-height:85vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5)">
+  `;
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
+}
+
 function viewApero(id){
   const a=allAperos.find(x=>x.id===id);
   if(!a)return;
@@ -3271,7 +3288,7 @@ function viewApero(id){
         <span style="font-size:14px;font-weight:600;color:var(--cream)"><i class="ti ti-horseshoe" style="font-size:14px;vertical-align:-2px"></i> ${a.nombre}</span>
         <span onclick="document.getElementById('view-apero-modal').remove()" style="color:var(--cream-soft);cursor:pointer;font-size:18px">✕</span>
       </div>
-      ${a.foto_url?`<img src="${a.foto_url}" style="width:100%;height:160px;object-fit:cover">`:`<div style="height:100px;background:var(--gold-warm);display:flex;align-items:center;justify-content:center;font-size:40px"><i class="ti ti-horseshoe" style="font-size:40px;color:var(--wood)"></i></div>`}
+      ${a.foto_url?`<img src="${a.foto_url}" onclick="viewFotoFull('${a.foto_url}','${a.nombre.replace(/'/g,"\\'")}')" style="width:100%;height:160px;object-fit:cover;cursor:zoom-in" title="Ver foto completa">`:`<div style="height:100px;background:var(--gold-warm);display:flex;align-items:center;justify-content:center;font-size:40px"><i class="ti ti-horseshoe" style="font-size:40px;color:var(--wood)"></i></div>`}
       <div style="padding:16px">
         ${canEdit?`
         <div style="margin-bottom:12px">
