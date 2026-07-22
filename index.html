@@ -119,6 +119,8 @@ main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
 .year-table tbody tr:hover:not(:last-child) td{background:var(--accent-light)}
 .cell-empty{color:#ddd}
 @media(min-width:769px){.cat-row-editable{cursor:pointer}.cat-row-editable:hover{background:#faf5ea}}
+.cab-subtab{background:#fff;color:var(--wood)}
+.cab-subtab.active-sub{background:var(--wood);color:var(--cream)}
 .apero-filter{padding:4px 10px;background:#fff;color:var(--wood);border:1px solid var(--gold);border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;transition:all .15s}
 .apero-filter.active{background:var(--wood);color:var(--cream);border-color:var(--wood)}
 .apero-card{background:#fff;border:1px solid #e0c898;border-radius:8px;overflow:hidden;cursor:pointer;transition:all .15s}
@@ -309,7 +311,6 @@ select:focus,input:focus{border-color:var(--accent)}
   <button class="nav-tab" onclick="showTab('caballos')"><i class="ti ti-horse" style="font-size:13px;vertical-align:-2px"></i> CABALLOS</button>
   <button class="nav-tab" onclick="showTab('calendario')"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> CALENDARIO</button>
   <button class="nav-tab" onclick="showTab('inventario')"><i class="ti ti-box" style="font-size:13px;vertical-align:-2px"></i> INVENTARIO</button>
-  <button class="nav-tab" onclick="showTab('entrenamiento')"><i class="ti ti-run" style="font-size:13px;vertical-align:-2px"></i> ENTRENAMIENTO</button>
 </nav>
 <div id="breadcrumb" style="display:none;background:#f0f4fb;border-bottom:1px solid var(--border);padding:6px 24px;font-size:11px;color:var(--text-soft)"></div>
 <main>
@@ -335,8 +336,13 @@ select:focus,input:focus{border-color:var(--accent)}
   <div class="section" id="tab-caballos">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
       <div class="section-header" style="margin-bottom:0"><h2>Caballos</h2><p>Todos los caballos — activos e inactivos</p></div>
-      <button onclick="toggleAddHorse()" style="height:32px;padding:0 16px;font-size:12px;font-weight:500;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar caballo</button>
+      <button id="btn-add-horse-top" onclick="toggleAddHorse()" style="height:32px;padding:0 16px;font-size:12px;font-weight:500;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar caballo</button>
     </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button id="cab-subtab-caballos" onclick="showCabSub('caballos')" class="cab-subtab active-sub" style="height:32px;padding:0 18px;font-size:12px;font-weight:700;border-radius:20px;border:1.5px solid var(--wood);cursor:pointer"><i class="ti ti-horse" style="font-size:13px;vertical-align:-2px"></i> Caballos</button>
+      <button id="cab-subtab-entrenamiento" onclick="showCabSub('entrenamiento')" class="cab-subtab" style="height:32px;padding:0 18px;font-size:12px;font-weight:700;border-radius:20px;border:1.5px solid var(--wood);cursor:pointer"><i class="ti ti-run" style="font-size:13px;vertical-align:-2px"></i> Entrenamiento</button>
+    </div>
+    <div id="cab-sub-caballos">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Ordenar por</span>
       <select id="horses-sort" onchange="renderCaballos()" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
@@ -360,6 +366,20 @@ select:focus,input:focus{border-color:var(--accent)}
         <img id="new-horse-preview" class="photo-preview" style="width:60px;height:60px">
       </div>
       <button id="add-horse-btn" onclick="addHorse()" style="height:28px;padding:0 14px;font-size:11px;font-weight:600;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer">Agregar caballo</button>
+    </div>
+    </div>
+
+    <div id="cab-sub-entrenamiento" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <div style="font-size:12px;color:var(--text-soft)">Etapa y jinete por caballo y mes</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="entYear--;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
+          <span id="ent-year-label" style="font-size:14px;font-weight:700;color:var(--ink);min-width:48px;text-align:center"></span>
+          <button onclick="entYear++;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
+        </div>
+      </div>
+      <div id="ent-table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"></div>
+      <div style="font-size:10px;color:var(--text-soft);margin-top:8px" id="ent-hint"></div>
     </div>
   </div>
 
@@ -488,24 +508,6 @@ select:focus,input:focus{border-color:var(--accent)}
 </main>
 
 <!-- MODAL AGREGAR COSTO -->
-<div class="section" id="tab-entrenamiento">
-  <div class="card">
-    <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <div>
-        <h2>Entrenamiento</h2>
-        <div style="font-size:12px;color:var(--text-soft)">Etapa y jinete por caballo y mes</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <button onclick="entYear--;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
-        <span id="ent-year-label" style="font-size:14px;font-weight:700;color:var(--ink);min-width:48px;text-align:center"></span>
-        <button onclick="entYear++;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
-      </div>
-    </div>
-    <div id="ent-table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:12px"></div>
-    <div style="font-size:10px;color:var(--text-soft);margin-top:8px" id="ent-hint"></div>
-  </div>
-</div>
-
 <div id="cost-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center">
   <div style="background:var(--surface);border-radius:var(--radius);padding:20px;width:90%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -1848,6 +1850,22 @@ async function deactivateHorse(nombre,sid){
   toast(nombre+' desactivado');
 }
 
+
+let expandedHorses=new Set();
+function toggleHorseCard(id){
+  const b=document.getElementById('hc-body-'+id);
+  if(!b)return;
+  const open=b.style.display==='none';
+  b.style.display=open?'block':'none';
+  const ch=document.getElementById('hc-ch-'+id);
+  if(ch)ch.style.transform=open?'rotate(180deg)':'';
+  if(open)expandedHorses.add(id);else expandedHorses.delete(id);
+}
+function expandHorseCard(id){
+  const b=document.getElementById('hc-body-'+id);
+  if(b&&b.style.display==='none')toggleHorseCard(id);
+}
+
 function renderCaballos(){
   const sortBy=document.getElementById('horses-sort')?.value||'estado';
   const ESTADO_ORDER=['Potrillo/Potranca','Manso de montura','Topeando','Corriendo en la casa','Corriendo','Reproducción'];
@@ -1878,10 +1896,19 @@ function renderCaballos(){
     const reactivateBtn=isAdmin&&inactive?`<button style="margin-top:4px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer" onclick="reactivateHorse('${h.nombre.replace(/'/g,"\\'")}',${h.id})">Reactivar</button>`:'';
     const editBtn=isAdmin?`<button onclick="toggleEditHorse(${h.id})" style="margin-top:4px;margin-left:4px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer"><i class="ti ti-pencil" style="font-size:11px;vertical-align:-2px"></i> Editar</button>`:'';
     return `<div class="horse-card-full${inactive?' inactive':''}" style="position:relative;flex-direction:column">
-      ${isAdmin?`<button onclick="toggleEditHorse(${h.id})" style="position:absolute;top:4px;right:4px;background:none;border:none;cursor:pointer;font-size:11px;color:#ccc;padding:2px 4px;border-radius:3px" title="Editar"><i class="ti ti-pencil" style="font-size:12px;vertical-align:-2px"></i></button>`:''}
-      <div style="flex:1;width:100%">
-        <div class="horse-name">${h.nombre}${inactive?'<span class="badge-inactive">inactivo</span>':''}</div>
-        <div class="horse-meta"><span><i class="ti ti-id" style="font-size:11px;vertical-align:-2px"></i> ${numero}</span><span><i class="ti ti-cake" style="font-size:11px;vertical-align:-2px"></i> ${dob}</span><span><i class="ti ti-clock" style="font-size:11px;vertical-align:-2px"></i> ${edad}</span>${padre?`<span>♂ ${padre}</span>`:''} ${madre?`<span>♀ ${madre}</span>`:''} ${h.estado?`<span style="background:${({'Potrillo/Potranca':'#f0e4c8','Manso de montura':'#fdf0dc','Topeando':'#fde8d0','Corriendo en la casa':'#e0f0e8','Corriendo':'#d8ecdc','Reproducción':'#e2ecf8'})[h.estado]||'#eee'};color:${({'Potrillo/Potranca':'#8a6d2f','Manso de montura':'#a06820','Topeando':'#b05e18','Corriendo en la casa':'#2a7a50','Corriendo':'#1a7a4a','Reproducción':'#2b5fa6'})[h.estado]||'#666'};border-radius:10px;padding:2px 8px;font-size:9px;font-weight:700;display:inline-block;margin-top:2px">${h.estado}</span>`:''}</div>
+      <div onclick="toggleHorseCard(${h.id})" style="display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="horse-name" style="margin-bottom:0">${h.nombre}</span>
+          ${inactive?'<span class="badge-inactive">inactivo</span>':''}
+          ${h.estado?`<span style="background:${({'Potrillo/Potranca':'#f0e4c8','Manso de montura':'#fdf0dc','Topeando':'#fde8d0','Corriendo en la casa':'#e0f0e8','Corriendo':'#d8ecdc','Reproducción':'#e2ecf8'})[h.estado]||'#eee'};color:${({'Potrillo/Potranca':'#8a6d2f','Manso de montura':'#a06820','Topeando':'#b05e18','Corriendo en la casa':'#2a7a50','Corriendo':'#1a7a4a','Reproducción':'#2b5fa6'})[h.estado]||'#666'};border-radius:10px;padding:2px 8px;font-size:9px;font-weight:700;display:inline-block">${h.estado}</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          ${isAdmin?`<span onclick="event.stopPropagation();expandHorseCard(${h.id});toggleEditHorse(${h.id})" style="cursor:pointer;color:#ccc;padding:2px 4px" title="Editar"><i class="ti ti-pencil" style="font-size:12px;vertical-align:-2px"></i></span>`:''}
+          <span id="hc-ch-${h.id}" style="color:var(--text-soft);font-size:11px;transition:transform .2s;${expandedHorses.has(h.id)?'transform:rotate(180deg)':''}">▼</span>
+        </div>
+      </div>
+      <div id="hc-body-${h.id}" style="display:${expandedHorses.has(h.id)?'block':'none'};width:100%;margin-top:8px">
+        <div class="horse-meta"><span><i class="ti ti-id" style="font-size:11px;vertical-align:-2px"></i> ${numero}</span><span><i class="ti ti-cake" style="font-size:11px;vertical-align:-2px"></i> ${dob}</span><span><i class="ti ti-clock" style="font-size:11px;vertical-align:-2px"></i> ${edad}</span>${padre?`<span>♂ ${padre}</span>`:''} ${madre?`<span>♀ ${madre}</span>`:''}</div>
         <div>${reactivateBtn}</div>
         <div id="edit-horse-${h.id}" style="display:none;margin-top:8px">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
@@ -2213,14 +2240,13 @@ function toggleAddHorse(){
 
 function showTab(name){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach((btn,i)=>{btn.classList.toggle('active',['resumen','ingresar','caballos','calendario','inventario','entrenamiento'][i]===name);});
+  document.querySelectorAll('.nav-tab').forEach((btn,i)=>{btn.classList.toggle('active',['resumen','ingresar','caballos','calendario','inventario'][i]===name);});
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='resumen')renderResumen();
   if(name==='ingresar'){renderExpBlocks();}
   if(name==='caballos')renderCaballos();
   if(name==='calendario'){loadEvents().then(()=>{calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();});}
   if(name==='inventario'){loadInventario().then(()=>renderInvBlocks());loadAperos();}
-  if(name==='entrenamiento'){loadEntrenamiento().then(()=>renderEntrenamiento());}
 }
 
 // ===== CALENDARIO =====
@@ -3191,6 +3217,17 @@ function generarPDF(year,month){
 
   doc.save('MANCOS_Informe_'+(userCriadero?userCriadero.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ ]/g,'').replace(/ /g,'_')+'_':'')+year+'_'+String(month).padStart(2,'0')+'.pdf');
   toast('✓ PDF descargado');
+}
+
+
+function showCabSub(sub){
+  document.getElementById('cab-sub-caballos').style.display=sub==='caballos'?'block':'none';
+  document.getElementById('cab-sub-entrenamiento').style.display=sub==='entrenamiento'?'block':'none';
+  document.getElementById('cab-subtab-caballos').classList.toggle('active-sub',sub==='caballos');
+  document.getElementById('cab-subtab-entrenamiento').classList.toggle('active-sub',sub==='entrenamiento');
+  const addBtn=document.getElementById('btn-add-horse-top');
+  if(addBtn)addBtn.style.display=sub==='caballos'?'inline-block':'none';
+  if(sub==='entrenamiento')loadEntrenamiento().then(()=>renderEntrenamiento());
 }
 
 // ===== ENTRENAMIENTO =====
