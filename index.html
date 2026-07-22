@@ -3196,7 +3196,7 @@ function generarPDF(year,month){
 // ===== ENTRENAMIENTO =====
 let allEntrenamientos=[];
 let entYear=new Date().getFullYear();
-const ETAPAS=['Potrero','Caminata','Topeo','Correr','Rodeo','Rienda','Amansa'];
+const ETAPAS=['Potrero','Caminata','Topeo','Correr','Rodeo','Rienda','Amansa','Trabajo','Reposo en pesebrera'];
 const ETAPA_COLORS={
  'Potrero':{bg:'#e6f4ec',text:'#14603a',border:'#1a7a4a'},
  'Caminata':{bg:'#e4f5f5',text:'#0f6b6b',border:'#148f8f'},
@@ -3205,6 +3205,8 @@ const ETAPA_COLORS={
  'Rodeo':{bg:'#f3ecfa',text:'#6d3389',border:'#8e44ad'},
  'Rienda':{bg:'#e8f0fb',text:'#1e4377',border:'#2b5fa6'},
  'Amansa':{bg:'#f3ede4',text:'#5f4622',border:'#7a5c2e'},
+ 'Trabajo':{bg:'#f9f6df',text:'#75751a',border:'#9a9a1f'},
+ 'Reposo en pesebrera':{bg:'#efefef',text:'#555',border:'#999'},
 };
 
 async function loadEntrenamiento(){
