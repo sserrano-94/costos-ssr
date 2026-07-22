@@ -3240,15 +3240,15 @@ function renderEntrenamiento(){
       let inner;
       if(ent&&ent.etapa){
         const c=ETAPA_COLORS[ent.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
-        inner=`<div style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15">
-          <div style="font-size:9.5px;font-weight:700;color:${c.text}">${ent.etapa}</div>
-          <div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:9px">${ent.jinete||'&nbsp;'}</div>
+        inner=`<div title="${ent.etapa}${ent.jinete?' — '+ent.jinete.replace(/"/g,'&quot;'):''}${ent.comentario?' · '+ent.comentario.replace(/"/g,'&quot;'):''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:84px;height:22px;box-sizing:border-box;margin:0 auto;overflow:hidden">
+          <div style="font-size:9.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.etapa}</div>
+          <div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.jinete||'&nbsp;'}</div>
         </div>`;
       }else{
         inner=canEdit?'<div style="color:#d8cbb0;font-size:12px">+</div>':'<div style="color:#eee;font-size:10px">—</div>';
       }
       const click=canEdit?`onclick="editEntCell('${h.replace(/'/g,"\\'")}',${m})" style="cursor:pointer"`:'';
-      html+=`<td ${click} class="ent-cell" data-h="${h}" data-m="${m}" style="border-bottom:1px solid var(--border);border-left:1px solid #f0e8d8;padding:1px 2px;text-align:center;vertical-align:middle;min-width:92px;${canEdit?'cursor:pointer':''}">${inner}</td>`;
+      html+=`<td ${click} class="ent-cell" data-h="${h}" data-m="${m}" style="border-bottom:1px solid var(--border);border-left:1px solid #f0e8d8;padding:1px 2px;text-align:center;vertical-align:middle;width:92px;min-width:92px;max-width:92px;${canEdit?'cursor:pointer':''}">${inner}</td>`;
     }
     html+='</tr>';
   });
@@ -3280,10 +3280,14 @@ function editEntCell(horse,month){
             ${ETAPAS.map(e=>`<option value="${e}" ${ent&&ent.etapa===e?'selected':''}>${e}</option>`).join('')}
           </select>
         </div>
-        <div style="margin-bottom:16px">
+        <div style="margin-bottom:12px">
           <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Jinete o detalle</label>
           <input type="text" id="ent-jinete" list="ent-jinetes-list" value="${ent&&ent.jinete?ent.jinete.replace(/"/g,'&quot;'):''}" placeholder="Ej: Juan Pozo, o un detalle" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
           <datalist id="ent-jinetes-list">${jinetes.map(j=>`<option value="${j.replace(/"/g,'&quot;')}">`).join('')}</datalist>
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Comentario</label>
+          <input type="text" id="ent-comentario" value="${ent&&ent.comentario?ent.comentario.replace(/"/g,'&quot;'):''}" placeholder="Ej: corrido en la casa" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
         </div>
         <div style="display:flex;gap:8px">
           <button onclick="saveEntCell('${horse.replace(/'/g,"\\'")}',${month})" style="flex:1;height:36px;background:var(--wood);color:var(--cream);border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">GUARDAR</button>
@@ -3298,17 +3302,18 @@ function editEntCell(horse,month){
 async function saveEntCell(horse,month){
   const etapa=document.getElementById('ent-etapa').value||null;
   const jinete=document.getElementById('ent-jinete').value.trim()||null;
+  const comentario=document.getElementById('ent-comentario').value.trim()||null;
   document.getElementById('ent-modal').remove();
   try{
     const ent=getEnt(horse,entYear,month);
     if(ent){
-      if(!etapa&&!jinete){await deleteEntRecord(ent.id);}
+      if(!etapa&&!jinete&&!comentario){await deleteEntRecord(ent.id);}
       else{
-        await sbFetch('entrenamiento?id=eq.'+ent.id,{method:'PATCH',body:JSON.stringify({etapa,jinete}),headers:{'Prefer':'return=minimal'}});
-        ent.etapa=etapa;ent.jinete=jinete;
+        await sbFetch('entrenamiento?id=eq.'+ent.id,{method:'PATCH',body:JSON.stringify({etapa,jinete,comentario}),headers:{'Prefer':'return=minimal'}});
+        ent.etapa=etapa;ent.jinete=jinete;ent.comentario=comentario;
       }
-    }else if(etapa||jinete){
-      const res=await sbFetch('entrenamiento',{method:'POST',body:JSON.stringify({horse,year:entYear,month,etapa,jinete,user_id:currentUser?.id}),headers:{'Prefer':'return=representation'}});
+    }else if(etapa||jinete||comentario){
+      const res=await sbFetch('entrenamiento',{method:'POST',body:JSON.stringify({horse,year:entYear,month,etapa,jinete,comentario,user_id:currentUser?.id}),headers:{'Prefer':'return=representation'}});
       if(res&&res[0])allEntrenamientos.push(res[0]);
       else await loadEntrenamiento();
     }
