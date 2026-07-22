@@ -206,7 +206,7 @@ select:focus,input:focus{border-color:var(--accent)}
 .horses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:4px;margin-bottom:16px;align-items:start}
 .horse-card-full{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 7px;display:flex;align-items:flex-start;justify-content:space-between;gap:3px;box-shadow:var(--shadow);min-height:26px;position:relative}
 .horse-card-full.inactive{opacity:.5}
-.horse-name{font-size:10.5px;font-weight:600;margin-bottom:1px}
+.horse-name{font-size:9.5px;font-weight:600;margin-bottom:1px}
 .horse-meta{font-size:10px;color:var(--text-soft);display:flex;flex-direction:column;gap:1px}
 .horse-total{font-size:11px;font-weight:600;color:var(--accent);text-align:right}
 .horse-cnt{font-size:11px;color:var(--text-soft);text-align:right;margin-top:2px}
@@ -1898,9 +1898,8 @@ function renderCaballos(){
     const editBtn=isAdmin?`<button onclick="toggleEditHorse(${h.id})" style="margin-top:4px;margin-left:4px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer"><i class="ti ti-pencil" style="font-size:11px;vertical-align:-2px"></i> Editar</button>`:'';
     return `<div class="horse-card-full${inactive?' inactive':''}" style="position:relative;flex-direction:column">
       <div onclick="toggleHorseCard(${h.id})" style="display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer;gap:8px">
-        <div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap;overflow:hidden;min-width:0">
-          <span class="horse-name" style="margin-bottom:0;white-space:nowrap">${h.nombre}</span>
-          ${inactive?'<span class="badge-inactive">inactivo</span>':''}
+        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;overflow:hidden;min-width:0">
+          <span style="display:flex;align-items:center;gap:5px;white-space:nowrap"><span class="horse-name" style="margin-bottom:0;white-space:nowrap">${h.nombre}</span>${inactive?'<span class="badge-inactive">inactivo</span>':''}</span>
           ${h.estado?`<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:${({'Potrillo/Potranca':'#f0e4c8','Manso de montura':'#fdf0dc','Topeando':'#fde8d0','Corriendo en la casa':'#e0f0e8','Corriendo':'#d8ecdc','Reproducción':'#e2ecf8'})[h.estado]||'#eee'};color:${({'Potrillo/Potranca':'#8a6d2f','Manso de montura':'#a06820','Topeando':'#b05e18','Corriendo en la casa':'#2a7a50','Corriendo':'#1a7a4a','Reproducción':'#2b5fa6'})[h.estado]||'#666'};border-radius:9px;padding:1px 6px;font-size:8.5px;font-weight:700;display:inline-block">${h.estado}</span>`:''}
         </div>
         <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
