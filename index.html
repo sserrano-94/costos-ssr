@@ -3240,7 +3240,7 @@ function renderEntrenamiento(){
         const c=ETAPA_COLORS[ent.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
         inner=`<div style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15">
           <div style="font-size:9.5px;font-weight:700;color:${c.text}">${ent.etapa}</div>
-          ${ent.jinete?`<div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.jinete}</div>`:''}
+          <div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:9px">${ent.jinete||'&nbsp;'}</div>
         </div>`;
       }else{
         inner=canEdit?'<div style="color:#d8cbb0;font-size:12px">+</div>':'<div style="color:#eee;font-size:10px">—</div>';
