@@ -3232,21 +3232,21 @@ function renderEntrenamiento(){
   for(let m=1;m<=12;m++){html+=`<th style="padding:6px 4px;font-size:10px;color:var(--wood);border-bottom:2px solid var(--gold);text-align:center;font-weight:700;text-transform:uppercase">${MES[m-1]}</th>`;}
   html+='</tr>';
   horses.forEach(h=>{
-    html+=`<tr><td title="${h}" style="position:sticky;left:0;background:var(--cream);padding:5px 6px;font-size:10px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:78px">${h}</td>`;
+    html+=`<tr><td title="${h}" style="position:sticky;left:0;background:var(--cream);padding:2px 6px;font-size:10px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:78px;height:30px">${h}</td>`;
     for(let m=1;m<=12;m++){
       const ent=getEnt(h,entYear,m);
       let inner;
       if(ent&&ent.etapa){
         const c=ETAPA_COLORS[ent.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
-        inner=`<div style="background:${c.bg};border:1px solid ${c.border};border-radius:5px;padding:2px 4px">
-          <div style="font-size:10px;font-weight:700;color:${c.text}">${ent.etapa}</div>
-          ${ent.jinete?`<div style="font-size:8.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><i class="ti ti-user" style="font-size:8px"></i> ${ent.jinete}</div>`:''}
+        inner=`<div style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15">
+          <div style="font-size:9.5px;font-weight:700;color:${c.text}">${ent.etapa}</div>
+          ${ent.jinete?`<div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.jinete}</div>`:''}
         </div>`;
       }else{
         inner=canEdit?'<div style="color:#d8cbb0;font-size:12px">+</div>':'<div style="color:#eee;font-size:10px">—</div>';
       }
       const click=canEdit?`onclick="editEntCell('${h.replace(/'/g,"\\'")}',${m})" style="cursor:pointer"`:'';
-      html+=`<td ${click} class="ent-cell" data-h="${h}" data-m="${m}" style="border-bottom:1px solid var(--border);border-left:1px solid #f0e8d8;padding:3px;text-align:center;vertical-align:middle;min-width:92px;${canEdit?'cursor:pointer':''}">${inner}</td>`;
+      html+=`<td ${click} class="ent-cell" data-h="${h}" data-m="${m}" style="border-bottom:1px solid var(--border);border-left:1px solid #f0e8d8;padding:1px 2px;text-align:center;vertical-align:middle;min-width:92px;${canEdit?'cursor:pointer':''}">${inner}</td>`;
     }
     html+='</tr>';
   });
