@@ -203,8 +203,8 @@ select:focus,input:focus{border-color:var(--accent)}
 #toast.ok{background:var(--green);color:#fff}#toast.err{background:var(--red);color:#fff}
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.horses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;margin-bottom:16px}
-.horse-card-full{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:6px;box-shadow:var(--shadow);min-height:120px;position:relative}
+.horses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:5px;margin-bottom:16px;align-items:start}
+.horse-card-full{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 9px;display:flex;align-items:flex-start;justify-content:space-between;gap:4px;box-shadow:var(--shadow);min-height:34px;position:relative}
 .horse-card-full.inactive{opacity:.5}
 .horse-name{font-size:11px;font-weight:600;margin-bottom:1px}
 .horse-meta{font-size:10px;color:var(--text-soft);display:flex;flex-direction:column;gap:1px}
@@ -234,7 +234,8 @@ select:focus,input:focus{border-color:var(--accent)}
   .horse-list-age{font-size:8px}
   .card{padding:12px}
   .form-grid{grid-template-columns:1fr 1fr}
-  .horses-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+  .horses-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .ent-table{table-layout:auto!important;min-width:1100px}
   .apero-filtros-wrap{display:none!important}
   #apero-filter-select{display:block!important}
   #horse-list>div:first-child{grid-template-columns:1fr 1fr 1fr!important;gap:6px!important}
@@ -3266,8 +3267,8 @@ function renderEntrenamiento(){
   const horses=[...sortedActive()].sort((a,b)=>a.localeCompare(b,'es'));
   if(!horses.length){wrap.innerHTML='<div style="color:var(--text-soft);font-size:12px;padding:20px;text-align:center">No hay caballos activos</div>';return;}
   const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  let html='<table style="border-collapse:collapse;width:100%;min-width:'+(80+12*100)+'px">';
-  html+='<tr><th style="position:sticky;left:0;background:var(--cream);text-align:left;padding:6px 8px;font-size:10px;color:var(--text-soft);text-transform:uppercase;border-bottom:2px solid var(--gold);z-index:1">Caballo</th>';
+  let html='<table class="ent-table" style="border-collapse:collapse;width:100%;table-layout:fixed">';
+  html+='<tr><th style="position:sticky;left:0;background:var(--cream);text-align:left;padding:6px 6px;font-size:10px;color:var(--text-soft);text-transform:uppercase;border-bottom:2px solid var(--gold);z-index:1;width:85px">Caballo</th>';
   for(let m=1;m<=12;m++){html+=`<th style="padding:6px 4px;font-size:10px;color:var(--wood);border-bottom:2px solid var(--gold);text-align:center;font-weight:700;text-transform:uppercase">${MES[m-1]}</th>`;}
   html+='</tr>';
   horses.forEach(h=>{
@@ -3277,7 +3278,7 @@ function renderEntrenamiento(){
       let inner;
       if(ent&&ent.etapa){
         const c=ETAPA_COLORS[ent.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
-        inner=`<div title="${ent.etapa}${ent.jinete?' — '+ent.jinete.replace(/"/g,'&quot;'):''}${ent.comentario?' · '+ent.comentario.replace(/"/g,'&quot;'):''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:84px;height:22px;box-sizing:border-box;margin:0 auto;overflow:hidden">
+        inner=`<div title="${ent.etapa}${ent.jinete?' — '+ent.jinete.replace(/"/g,'&quot;'):''}${ent.comentario?' · '+ent.comentario.replace(/"/g,'&quot;'):''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden">
           <div style="font-size:9.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.etapa}</div>
           <div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.jinete||'&nbsp;'}</div>
         </div>`;
@@ -3285,7 +3286,7 @@ function renderEntrenamiento(){
         inner=canEdit?'<div style="color:#d8cbb0;font-size:12px">+</div>':'<div style="color:#eee;font-size:10px">—</div>';
       }
       const click=canEdit?`onclick="editEntCell('${h.replace(/'/g,"\\'")}',${m})" style="cursor:pointer"`:'';
-      html+=`<td ${click} class="ent-cell" data-h="${h}" data-m="${m}" style="border-bottom:1px solid var(--border);border-left:1px solid #f0e8d8;padding:1px 2px;text-align:center;vertical-align:middle;width:92px;min-width:92px;max-width:92px;${canEdit?'cursor:pointer':''}">${inner}</td>`;
+      html+=`<td ${click} class="ent-cell" data-h="${h}" data-m="${m}" style="border-bottom:1px solid var(--border);border-left:1px solid #f0e8d8;padding:1px 2px;text-align:center;vertical-align:middle;overflow:hidden;${canEdit?'cursor:pointer':''}">${inner}</td>`;
     }
     html+='</tr>';
   });
