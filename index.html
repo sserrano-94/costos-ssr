@@ -3279,8 +3279,8 @@ function editEntCell(horse,month){
           </select>
         </div>
         <div style="margin-bottom:16px">
-          <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Jinete</label>
-          <input type="text" id="ent-jinete" list="ent-jinetes-list" value="${ent&&ent.jinete?ent.jinete.replace(/"/g,'&quot;'):''}" placeholder="Nombre del jinete" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+          <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Jinete o detalle</label>
+          <input type="text" id="ent-jinete" list="ent-jinetes-list" value="${ent&&ent.jinete?ent.jinete.replace(/"/g,'&quot;'):''}" placeholder="Ej: Juan Pozo, o un detalle" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
           <datalist id="ent-jinetes-list">${jinetes.map(j=>`<option value="${j.replace(/"/g,'&quot;')}">`).join('')}</datalist>
         </div>
         <div style="display:flex;gap:8px">
