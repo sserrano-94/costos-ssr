@@ -1129,6 +1129,7 @@ async function loadAll(){
     if(lbl)lbl.textContent='Conectado';
   }catch(e){if(dot)dot.className='conn-dot err';if(lbl)lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
   try{await loadEvents();}catch(e){}
+  try{await loadEntrenamiento();}catch(e){}
   renderResumen();renderExpBlocks();
   
 }
@@ -1255,7 +1256,11 @@ function renderResumen(){
       </div>`;
     }
   }catch(e){}
-  document.getElementById('horse-list').innerHTML=remindHTML+dashHTML+horses.map(nombre=>{
+  document.getElementById('horse-list').innerHTML=remindHTML+dashHTML+[...horses].sort((a,b)=>{
+    const fa=allHorses.find(h=>h.nombre===a)?.favorito?0:1;
+    const fb=allHorses.find(h=>h.nombre===b)?.favorito?0:1;
+    return fa-fb;
+  }).map(nombre=>{
     const info=allHorses.find(h=>h.nombre===nombre);
     const edad=info?calcAge(info.fecha_nacimiento):'—';
     const geo=GEO[nombre]||{};
@@ -1297,21 +1302,56 @@ function renderResumen(){
     <div class="horse-list-item" style="flex:1">
       <div class="horse-list-header" onclick="tog(null,'det-${sid}','arr-${sid}')">
         <div><div class="horse-list-name">${nombre}</div><div class="horse-list-age">${edad}</div></div>
-        <div style="display:flex;align-items:center;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px">
+          ${info?(canEdit?`<span onclick="event.stopPropagation();toggleFavorito(${info.id})" title="${info.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:14px;color:${info.favorito?'#d4a017':'#d8d0c0'}">${info.favorito?'★':'☆'}</span>`:(info.favorito?'<span style="font-size:14px;color:#d4a017">★</span>':'')):''}
           <span class="horse-list-arrow" id="arr-${sid}">▼</span>
         </div>
       </div>
       <div class="horse-detail" id="det-${sid}">
-        <div class="horse-imgs">
-          ${mainImg}
-          ${extras?`<div class="extra-imgs">${extras}</div>`:''}
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;justify-content:center">
+          ${(()=>{
+            const g=(info&&info.genealogia)||{};
+            const pv=padre!=='—'?padre:'';const mv=madre!=='—'?madre:'';
+            const anyGen=pv||mv||Object.values(g).some(v=>v);
+            if(!anyGen)return '';
+            const box=(v,main)=>`<div style="height:100%;display:flex;align-items:center;padding:0 6px;border-radius:4px;font-size:${main?'9.5':'8.5'}px;font-weight:${main?'700':'600'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${v?(main?'background:var(--wood);color:var(--cream);border:1px solid var(--wood-dark)':'background:var(--cream);color:var(--ink);border:1px solid var(--gold)'):'border:1px dashed #e0d5bd;color:#d0c5aa'}" title="${v||''}">${v||'—'}</div>`;
+            return `<div style="flex:0 0 auto">
+              <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px"><i class="ti ti-binary-tree-2" style="font-size:10px;vertical-align:-2px"></i> Genealogía</div>
+              <div style="display:grid;grid-template-columns:92px 92px 92px;grid-template-rows:repeat(8,20px);gap:2px">
+                <div style="grid-column:1;grid-row:2">${box(pv,1)}</div>
+                <div style="grid-column:1;grid-row:7">${box(mv,1)}</div>
+                <div style="grid-column:2;grid-row:1">${box(g.abpp)}</div>
+                <div style="grid-column:2;grid-row:3">${box(g.abpm)}</div>
+                <div style="grid-column:2;grid-row:6">${box(g.abmp)}</div>
+                <div style="grid-column:2;grid-row:8">${box(g.abmm)}</div>
+                <div style="grid-column:3;grid-row:1">${box(g.bppp)}</div>
+                <div style="grid-column:3;grid-row:2">${box(g.bppm)}</div>
+                <div style="grid-column:3;grid-row:3">${box(g.bpmp)}</div>
+                <div style="grid-column:3;grid-row:4">${box(g.bpmm)}</div>
+                <div style="grid-column:3;grid-row:5">${box(g.bmpp)}</div>
+                <div style="grid-column:3;grid-row:6">${box(g.bmpm)}</div>
+                <div style="grid-column:3;grid-row:7">${box(g.bmmp)}</div>
+                <div style="grid-column:3;grid-row:8">${box(g.bmmm)}</div>
+              </div>
+            </div>`;
+          })()}
+          <div class="horse-imgs" style="flex:1;min-width:200px">
+            ${mainImg}
+            ${extras?`<div class="extra-imgs">${extras}</div>`:''}
+          </div>
         </div>
         <div class="horse-detail-info">
-          ${info&&info.estado?`<div class="horse-detail-row" style="grid-column:1/-1">Estado: <span style="color:var(--accent)">${info.estado}</span></div>`:''}
+          ${info&&info.estado?`<div class="horse-detail-row">Estado: <span style="color:var(--accent)">${info.estado}</span></div>`:''}
+          ${(()=>{
+            const now=new Date();
+            const ent=(typeof allEntrenamientos!=='undefined')?allEntrenamientos.find(e=>e.horse===nombre&&e.year===now.getFullYear()&&e.month===(now.getMonth()+1)):null;
+            if(!ent||!ent.etapa)return '';
+            const c=ETAPA_COLORS[ent.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
+            return `<div class="horse-detail-row">Entrenamiento: <span style="background:${c.bg};color:${c.text};border:1px solid ${c.border};border-radius:9px;padding:1px 8px;font-size:10px;font-weight:700">${ent.etapa}</span>${ent.jinete?` <span style="color:var(--text-soft);font-size:10px">(${ent.jinete})</span>`:''}</div>`;
+          })()}
           <div class="horse-detail-row">Número: <span>${numero}</span></div>
           <div class="horse-detail-row">Nacimiento: <span>${dob}</span></div>
-          <div class="horse-detail-row">Padre: <span>${padre}</span></div>
-          <div class="horse-detail-row">Madre: <span>${madre}</span></div>
+          <div class="horse-detail-row">Alzada: <span>${(info&&info.alzada)||'—'}</span></div>
         </div>
       </div>
     </div>
@@ -1875,6 +1915,7 @@ async function toggleFavorito(id){
     await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({favorito:nv}),headers:{'Prefer':'return=minimal'}});
     h.favorito=nv;
     renderCaballos();
+    renderResumen();
   }catch(e){toast('Error al guardar favorito','err');}
 }
 
