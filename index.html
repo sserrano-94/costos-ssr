@@ -207,6 +207,7 @@ select:focus,input:focus{border-color:var(--accent)}
 .horse-card-full{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 7px;display:flex;align-items:flex-start;justify-content:space-between;gap:3px;box-shadow:var(--shadow);min-height:26px;position:relative}
 .horse-card-full.inactive{opacity:.5}
 .horse-name{font-size:9.5px;font-weight:600;margin-bottom:1px}
+.horses-table td{text-transform:uppercase}
 .horse-meta{font-size:10px;color:var(--text-soft);display:flex;flex-direction:column;gap:1px}
 .horse-total{font-size:11px;font-weight:600;color:var(--accent);text-align:right}
 .horse-cnt{font-size:11px;color:var(--text-soft);text-align:right;margin-top:2px}
@@ -350,6 +351,7 @@ select:focus,input:focus{border-color:var(--accent)}
         <option value="estado">Estado</option>
         <option value="edad-asc">Edad</option>
         <option value="alzada">Alzada</option>
+        <option value="criadero">Criadero</option>
       </select>
     </div>
     <div class="horses-grid" id="horses-grid"></div>
@@ -374,10 +376,21 @@ select:focus,input:focus{border-color:var(--accent)}
     <div id="cab-sub-entrenamiento" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
         <div style="font-size:12px;color:var(--text-soft)">Etapa y jinete por caballo y mes</div>
-        <div style="display:flex;align-items:center;gap:6px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:10px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Ordenar por</span>
+            <select id="ent-sort" onchange="renderEntrenamiento()" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+              <option value="estado">Estado</option>
+              <option value="edad-asc">Edad</option>
+              <option value="alzada">Alzada</option>
+              <option value="criadero">Criadero</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
           <button onclick="entYear--;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
           <span id="ent-year-label" style="font-size:14px;font-weight:700;color:var(--ink);min-width:48px;text-align:center"></span>
           <button onclick="entYear++;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
+          </div>
         </div>
       </div>
       <div id="ent-summary" style="margin-bottom:10px"></div>
@@ -1916,6 +1929,7 @@ async function toggleFavorito(id){
     h.favorito=nv;
     renderCaballos();
     renderResumen();
+    if(typeof renderEntrenamiento==='function')renderEntrenamiento();
   }catch(e){toast('Error al guardar favorito','err');}
 }
 
@@ -1939,6 +1953,11 @@ function renderCaballos(){
     }
     if(sortBy==='alzada'){
       const d=parseAlz(b.alzada)-parseAlz(a.alzada);
+      if(d)return d;
+      return a.nombre.localeCompare(b.nombre,'es');
+    }
+    if(sortBy==='criadero'){
+      const d=(a.criadero||'zzz').localeCompare(b.criadero||'zzz','es');
       if(d)return d;
       return a.nombre.localeCompare(b.nombre,'es');
     }
@@ -3346,6 +3365,36 @@ function generarPDF(year,month){
 }
 
 
+
+function sortHorsesBy(sortBy){
+  const ESTADO_ORDER=['Potrillo/Potranca','Manso de montura','Topeando','Corriendo en la casa','Corriendo','Reproducción'];
+  const parseAlz=v=>{const n=parseFloat(String(v||'').replace(',','.'));return isNaN(n)?-1:n;};
+  return allHorses.filter(h=>h.activo!==false).sort((a,b)=>{
+    const fA=a.favorito?0:1,fB=b.favorito?0:1;
+    if(fA!==fB)return fA-fB;
+    if(sortBy==='estado'){
+      const ia=ESTADO_ORDER.indexOf(a.estado||''),ib=ESTADO_ORDER.indexOf(b.estado||'');
+      const va=ia===-1?99:ia,vb=ib===-1?99:ib;
+      if(va!==vb)return va-vb;
+      return a.nombre.localeCompare(b.nombre,'es');
+    }
+    if(sortBy==='alzada'){
+      const d=parseAlz(b.alzada)-parseAlz(a.alzada);
+      if(d)return d;
+      return a.nombre.localeCompare(b.nombre,'es');
+    }
+    if(sortBy==='criadero'){
+      const ca=(a.criadero||'zzz'),cb=(b.criadero||'zzz');
+      const d=ca.localeCompare(cb,'es');
+      if(d)return d;
+      return a.nombre.localeCompare(b.nombre,'es');
+    }
+    const da=a.fecha_nacimiento?new Date(a.fecha_nacimiento):new Date();
+    const db=b.fecha_nacimiento?new Date(b.fecha_nacimiento):new Date();
+    return db-da;
+  });
+}
+
 function showCabSub(sub){
   document.getElementById('cab-sub-caballos').style.display=sub==='caballos'?'block':'none';
   document.getElementById('cab-sub-entrenamiento').style.display=sub==='entrenamiento'?'block':'none';
@@ -3414,7 +3463,8 @@ function renderEntrenamiento(){
   }
   const wrap=document.getElementById('ent-table-wrap');
   if(!wrap)return;
-  const horses=[...sortedActive()].sort((a,b)=>a.localeCompare(b,'es'));
+  const horseObjs=sortHorsesBy(document.getElementById('ent-sort')?.value||'estado');
+  const horses=horseObjs.map(h=>h.nombre);
   if(!horses.length){wrap.innerHTML='<div style="color:var(--text-soft);font-size:12px;padding:20px;text-align:center">No hay caballos activos</div>';return;}
   const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   let html='<table class="ent-table" style="border-collapse:collapse;width:100%;table-layout:fixed">';
@@ -3422,7 +3472,9 @@ function renderEntrenamiento(){
   for(let m=1;m<=12;m++){html+=`<th style="padding:6px 4px;font-size:10px;color:var(--wood);border-bottom:2px solid var(--gold);text-align:center;font-weight:700;text-transform:uppercase">${MES[m-1]}</th>`;}
   html+='</tr>';
   horses.forEach(h=>{
-    html+=`<tr><td title="${h}" style="position:sticky;left:0;background:var(--cream);padding:2px 6px;font-size:10px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:78px;height:30px">${h}</td>`;
+    const hObj=horseObjs.find(x=>x.nombre===h);
+    const star=hObj?(canEdit?`<span onclick="toggleFavorito(${hObj.id})" title="${hObj.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:11px;color:${hObj.favorito?'#d4a017':'#d8d0c0'};margin-right:2px">${hObj.favorito?'★':'☆'}</span>`:(hObj.favorito?'<span style="font-size:11px;color:#d4a017;margin-right:2px">★</span>':'')):'';
+    html+=`<tr><td title="${h}" style="position:sticky;left:0;background:var(--cream);padding:2px 6px;font-size:10px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92px;height:30px">${star}${h}</td>`;
     for(let m=1;m<=12;m++){
       const ent=getEnt(h,entYear,m);
       let inner;
