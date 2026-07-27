@@ -1854,6 +1854,7 @@ async function deactivateHorse(nombre,sid){
 
 
 let expandedHorses=new Set();
+let editingHorses=new Set();
 function toggleHorseCard(id){
   const b=document.getElementById('hc-body-row-'+id);
   if(!b)return;
@@ -1920,14 +1921,16 @@ function renderCaballos(){
     const reactivateBtn=isAdmin&&inactive?`<button style="margin-bottom:6px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer" onclick="reactivateHorse('${h.nombre.replace(/'/g,"\\'")}',${h.id})">Reactivar</button>`:'';
     const td='padding:5px 8px;font-size:10.5px;color:var(--text);border-bottom:1px solid var(--border);white-space:nowrap';
     const isOpen=expandedHorses.has(h.id);
-    return `<tr class="ht-row" style="${inactive?'opacity:.5;':''}">
+    const isEdit=editingHorses.has(h.id);
+    const inp='height:24px;font-size:10px;padding:0 5px;border:1px solid var(--gold);border-radius:4px;box-sizing:border-box;background:#fff;outline:none';
+    return `<tr class="ht-row" style="${inactive?'opacity:.5;':''}${isEdit?'background:#fdfaf3;':''}">
       <td style="${td};width:24px">${canEdit?`<span onclick="toggleFavorito(${h.id})" title="${h.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:13px;color:${h.favorito?'#d4a017':'#d8d0c0'}">${h.favorito?'★':'☆'}</span>`:(h.favorito?'<span style="font-size:13px;color:#d4a017">★</span>':'')}</td>
-      <td style="${td};font-weight:700">${h.nombre}${inactive?' <span class="badge-inactive">inactivo</span>':''}</td>
-      <td style="${td}">${h.estado?`<span style="background:${EB[h.estado]||'#eee'};color:${ET[h.estado]||'#666'};border-radius:9px;padding:1px 7px;font-size:8.5px;font-weight:700;white-space:nowrap">${h.estado}</span>`:'—'}</td>
-      <td style="${td}">${numero}</td>
-      <td style="${td}">${dob}</td>
+      <td style="${td};font-weight:700">${isEdit?`<input id="eh-nombre-${h.id}" type="text" value="${h.nombre}" style="${inp};width:110px;font-weight:700">`:`${h.nombre}${inactive?' <span class="badge-inactive">inactivo</span>':''}`}</td>
+      <td style="${td}">${isEdit?`<select id="eh-estado-${h.id}" style="${inp};width:130px"><option value="">— Sin estado —</option>${ESTADO_ORDER.map(e=>`<option value="${e}" ${(h.estado||'')===e?'selected':''}>${e}</option>`).join('')}</select>`:(h.estado?`<span style="background:${EB[h.estado]||'#eee'};color:${ET[h.estado]||'#666'};border-radius:9px;padding:1px 7px;font-size:8.5px;font-weight:700;white-space:nowrap">${h.estado}</span>`:'—')}</td>
+      <td style="${td}">${isEdit?`<input id="eh-numero-${h.id}" type="text" value="${h.numero||''}" style="${inp};width:70px">`:numero}</td>
+      <td style="${td}">${isEdit?`<input id="eh-dob-${h.id}" type="date" value="${h.fecha_nacimiento||''}" style="${inp};width:115px">`:dob}</td>
       <td style="${td}">${edad}</td>
-      <td style="${td}">${h.alzada||'—'}</td>
+      <td style="${td}">${isEdit?`<input id="eh-alzada-${h.id}" type="text" value="${h.alzada||''}" placeholder="1.42" style="${inp};width:52px">`:(h.alzada||'—')}</td>
       <td style="${td}">${padre||'—'}</td>
       <td style="${td}">${madre||'—'}</td>
       ${isAdmin?`<td style="${td};width:26px;text-align:center"><span onclick="toggleEditHorse(${h.id})" style="cursor:pointer;color:#bbb" title="Editar"><i class="ti ti-pencil" style="font-size:13px;vertical-align:-2px"></i></span></td>`:''}
@@ -1935,25 +1938,35 @@ function renderCaballos(){
     <tr id="hc-body-row-${h.id}" style="display:${isOpen?'table-row':'none'}">
       <td colspan="${cols}" style="background:#fdfaf3;border-bottom:1px solid var(--border);padding:10px 12px">
         ${reactivateBtn}
-        <div id="edit-horse-${h.id}">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-            <div><label style="font-size:9px;color:var(--text-soft)">Nombre</label><input id="eh-nombre-${h.id}" type="text" value="${h.nombre}" style="width:100%;height:26px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box"></div>
-            <div><label style="font-size:9px;color:var(--text-soft)">Número</label><input id="eh-numero-${h.id}" type="text" value="${h.numero||''}" style="width:100%;height:26px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box"></div>
-            <div><label style="font-size:9px;color:var(--text-soft)">Nacimiento</label><input id="eh-dob-${h.id}" type="date" value="${h.fecha_nacimiento||''}" style="width:100%;height:26px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box"></div>
-            <div><label style="font-size:9px;color:var(--text-soft)">Alzada</label><input id="eh-alzada-${h.id}" type="text" value="${h.alzada||''}" placeholder="Ej: 1.42" style="width:100%;height:26px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box"></div>
-            <div><label style="font-size:9px;color:var(--text-soft)">Padre</label><input id="eh-padre-${h.id}" type="text" value="${padre}" style="width:100%;height:26px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box"></div>
-            <div><label style="font-size:9px;color:var(--text-soft)">Madre</label><input id="eh-madre-${h.id}" type="text" value="${madre}" style="width:100%;height:26px;font-size:10px;padding:0 6px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box"></div>
-            <div><label style="font-size:9px;color:var(--text-soft)">Estado</label>
-              <select id="eh-estado-${h.id}" style="width:100%;height:26px;font-size:10px;padding:0 4px;border:1px solid var(--border);border-radius:4px;box-sizing:border-box">
-                <option value="">— Sin estado —</option>
-                ${ESTADO_ORDER.map(e=>`<option value="${e}" ${(h.estado||'')===e?'selected':''}>${e}</option>`).join('')}
-              </select>
+        ${isEdit?`<div id="edit-horse-${h.id}">
+          ${(()=>{const g=h.genealogia||{};const gi=(gid,ph,val,style)=>`<input id="${gid}-${h.id}" type="text" value="${(val||'').replace(/"/g,'&quot;')}" placeholder="${ph}" style="width:100%;height:100%;font-size:8.5px;padding:0 4px;border:1px solid var(--gold);border-radius:3px;box-sizing:border-box;background:#fff;outline:none;${style||''}" title="${ph}">`;
+          return `<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+            <div style="flex:0 0 auto">
+              <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;margin-bottom:4px"><i class="ti ti-binary-tree-2" style="font-size:10px;vertical-align:-2px"></i> Árbol genealógico</div>
+              <div style="display:grid;grid-template-columns:95px 95px 95px;grid-template-rows:repeat(8,20px);gap:2px">
+                <div style="grid-column:1;grid-row:2">${gi('eh-gp','Padre',h.padre||(GEO[h.nombre]||{}).padre,'font-weight:700;border-width:1.5px')}</div>
+                <div style="grid-column:1;grid-row:7">${gi('eh-gm','Madre',h.madre||(GEO[h.nombre]||{}).madre,'font-weight:700;border-width:1.5px')}</div>
+                <div style="grid-column:2;grid-row:1">${gi('eh-abpp','Abuelo paterno',g.abpp)}</div>
+                <div style="grid-column:2;grid-row:3">${gi('eh-abpm','Abuela paterna',g.abpm)}</div>
+                <div style="grid-column:2;grid-row:6">${gi('eh-abmp','Abuelo materno',g.abmp)}</div>
+                <div style="grid-column:2;grid-row:8">${gi('eh-abmm','Abuela materna',g.abmm)}</div>
+                <div style="grid-column:3;grid-row:1">${gi('eh-bppp','Bisabuelo',g.bppp)}</div>
+                <div style="grid-column:3;grid-row:2">${gi('eh-bppm','Bisabuela',g.bppm)}</div>
+                <div style="grid-column:3;grid-row:3">${gi('eh-bpmp','Bisabuelo',g.bpmp)}</div>
+                <div style="grid-column:3;grid-row:4">${gi('eh-bpmm','Bisabuela',g.bpmm)}</div>
+                <div style="grid-column:3;grid-row:5">${gi('eh-bmpp','Bisabuelo',g.bmpp)}</div>
+                <div style="grid-column:3;grid-row:6">${gi('eh-bmpm','Bisabuela',g.bmpm)}</div>
+                <div style="grid-column:3;grid-row:7">${gi('eh-bmmp','Bisabuelo',g.bmmp)}</div>
+                <div style="grid-column:3;grid-row:8">${gi('eh-bmmm','Bisabuela',g.bmmm)}</div>
+              </div>
             </div>
-            <div style="grid-column:span 2"><label style="font-size:9px;color:var(--text-soft)"><i class="ti ti-camera" style="font-size:10px;vertical-align:-2px"></i> Agregar foto</label><br>
-              <label style="display:inline-block;margin-top:2px;height:24px;padding:0 10px;font-size:10px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;line-height:24px">Seleccionar foto<input type="file" id="eh-photo-${h.id}" accept="image/*" style="display:none"></label>
-              <span id="eh-photo-name-${h.id}" style="font-size:9px;color:var(--text-soft);margin-left:6px"></span>
+            <div style="width:190px">
+              <div><label style="font-size:8.5px;color:var(--text-soft)"><i class="ti ti-camera" style="font-size:9px;vertical-align:-1px"></i> Agregar foto</label><br>
+                <label style="display:inline-block;margin-top:2px;height:21px;padding:0 8px;font-size:9px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;line-height:21px">Seleccionar foto<input type="file" id="eh-photo-${h.id}" accept="image/*" style="display:none"></label>
+                <span id="eh-photo-name-${h.id}" style="font-size:8.5px;color:var(--text-soft);margin-left:4px"></span>
+              </div>
             </div>
-          </div>
+          </div>`;})()}
           <div style="display:flex;gap:6px;margin-top:8px;max-width:380px">
             <button onclick="saveEditHorse(${h.id})" style="flex:1;height:28px;font-size:11px;font-weight:600;border-radius:5px;border:none;background:var(--accent);color:#fff;cursor:pointer">Guardar</button>
             <button onclick="toggleEditHorse(${h.id})" style="flex:1;height:28px;font-size:11px;border-radius:5px;border:1px solid var(--border);background:#fff;cursor:pointer">Cancelar</button>
@@ -1962,7 +1975,7 @@ function renderCaballos(){
             ${!inactive?`<span onclick="deactivateHorseFromEdit('${h.nombre.replace(/'/g,"\\'")}',${h.id})" style="font-size:10px;color:var(--text-soft);cursor:pointer;text-decoration:underline">Desactivar</span>`:''}
             <span onclick="deleteHorsePermanently('${h.nombre.replace(/'/g,"\\'")}',${h.id})" style="font-size:10px;color:var(--red);cursor:pointer;text-decoration:underline">Eliminar definitivamente</span>
           </div>
-        </div>
+        </div>`:''}
       </td>
     </tr>`;
   }).join('');
@@ -2203,7 +2216,9 @@ async function deleteHorsePermanently(nombre,id){
 }
 
 function toggleEditHorse(id){
-  toggleHorseCard(id);
+  if(editingHorses.has(id)){editingHorses.delete(id);expandedHorses.delete(id);}
+  else{editingHorses.add(id);expandedHorses.add(id);}
+  renderCaballos();
   const photoInput=document.getElementById('eh-photo-'+id);
   if(photoInput&&!photoInput.dataset.bound){
     photoInput.dataset.bound='1';
@@ -2218,15 +2233,17 @@ async function saveEditHorse(id){
   const nombre=document.getElementById('eh-nombre-'+id).value.trim().toUpperCase();
   const numero=document.getElementById('eh-numero-'+id).value.trim();
   const dob=document.getElementById('eh-dob-'+id).value;
-  const padre=document.getElementById('eh-padre-'+id).value.trim();
-  const madre=document.getElementById('eh-madre-'+id).value.trim();
+  const gv=k=>{const el=document.getElementById('eh-'+k+'-'+id);return el?el.value.trim().toUpperCase():'';};
+  const padre=gv('gp');
+  const madre=gv('gm');
+  const genealogia={abpp:gv('abpp'),abpm:gv('abpm'),abmp:gv('abmp'),abmm:gv('abmm'),bppp:gv('bppp'),bppm:gv('bppm'),bpmp:gv('bpmp'),bpmm:gv('bpmm'),bmpp:gv('bmpp'),bmpm:gv('bmpm'),bmmp:gv('bmmp'),bmmm:gv('bmmm')};
   const alzada=document.getElementById('eh-alzada-'+id)?.value.trim()||null;
   if(!nombre){toast('Ingresa el nombre','err');return;}
   try{
     const estado=document.getElementById('eh-estado-'+id)?.value||'';
-    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,padre,madre,estado,alzada})});
+    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,padre,madre,estado,alzada,genealogia})});
     const h=allHorses.find(h=>h.id===id);
-    const estado2=document.getElementById('eh-estado-'+id)?.value||'';if(h){h.nombre=nombre;h.numero=numero;h.fecha_nacimiento=dob||null;h.padre=padre;h.madre=madre;h.estado=estado2;h.alzada=alzada;}
+    const estado2=document.getElementById('eh-estado-'+id)?.value||'';if(h){h.nombre=nombre;h.numero=numero;h.fecha_nacimiento=dob||null;h.padre=padre;h.madre=madre;h.estado=estado2;h.alzada=alzada;h.genealogia=genealogia;}
     // Upload photo if selected
     const photoInput=document.getElementById('eh-photo-'+id);
     if(photoInput&&photoInput.files&&photoInput.files[0]){
@@ -2247,6 +2264,7 @@ async function saveEditHorse(id){
         extraPhotos[nombre].push(publicUrl);
       }
     }
+    editingHorses.delete(id);expandedHorses.delete(id);
     renderCaballos();
     renderResumen();
     toast('✓ Caballo actualizado');
