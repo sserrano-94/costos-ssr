@@ -1341,17 +1341,16 @@ function renderResumen(){
           </div>
         </div>
         <div class="horse-detail-info">
-          ${info&&info.estado?`<div class="horse-detail-row">Estado: <span style="color:var(--accent)">${info.estado}</span></div>`:''}
+          <div class="horse-detail-row">Número: <span>${numero}</span></div>
+          <div class="horse-detail-row">Nacimiento: <span>${dob}</span></div>
+          <div class="horse-detail-row">Alzada: <span>${(info&&info.alzada)||'—'}</span></div>
+          ${info&&info.estado?`<div class="horse-detail-row">Estado: <span>${info.estado}</span></div>`:''}
           ${(()=>{
             const now=new Date();
             const ent=(typeof allEntrenamientos!=='undefined')?allEntrenamientos.find(e=>e.horse===nombre&&e.year===now.getFullYear()&&e.month===(now.getMonth()+1)):null;
             if(!ent||!ent.etapa)return '';
-            const c=ETAPA_COLORS[ent.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
-            return `<div class="horse-detail-row">Entrenamiento: <span style="background:${c.bg};color:${c.text};border:1px solid ${c.border};border-radius:9px;padding:1px 8px;font-size:10px;font-weight:700">${ent.etapa}</span>${ent.jinete?` <span style="color:var(--text-soft);font-size:10px">(${ent.jinete})</span>`:''}</div>`;
+            return `<div class="horse-detail-row">Entrenamiento: <span>${ent.etapa}${ent.jinete?' ('+ent.jinete+')':''}</span></div>`;
           })()}
-          <div class="horse-detail-row">Número: <span>${numero}</span></div>
-          <div class="horse-detail-row">Nacimiento: <span>${dob}</span></div>
-          <div class="horse-detail-row">Alzada: <span>${(info&&info.alzada)||'—'}</span></div>
         </div>
       </div>
     </div>
@@ -1923,7 +1922,8 @@ function renderCaballos(){
   const sortBy=document.getElementById('horses-sort')?.value||'estado';
   const ESTADO_ORDER=['Potrillo/Potranca','Manso de montura','Topeando','Corriendo en la casa','Corriendo','Reproducción'];
   const parseAlz=v=>{const n=parseFloat(String(v||'').replace(',','.'));return isNaN(n)?-1:n;};
-  const all=[...allHorses].sort((a,b)=>{
+  const src=editingHorses.size?allHorses.filter(h=>editingHorses.has(h.id)):allHorses;
+  const all=[...src].sort((a,b)=>{
     // Favoritos siempre primero
     const fA=a.favorito?0:1,fB=b.favorito?0:1;
     if(fA!==fB)return fA-fB;
@@ -1947,10 +1947,10 @@ function renderCaballos(){
   });
   const EB={'Potrillo/Potranca':'#f0e4c8','Manso de montura':'#fdf0dc','Topeando':'#fde8d0','Corriendo en la casa':'#e0f0e8','Corriendo':'#d8ecdc','Reproducción':'#e2ecf8'};
   const ET={'Potrillo/Potranca':'#8a6d2f','Manso de montura':'#a06820','Topeando':'#b05e18','Corriendo en la casa':'#2a7a50','Corriendo':'#1a7a4a','Reproducción':'#2b5fa6'};
-  const cols=isAdmin?10:9;
+  const cols=isAdmin?11:10;
   const th=t=>`<th style="padding:6px 8px;font-size:9.5px;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--gold);text-align:left;white-space:nowrap">${t}</th>`;
   let html='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="horses-table" style="border-collapse:collapse;width:100%;min-width:680px">';
-  html+='<tr>'+th('')+th('Caballo')+th('Estado')+th('Número')+th('F. Nac.')+th('Edad')+th('Alzada')+th('Padre')+th('Madre')+(isAdmin?th(''):'')+'</tr>';
+  html+='<tr>'+th('')+th('Caballo')+th('Criadero')+th('Estado')+th('Número')+th('F. Nac.')+th('Edad')+th('Alzada')+th('Padre')+th('Madre')+(isAdmin?th(''):'')+'</tr>';
   html+=all.map(h=>{
     const edad=calcAge(h.fecha_nacimiento);
     const dob=h.fecha_nacimiento?new Date(h.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
@@ -1967,6 +1967,7 @@ function renderCaballos(){
     return `<tr class="ht-row" style="${inactive?'opacity:.5;':''}${isEdit?'background:#fdfaf3;':''}">
       <td style="${td};width:24px">${canEdit?`<span onclick="toggleFavorito(${h.id})" title="${h.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:13px;color:${h.favorito?'#d4a017':'#d8d0c0'}">${h.favorito?'★':'☆'}</span>`:(h.favorito?'<span style="font-size:13px;color:#d4a017">★</span>':'')}</td>
       <td style="${td};font-weight:700">${isEdit?`<input id="eh-nombre-${h.id}" type="text" value="${h.nombre}" style="${inp};width:110px;font-weight:700">`:`${h.nombre}${inactive?' <span class="badge-inactive">inactivo</span>':''}`}</td>
+      <td style="${td}">${isEdit?`<input id="eh-criadero-${h.id}" type="text" value="${(h.criadero||'').replace(/"/g,'&quot;')}" placeholder="Criadero" style="${inp};width:110px">`:(h.criadero||'—')}</td>
       <td style="${td}">${isEdit?`<select id="eh-estado-${h.id}" style="${inp};width:130px"><option value="">— Sin estado —</option>${ESTADO_ORDER.map(e=>`<option value="${e}" ${(h.estado||'')===e?'selected':''}>${e}</option>`).join('')}</select>`:(h.estado?`<span style="background:${EB[h.estado]||'#eee'};color:${ET[h.estado]||'#666'};border-radius:9px;padding:1px 7px;font-size:8.5px;font-weight:700;white-space:nowrap">${h.estado}</span>`:'—')}</td>
       <td style="${td}">${isEdit?`<input id="eh-numero-${h.id}" type="text" value="${h.numero||''}" style="${inp};width:70px">`:numero}</td>
       <td style="${td}">${isEdit?`<input id="eh-dob-${h.id}" type="date" value="${h.fecha_nacimiento||''}" style="${inp};width:115px">`:dob}</td>
@@ -2321,12 +2322,13 @@ async function saveEditHorse(id){
   const madre=gv('gm');
   const genealogia={abpp:gv('abpp'),abpm:gv('abpm'),abmp:gv('abmp'),abmm:gv('abmm'),bppp:gv('bppp'),bppm:gv('bppm'),bpmp:gv('bpmp'),bpmm:gv('bpmm'),bmpp:gv('bmpp'),bmpm:gv('bmpm'),bmmp:gv('bmmp'),bmmm:gv('bmmm')};
   const alzada=document.getElementById('eh-alzada-'+id)?.value.trim()||null;
+  const criadero=document.getElementById('eh-criadero-'+id)?.value.trim()||null;
   if(!nombre){toast('Ingresa el nombre','err');return;}
   try{
     const estado=document.getElementById('eh-estado-'+id)?.value||'';
-    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,padre,madre,estado,alzada,genealogia})});
+    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,padre,madre,estado,alzada,genealogia,criadero})});
     const h=allHorses.find(h=>h.id===id);
-    const estado2=document.getElementById('eh-estado-'+id)?.value||'';if(h){h.nombre=nombre;h.numero=numero;h.fecha_nacimiento=dob||null;h.padre=padre;h.madre=madre;h.estado=estado2;h.alzada=alzada;h.genealogia=genealogia;}
+    const estado2=document.getElementById('eh-estado-'+id)?.value||'';if(h){h.nombre=nombre;h.numero=numero;h.fecha_nacimiento=dob||null;h.padre=padre;h.madre=madre;h.estado=estado2;h.alzada=alzada;h.genealogia=genealogia;h.criadero=criadero;}
     // Upload photo if selected
     const photoInput=document.getElementById('eh-photo-'+id);
     if(photoInput&&photoInput.files&&photoInput.files[0]){
