@@ -2450,8 +2450,10 @@ async function resolverSeleccionados(){
 
 async function loadEvents(){
   try{
-    const uid2=currentUser?.id;const evFilter=uid2?`&user_id=eq.${uid2}`:'';allEvents = await sbFetch('eventos?select=*&order=fecha.asc&limit=500'+evFilter);
-  }catch(e){ allEvents=[]; }
+    const uid2=isSubuser&&parentUserId?parentUserId:currentUser?.id;
+    const evFilter=uid2?`&user_id=eq.${uid2}`:'';
+    allEvents = await sbFetch('eventos?select=*&order=fecha.asc&limit=1000'+evFilter);
+  }catch(e){ allEvents=[]; toast('Error al cargar eventos: '+e.message,'err'); }
 }
 
 function prevMonth(){
