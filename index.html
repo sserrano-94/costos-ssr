@@ -380,6 +380,7 @@ select:focus,input:focus{border-color:var(--accent)}
           <button onclick="entYear++;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
         </div>
       </div>
+      <div id="ent-summary" style="margin-bottom:10px"></div>
       <div id="ent-table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"></div>
       <div style="font-size:10px;color:var(--text-soft);margin-top:8px" id="ent-hint"></div>
     </div>
@@ -3385,6 +3386,30 @@ function getEnt(horse,year,month){
 function renderEntrenamiento(){
   const lbl=document.getElementById('ent-year-label');
   if(lbl)lbl.textContent=entYear;
+  // Resumen del mes actual: caballos por etapa y por jinete
+  const sum=document.getElementById('ent-summary');
+  if(sum){
+    const now=new Date();const cy=now.getFullYear(),cm=now.getMonth()+1;
+    const mesActual=allEntrenamientos.filter(e=>e.year===cy&&e.month===cm&&e.etapa);
+    const activos=new Set(sortedActive());
+    const cur=mesActual.filter(e=>activos.has(e.horse));
+    if(!cur.length){sum.innerHTML='';}
+    else{
+      const MESES_L=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      const porEtapa={};cur.forEach(e=>{porEtapa[e.etapa]=(porEtapa[e.etapa]||0)+1;});
+      const porJinete={};cur.forEach(e=>{if(e.jinete)porJinete[e.jinete]=(porJinete[e.jinete]||0)+1;});
+      const etapaChips=ETAPAS.filter(e=>porEtapa[e]).map(e=>{
+        const c=ETAPA_COLORS[e]||{bg:'#eee',text:'#666',border:'#bbb'};
+        return `<span style="display:inline-flex;align-items:center;gap:4px;background:${c.bg};border:1px solid ${c.border};color:${c.text};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:700">${e} <span style="background:${c.border};color:#fff;border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${porEtapa[e]}</span></span>`;
+      }).join(' ');
+      const jineteChips=Object.entries(porJinete).sort((a,b)=>b[1]-a[1]).map(([j,n])=>
+        `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--cream);border:1px solid var(--gold);color:var(--wood);border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-user" style="font-size:10px"></i> ${j} <span style="background:var(--wood);color:var(--cream);border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`
+      ).join(' ');
+      sum.innerHTML=`<div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">${MESES_L[cm-1]} ${cy}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:${jineteChips?'6px':'0'}">${etapaChips}</div>
+        ${jineteChips?`<div style="display:flex;gap:5px;flex-wrap:wrap">${jineteChips}</div>`:''}`;
+    }
+  }
   const wrap=document.getElementById('ent-table-wrap');
   if(!wrap)return;
   const horses=[...sortedActive()].sort((a,b)=>a.localeCompare(b,'es'));
