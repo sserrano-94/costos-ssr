@@ -1302,11 +1302,11 @@ function renderResumen(){
     return `<div style="display:flex;align-items:center;gap:4px">
     <div class="horse-list-item" style="flex:1">
       <div class="horse-list-header" onclick="tog(null,'det-${sid}','arr-${sid}')">
-        <div><div class="horse-list-name">${nombre}</div><div class="horse-list-age">${edad}</div></div>
         <div style="display:flex;align-items:center;gap:8px">
-          ${info?(canEdit?`<span onclick="event.stopPropagation();toggleFavorito(${info.id})" title="${info.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:14px;color:${info.favorito?'#d4a017':'#d8d0c0'}">${info.favorito?'★':'☆'}</span>`:(info.favorito?'<span style="font-size:14px;color:#d4a017">★</span>':'')):''}
-          <span class="horse-list-arrow" id="arr-${sid}">▼</span>
+          ${info?(canEdit?`<span onclick="event.stopPropagation();toggleFavorito(${info.id})" title="${info.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:15px;color:${info.favorito?'#d4a017':'#d8d0c0'};flex-shrink:0">${info.favorito?'★':'☆'}</span>`:(info.favorito?'<span style="font-size:15px;color:#d4a017;flex-shrink:0">★</span>':'')):''}
+          <div><div class="horse-list-name">${nombre}</div><div class="horse-list-age">${edad}</div></div>
         </div>
+        <span class="horse-list-arrow" id="arr-${sid}">▼</span>
       </div>
       <div class="horse-detail" id="det-${sid}">
         <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;justify-content:center">
