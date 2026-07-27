@@ -70,7 +70,7 @@ nav{background-color:var(--gold-warm);background-image:repeating-linear-gradient
 .nav-tab{padding:8px 18px;font-size:13px;font-weight:500;color:var(--ink);border:1.5px solid var(--wood-border);border-radius:20px;background:var(--gold-soft);cursor:pointer;white-space:nowrap;transition:all .15s}
 .nav-tab:hover{background:#d4b05a;color:var(--ink);border-color:#7a5020}
 .nav-tab.active{color:var(--ink);background:var(--cream);border-color:var(--wood-border);font-weight:700}
-main{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
+main{max-width:1400px;margin:0 auto;padding:20px 24px 60px}
 .section{display:none}.section.active{display:block}
 .section-header{margin-bottom:16px}
 .section-header h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:2px;color:var(--ink)}
@@ -203,7 +203,7 @@ select:focus,input:focus{border-color:var(--accent)}
 #toast.ok{background:var(--green);color:#fff}#toast.err{background:var(--red);color:#fff}
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.horses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:4px;margin-bottom:16px;align-items:start}
+.horses-grid{display:block;margin-bottom:16px}
 .horse-card-full{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 7px;display:flex;align-items:flex-start;justify-content:space-between;gap:3px;box-shadow:var(--shadow);min-height:26px;position:relative}
 .horse-card-full.inactive{opacity:.5}
 .horse-name{font-size:9.5px;font-weight:600;margin-bottom:1px}
@@ -234,7 +234,7 @@ select:focus,input:focus{border-color:var(--accent)}
   .horse-list-age{font-size:8px}
   .card{padding:12px}
   .form-grid{grid-template-columns:1fr 1fr}
-  .horses-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+
   .ent-table{table-layout:auto!important;min-width:1100px}
   .apero-filtros-wrap{display:none!important}
   #apero-filter-select{display:block!important}
