@@ -378,22 +378,21 @@ select:focus,input:focus{border-color:var(--accent)}
         <div style="font-size:12px;color:var(--text-soft)">Etapa y jinete por caballo y mes</div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:10px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Ordenar por</span>
-            <select id="ent-sort" onchange="renderEntrenamiento()" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
-              <option value="estado">Estado</option>
-              <option value="edad-asc">Edad</option>
-              <option value="alzada">Alzada</option>
-              <option value="criadero">Criadero</option>
-            </select>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px">
           <button onclick="entYear--;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
           <span id="ent-year-label" style="font-size:14px;font-weight:700;color:var(--ink);min-width:48px;text-align:center"></span>
           <button onclick="entYear++;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
-          </div>
         </div>
       </div>
       <div id="ent-summary" style="margin-bottom:10px"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Ordenar por</span>
+        <select id="ent-sort" onchange="renderEntrenamiento()" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+          <option value="estado">Estado</option>
+          <option value="edad-asc">Edad</option>
+          <option value="alzada">Alzada</option>
+          <option value="criadero">Criadero</option>
+        </select>
+      </div>
       <div id="ent-table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"></div>
       <div style="font-size:10px;color:var(--text-soft);margin-top:8px" id="ent-hint"></div>
     </div>
@@ -3456,9 +3455,11 @@ function renderEntrenamiento(){
       const jineteChips=Object.entries(porJinete).sort((a,b)=>b[1]-a[1]).map(([j,n])=>
         `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--cream);border:1px solid var(--gold);color:var(--wood);border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-user" style="font-size:10px"></i> ${j} <span style="background:var(--wood);color:var(--cream);border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`
       ).join(' ');
-      sum.innerHTML=`<div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">${MESES_L[cm-1]} ${cy}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:${jineteChips?'6px':'0'}">${etapaChips}</div>
-        ${jineteChips?`<div style="display:flex;gap:5px;flex-wrap:wrap">${jineteChips}</div>`:''}`;
+      sum.innerHTML=`<div style="border:1.5px solid var(--gold);background:var(--cream);border-radius:10px;padding:10px 12px">
+        <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${MESES_L[cm-1]} ${cy}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:${jineteChips?'7px':'0'}">${etapaChips}</div>
+        ${jineteChips?`<div style="display:flex;gap:5px;flex-wrap:wrap;padding-top:7px;border-top:1px dashed var(--gold)">${jineteChips}</div>`:''}
+      </div>`;
     }
   }
   const wrap=document.getElementById('ent-table-wrap');
@@ -3480,9 +3481,9 @@ function renderEntrenamiento(){
       let inner;
       if(ent&&ent.etapa){
         const c=ETAPA_COLORS[ent.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
-        inner=`<div title="${ent.etapa}${ent.jinete?' — '+ent.jinete.replace(/"/g,'&quot;'):''}${ent.comentario?' · '+ent.comentario.replace(/"/g,'&quot;'):''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden">
+        inner=`<div title="${ent.etapa}${ent.potrero?' ('+ent.potrero.replace(/"/g,'&quot;')+')':''}${ent.jinete?' — '+ent.jinete.replace(/"/g,'&quot;'):''}${ent.comentario?' · '+ent.comentario.replace(/"/g,'&quot;'):''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden">
           <div style="font-size:9.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.etapa}</div>
-          <div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.jinete||'&nbsp;'}</div>
+          <div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.jinete||ent.potrero||'&nbsp;'}</div>
         </div>`;
       }else{
         inner=canEdit?'<div style="color:#d8cbb0;font-size:12px">+</div>':'<div style="color:#eee;font-size:10px">—</div>';
@@ -3515,14 +3516,18 @@ function editEntCell(horse,month){
       <div style="padding:18px">
         <div style="margin-bottom:12px">
           <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Etapa</label>
-          <select id="ent-etapa" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+          <select id="ent-etapa" onchange="document.getElementById('ent-potrero-wrap').style.display=this.value==='Potrero'?'block':'none'" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
             <option value="">— Sin etapa —</option>
             ${ETAPAS.map(e=>`<option value="${e}" ${ent&&ent.etapa===e?'selected':''}>${e}</option>`).join('')}
           </select>
         </div>
+        <div id="ent-potrero-wrap" style="margin-bottom:12px;display:${ent&&ent.etapa==='Potrero'?'block':'none'}">
+          <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Nombre del potrero / campo</label>
+          <input type="text" id="ent-potrero" value="${ent&&ent.potrero?ent.potrero.replace(/"/g,'&quot;'):''}" placeholder="Ej: Potrero El Sauce" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+        </div>
         <div style="margin-bottom:12px">
           <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Jinete o detalle</label>
-          <input type="text" id="ent-jinete" list="ent-jinetes-list" value="${ent&&ent.jinete?ent.jinete.replace(/"/g,'&quot;'):''}" placeholder="Ej: Juan Pozo, o un detalle" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+          <input type="text" id="ent-jinete" list="ent-jinetes-list" value="${ent&&ent.jinete?ent.jinete.replace(/"/g,'&quot;'):''}" placeholder="Ej: Eduardo Tamayo" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
           <datalist id="ent-jinetes-list">${jinetes.map(j=>`<option value="${j.replace(/"/g,'&quot;')}">`).join('')}</datalist>
         </div>
         <div style="margin-bottom:16px">
@@ -3543,17 +3548,18 @@ async function saveEntCell(horse,month){
   const etapa=document.getElementById('ent-etapa').value||null;
   const jinete=document.getElementById('ent-jinete').value.trim()||null;
   const comentario=document.getElementById('ent-comentario').value.trim()||null;
+  const potrero=etapa==='Potrero'?(document.getElementById('ent-potrero')?.value.trim()||null):null;
   document.getElementById('ent-modal').remove();
   try{
     const ent=getEnt(horse,entYear,month);
     if(ent){
       if(!etapa&&!jinete&&!comentario){await deleteEntRecord(ent.id);}
       else{
-        await sbFetch('entrenamiento?id=eq.'+ent.id,{method:'PATCH',body:JSON.stringify({etapa,jinete,comentario}),headers:{'Prefer':'return=minimal'}});
-        ent.etapa=etapa;ent.jinete=jinete;ent.comentario=comentario;
+        await sbFetch('entrenamiento?id=eq.'+ent.id,{method:'PATCH',body:JSON.stringify({etapa,jinete,comentario,potrero}),headers:{'Prefer':'return=minimal'}});
+        ent.etapa=etapa;ent.jinete=jinete;ent.comentario=comentario;ent.potrero=potrero;
       }
     }else if(etapa||jinete||comentario){
-      const res=await sbFetch('entrenamiento',{method:'POST',body:JSON.stringify({horse,year:entYear,month,etapa,jinete,comentario,user_id:currentUser?.id}),headers:{'Prefer':'return=representation'}});
+      const res=await sbFetch('entrenamiento',{method:'POST',body:JSON.stringify({horse,year:entYear,month,etapa,jinete,comentario,potrero,user_id:currentUser?.id}),headers:{'Prefer':'return=representation'}});
       if(res&&res[0])allEntrenamientos.push(res[0]);
       else await loadEntrenamiento();
     }
