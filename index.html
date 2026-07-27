@@ -356,11 +356,11 @@ select:focus,input:focus{border-color:var(--accent)}
     <div class="card" id="add-horse-card" style="font-size:11px;display:none">
       <div style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Agregar caballo</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:10px">
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Nombre</label><input type="text" id="new-horse-name" placeholder="NOMBRE" style="height:28px;font-size:11px;padding:0 8px"></div>
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Número</label><input type="text" id="new-horse-num" placeholder="316204" style="height:28px;font-size:11px;padding:0 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Nombre</label><input type="text" id="new-horse-name" placeholder="NOMBRE" style="height:28px;font-size:11px;padding:0 8px;text-transform:uppercase"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Número</label><input type="text" id="new-horse-num" placeholder="316204" style="height:28px;font-size:11px;padding:0 8px;text-transform:uppercase"></div>
         <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Nacimiento</label><input type="date" id="new-horse-dob" style="height:28px;font-size:11px;padding:0 8px"></div>
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Padre</label><input type="text" id="new-horse-padre" placeholder="Padre" style="height:28px;font-size:11px;padding:0 8px"></div>
-        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Madre</label><input type="text" id="new-horse-madre" placeholder="Madre" style="height:28px;font-size:11px;padding:0 8px"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Padre</label><input type="text" id="new-horse-padre" placeholder="Padre" style="height:28px;font-size:11px;padding:0 8px;text-transform:uppercase"></div>
+        <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:500;color:var(--text-soft)">Madre</label><input type="text" id="new-horse-madre" placeholder="Madre" style="height:28px;font-size:11px;padding:0 8px;text-transform:uppercase"></div>
       </div>
       <div style="margin-bottom:10px">
         <label style="font-size:10px;font-weight:500;color:var(--text-soft);display:block;margin-bottom:4px">Foto</label>
@@ -1317,21 +1317,21 @@ function renderResumen(){
             const box=(v,main)=>`<div style="height:100%;display:flex;align-items:center;padding:0 6px;border-radius:4px;font-size:${main?'9.5':'8.5'}px;font-weight:${main?'700':'600'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${v?(main?'background:var(--wood);color:var(--cream);border:1px solid var(--wood-dark)':'background:var(--cream);color:var(--ink);border:1px solid var(--gold)'):'border:1px dashed #e0d5bd;color:#d0c5aa'}" title="${v||''}">${v||'—'}</div>`;
             return `<div style="flex:0 0 auto">
               <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px"><i class="ti ti-binary-tree-2" style="font-size:10px;vertical-align:-2px"></i> Genealogía</div>
-              <div style="display:grid;grid-template-columns:92px 92px 92px;grid-template-rows:repeat(8,20px);gap:2px">
-                <div style="grid-column:1;grid-row:2">${box(pv,1)}</div>
-                <div style="grid-column:1;grid-row:7">${box(mv,1)}</div>
-                <div style="grid-column:2;grid-row:1">${box(g.abpp)}</div>
-                <div style="grid-column:2;grid-row:3">${box(g.abpm)}</div>
-                <div style="grid-column:2;grid-row:6">${box(g.abmp)}</div>
-                <div style="grid-column:2;grid-row:8">${box(g.abmm)}</div>
-                <div style="grid-column:3;grid-row:1">${box(g.bppp)}</div>
-                <div style="grid-column:3;grid-row:2">${box(g.bppm)}</div>
-                <div style="grid-column:3;grid-row:3">${box(g.bpmp)}</div>
-                <div style="grid-column:3;grid-row:4">${box(g.bpmm)}</div>
-                <div style="grid-column:3;grid-row:5">${box(g.bmpp)}</div>
-                <div style="grid-column:3;grid-row:6">${box(g.bmpm)}</div>
-                <div style="grid-column:3;grid-row:7">${box(g.bmmp)}</div>
-                <div style="grid-column:3;grid-row:8">${box(g.bmmm)}</div>
+              <div style="display:grid;grid-template-columns:92px 92px 92px;grid-template-rows:repeat(16,10px);gap:2px">
+                <div style="grid-column:1;grid-row:4/6">${box(pv,1)}</div>
+                <div style="grid-column:1;grid-row:12/14">${box(mv,1)}</div>
+                <div style="grid-column:2;grid-row:2/4">${box(g.abpp)}</div>
+                <div style="grid-column:2;grid-row:6/8">${box(g.abpm)}</div>
+                <div style="grid-column:2;grid-row:10/12">${box(g.abmp)}</div>
+                <div style="grid-column:2;grid-row:14/16">${box(g.abmm)}</div>
+                <div style="grid-column:3;grid-row:1/3">${box(g.bppp)}</div>
+                <div style="grid-column:3;grid-row:3/5">${box(g.bppm)}</div>
+                <div style="grid-column:3;grid-row:5/7">${box(g.bpmp)}</div>
+                <div style="grid-column:3;grid-row:7/9">${box(g.bpmm)}</div>
+                <div style="grid-column:3;grid-row:9/11">${box(g.bmpp)}</div>
+                <div style="grid-column:3;grid-row:11/13">${box(g.bmpm)}</div>
+                <div style="grid-column:3;grid-row:13/15">${box(g.bmmp)}</div>
+                <div style="grid-column:3;grid-row:15/17">${box(g.bmmm)}</div>
               </div>
             </div>`;
           })()}
@@ -1966,10 +1966,10 @@ function renderCaballos(){
     const inp='height:24px;font-size:10px;padding:0 5px;border:1px solid var(--gold);border-radius:4px;box-sizing:border-box;background:#fff;outline:none';
     return `<tr class="ht-row" style="${inactive?'opacity:.5;':''}${isEdit?'background:#fdfaf3;':''}">
       <td style="${td};width:24px">${canEdit?`<span onclick="toggleFavorito(${h.id})" title="${h.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:13px;color:${h.favorito?'#d4a017':'#d8d0c0'}">${h.favorito?'★':'☆'}</span>`:(h.favorito?'<span style="font-size:13px;color:#d4a017">★</span>':'')}</td>
-      <td style="${td};font-weight:700">${isEdit?`<input id="eh-nombre-${h.id}" type="text" value="${h.nombre}" style="${inp};width:110px;font-weight:700">`:`${h.nombre}${inactive?' <span class="badge-inactive">inactivo</span>':''}`}</td>
-      <td style="${td}">${isEdit?`<input id="eh-criadero-${h.id}" type="text" value="${(h.criadero||'').replace(/"/g,'&quot;')}" placeholder="Criadero" style="${inp};width:110px">`:(h.criadero||'—')}</td>
+      <td style="${td};font-weight:700">${isEdit?`<input id="eh-nombre-${h.id}" type="text" value="${h.nombre}" style="${inp};width:110px;font-weight:700;text-transform:uppercase">`:`${h.nombre}${inactive?' <span class="badge-inactive">inactivo</span>':''}`}</td>
+      <td style="${td}">${isEdit?`<input id="eh-criadero-${h.id}" type="text" value="${(h.criadero||'').replace(/"/g,'&quot;')}" placeholder="Criadero" style="${inp};width:110px;text-transform:uppercase">`:(h.criadero||'—')}</td>
       <td style="${td}">${isEdit?`<select id="eh-estado-${h.id}" style="${inp};width:130px"><option value="">— Sin estado —</option>${ESTADO_ORDER.map(e=>`<option value="${e}" ${(h.estado||'')===e?'selected':''}>${e}</option>`).join('')}</select>`:(h.estado?`<span style="background:${EB[h.estado]||'#eee'};color:${ET[h.estado]||'#666'};border-radius:9px;padding:1px 7px;font-size:8.5px;font-weight:700;white-space:nowrap">${h.estado}</span>`:'—')}</td>
-      <td style="${td}">${isEdit?`<input id="eh-numero-${h.id}" type="text" value="${h.numero||''}" style="${inp};width:70px">`:numero}</td>
+      <td style="${td}">${isEdit?`<input id="eh-numero-${h.id}" type="text" value="${h.numero||''}" style="${inp};width:70px;text-transform:uppercase">`:numero}</td>
       <td style="${td}">${isEdit?`<input id="eh-dob-${h.id}" type="date" value="${h.fecha_nacimiento||''}" style="${inp};width:115px">`:dob}</td>
       <td style="${td}">${edad}</td>
       <td style="${td}">${isEdit?`<input id="eh-alzada-${h.id}" type="text" value="${h.alzada||''}" placeholder="1.42" style="${inp};width:52px">`:(h.alzada||'—')}</td>
@@ -1985,21 +1985,21 @@ function renderCaballos(){
           return `<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
             <div style="flex:0 0 auto">
               <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;margin-bottom:4px"><i class="ti ti-binary-tree-2" style="font-size:10px;vertical-align:-2px"></i> Árbol genealógico</div>
-              <div style="display:grid;grid-template-columns:95px 95px 95px;grid-template-rows:repeat(8,20px);gap:2px">
-                <div style="grid-column:1;grid-row:2">${gi('eh-gp','Padre',h.padre||(GEO[h.nombre]||{}).padre,'font-weight:700;border-width:1.5px',`onchange="autofillLineage(${h.id},'p')"`)}</div>
-                <div style="grid-column:1;grid-row:7">${gi('eh-gm','Madre',h.madre||(GEO[h.nombre]||{}).madre,'font-weight:700;border-width:1.5px',`onchange="autofillLineage(${h.id},'m')"`)}</div>
-                <div style="grid-column:2;grid-row:1">${gi('eh-abpp','Abuelo paterno',g.abpp)}</div>
-                <div style="grid-column:2;grid-row:3">${gi('eh-abpm','Abuela paterna',g.abpm)}</div>
-                <div style="grid-column:2;grid-row:6">${gi('eh-abmp','Abuelo materno',g.abmp)}</div>
-                <div style="grid-column:2;grid-row:8">${gi('eh-abmm','Abuela materna',g.abmm)}</div>
-                <div style="grid-column:3;grid-row:1">${gi('eh-bppp','Bisabuelo',g.bppp)}</div>
-                <div style="grid-column:3;grid-row:2">${gi('eh-bppm','Bisabuela',g.bppm)}</div>
-                <div style="grid-column:3;grid-row:3">${gi('eh-bpmp','Bisabuelo',g.bpmp)}</div>
-                <div style="grid-column:3;grid-row:4">${gi('eh-bpmm','Bisabuela',g.bpmm)}</div>
-                <div style="grid-column:3;grid-row:5">${gi('eh-bmpp','Bisabuelo',g.bmpp)}</div>
-                <div style="grid-column:3;grid-row:6">${gi('eh-bmpm','Bisabuela',g.bmpm)}</div>
-                <div style="grid-column:3;grid-row:7">${gi('eh-bmmp','Bisabuelo',g.bmmp)}</div>
-                <div style="grid-column:3;grid-row:8">${gi('eh-bmmm','Bisabuela',g.bmmm)}</div>
+              <div style="display:grid;grid-template-columns:95px 95px 95px;grid-template-rows:repeat(16,10px);gap:2px">
+                <div style="grid-column:1;grid-row:4/6">${gi('eh-gp','Padre',h.padre||(GEO[h.nombre]||{}).padre,'font-weight:700;border-width:1.5px',`onchange="autofillLineage(${h.id},'p')"`)}</div>
+                <div style="grid-column:1;grid-row:12/14">${gi('eh-gm','Madre',h.madre||(GEO[h.nombre]||{}).madre,'font-weight:700;border-width:1.5px',`onchange="autofillLineage(${h.id},'m')"`)}</div>
+                <div style="grid-column:2;grid-row:2/4">${gi('eh-abpp','Abuelo paterno',g.abpp)}</div>
+                <div style="grid-column:2;grid-row:6/8">${gi('eh-abpm','Abuela paterna',g.abpm)}</div>
+                <div style="grid-column:2;grid-row:10/12">${gi('eh-abmp','Abuelo materno',g.abmp)}</div>
+                <div style="grid-column:2;grid-row:14/16">${gi('eh-abmm','Abuela materna',g.abmm)}</div>
+                <div style="grid-column:3;grid-row:1/3">${gi('eh-bppp','Bisabuelo',g.bppp)}</div>
+                <div style="grid-column:3;grid-row:3/5">${gi('eh-bppm','Bisabuela',g.bppm)}</div>
+                <div style="grid-column:3;grid-row:5/7">${gi('eh-bpmp','Bisabuelo',g.bpmp)}</div>
+                <div style="grid-column:3;grid-row:7/9">${gi('eh-bpmm','Bisabuela',g.bpmm)}</div>
+                <div style="grid-column:3;grid-row:9/11">${gi('eh-bmpp','Bisabuelo',g.bmpp)}</div>
+                <div style="grid-column:3;grid-row:11/13">${gi('eh-bmpm','Bisabuela',g.bmpm)}</div>
+                <div style="grid-column:3;grid-row:13/15">${gi('eh-bmmp','Bisabuelo',g.bmmp)}</div>
+                <div style="grid-column:3;grid-row:15/17">${gi('eh-bmmm','Bisabuela',g.bmmm)}</div>
               </div>
             </div>
             <div style="width:190px">
@@ -2036,7 +2036,7 @@ async function reactivateHorse(nombre,id){
 async function addHorse(){
   if(!canEdit){toast('Sin permisos','err');return;}
   const nombre=document.getElementById('new-horse-name').value.trim().toUpperCase();
-  const numero=document.getElementById('new-horse-num').value.trim();
+  const numero=document.getElementById('new-horse-num').value.trim().toUpperCase();
   const dob=document.getElementById('new-horse-dob').value;
   if(!nombre){toast('Ingresa el nombre','err');return;}
   const btn=document.getElementById('add-horse-btn');
@@ -2048,8 +2048,8 @@ async function addHorse(){
         fecha_nacimiento:dob||null,
         activo:true,
         user_id:currentUser?.id,
-        padre:document.getElementById('new-horse-padre').value.trim(),
-        madre:document.getElementById('new-horse-madre').value.trim()
+        padre:document.getElementById('new-horse-padre').value.trim().toUpperCase(),
+        madre:document.getElementById('new-horse-madre').value.trim().toUpperCase()
       })});
     allHorses=[...allHorses,...res];
     const photoFile=document.getElementById('new-horse-photo').files[0];
@@ -2315,14 +2315,14 @@ async function autofillLineage(id,side){
 
 async function saveEditHorse(id){
   const nombre=document.getElementById('eh-nombre-'+id).value.trim().toUpperCase();
-  const numero=document.getElementById('eh-numero-'+id).value.trim();
+  const numero=document.getElementById('eh-numero-'+id).value.trim().toUpperCase();
   const dob=document.getElementById('eh-dob-'+id).value;
   const gv=k=>{const el=document.getElementById('eh-'+k+'-'+id);return el?el.value.trim().toUpperCase():'';};
   const padre=gv('gp');
   const madre=gv('gm');
   const genealogia={abpp:gv('abpp'),abpm:gv('abpm'),abmp:gv('abmp'),abmm:gv('abmm'),bppp:gv('bppp'),bppm:gv('bppm'),bpmp:gv('bpmp'),bpmm:gv('bpmm'),bmpp:gv('bmpp'),bmpm:gv('bmpm'),bmmp:gv('bmmp'),bmmm:gv('bmmm')};
   const alzada=document.getElementById('eh-alzada-'+id)?.value.trim()||null;
-  const criadero=document.getElementById('eh-criadero-'+id)?.value.trim()||null;
+  const criadero=document.getElementById('eh-criadero-'+id)?.value.trim().toUpperCase()||null;
   if(!nombre){toast('Ingresa el nombre','err');return;}
   try{
     const estado=document.getElementById('eh-estado-'+id)?.value||'';
