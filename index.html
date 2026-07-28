@@ -1373,17 +1373,16 @@ function renderResumen(){
           ${info&&info.estado?`<div class="horse-detail-row">Estado: <span>${info.estado}</span></div>`:''}
           ${ent&&ent.etapa?`<div class="horse-detail-row">Entrenamiento: <span>${ent.etapa}${ent.jinete?' ('+ent.jinete+')':''}</span></div>`:''}`;
         return `<div class="horse-detail" id="det-${sid}">
-        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;justify-content:center">
+        <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
           <div style="flex:0 0 auto">
+            <div class="horse-detail-info" style="margin-bottom:12px">${infoRows}</div>
             ${treeHTML}
-            <div class="horse-detail-info hd-desktop" style="margin-top:10px">${infoRows}</div>
           </div>
-          <div class="horse-imgs" style="flex:1;min-width:200px">
+          <div class="horse-imgs" style="flex:0 1 auto;max-width:420px;min-width:200px">
             ${mainImg}
             ${extras?`<div class="extra-imgs">${extras}</div>`:''}
           </div>
         </div>
-        <div class="horse-detail-info hd-mobile">${infoRows}</div>
       </div>`;})()}
     </div>
     ${delBtn}
