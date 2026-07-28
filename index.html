@@ -441,11 +441,10 @@ select:focus,input:focus{border-color:var(--accent)}
         <div style="padding:18px">
           <div style="margin-bottom:12px">
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Caballo</label>
-            <select id="ev-horse-select" onchange="if(this.value){evMultiSel.clear();renderEvHorseChips();}" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
-              <option value="">Selecciona caballo...</option>
+            <select id="ev-horse-select" onchange="evAddHorse(this.value);this.value=''" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+              <option value="">Agregar caballo...</option>
             </select>
-            <div style="font-size:9px;color:var(--text-soft);margin-top:6px;text-transform:uppercase;font-weight:600">O toca varios caballos:</div>
-            <div id="ev-horse-multi" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;max-height:90px;overflow-y:auto"></div>
+            <div id="ev-horse-multi" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
           </div>
           <div style="margin-bottom:12px">
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Fecha</label>
@@ -453,7 +452,7 @@ select:focus,input:focus{border-color:var(--accent)}
           </div>
           <div style="margin-bottom:12px">
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Tipo</label>
-            <input type="text" id="ev-tipo" placeholder="Ej: Veterinario" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+            <input type="text" id="ev-tipo" placeholder="Ej: Veterinario" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none;text-transform:uppercase">
           </div>
           <div style="margin-bottom:12px">
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Valor (opcional — se suma a costos del caballo)</label>
@@ -461,7 +460,7 @@ select:focus,input:focus{border-color:var(--accent)}
           </div>
           <div style="margin-bottom:12px">
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Descripción</label>
-            <input type="text" id="ev-desc" placeholder="Detalle opcional" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+            <input type="text" id="ev-desc" placeholder="Detalle opcional" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none;text-transform:uppercase">
           </div>
           <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;background:#fff;border:1.5px solid var(--gold);border-radius:6px;padding:9px 12px">
             <input type="checkbox" id="ev-recordatorio" style="cursor:pointer;width:15px;height:15px;accent-color:var(--wood)">
@@ -2311,19 +2310,22 @@ async function addHorse(){
 
 
 let evMultiSel=new Set();
+function evAddHorse(v){
+  if(!v)return;
+  if(v==='__ALL__'){[...sortedActive()].forEach(h=>evMultiSel.add(h));}
+  else evMultiSel.add(v);
+  renderEvHorseChips();
+}
+function evRemoveHorse(h){
+  evMultiSel.delete(h);
+  renderEvHorseChips();
+}
 function renderEvHorseChips(){
   const box=document.getElementById('ev-horse-multi');
   if(!box)return;
-  const horsesAZ=[...sortedActive()].sort((a,b)=>a.localeCompare(b,'es'));
-  box.innerHTML=horsesAZ.map(h=>{
-    const on=evMultiSel.has(h);
-    return `<span onclick="toggleEvHorseChip('${h.replace(/'/g,"\\'")}')" style="cursor:pointer;user-select:none;border-radius:12px;padding:3px 10px;font-size:10px;font-weight:700;border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};background:${on?'var(--wood)':'var(--cream)'};color:${on?'var(--cream)':'var(--wood)'}">${h}</span>`;
-  }).join('');
-}
-function toggleEvHorseChip(h){
-  if(evMultiSel.has(h))evMultiSel.delete(h);else evMultiSel.add(h);
-  if(evMultiSel.size)document.getElementById('ev-horse-select').value='';
-  renderEvHorseChips();
+  box.innerHTML=[...evMultiSel].map(h=>
+    `<span style="display:inline-flex;align-items:center;gap:5px;border-radius:12px;padding:3px 8px 3px 10px;font-size:10px;font-weight:700;border:1px solid var(--wood-dark);background:var(--wood);color:var(--cream)">${h}<span onclick="evRemoveHorse('${h.replace(/'/g,"\\'")}')" style="cursor:pointer;font-size:11px;line-height:1;opacity:0.8">×</span></span>`
+  ).join('');
 }
 
 function toggleAddEvent(){
@@ -2334,8 +2336,10 @@ function toggleAddEvent(){
     const sel=document.getElementById('ev-horse-select');
     const horsesAZ=[...sortedActive()].sort((a,b)=>a.localeCompare(b,'es'));
     const cur=sel.value;
-    sel.innerHTML='<option value="">Selecciona caballo...</option><option value="__ALL__">— Todos los caballos —</option>'+horsesAZ.map(h=>`<option value="${h}">${h}</option>`).join('');
+    sel.innerHTML='<option value="">Agregar caballo...</option><option value="__ALL__">— Todos los caballos —</option>'+horsesAZ.map(h=>`<option value="${h}">${h}</option>`).join('');
     if(cur)sel.value=cur;
+    const dt=document.getElementById('ev-date');
+    if(dt){const n=new Date();dt.value=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
     renderEvHorseChips();
     card.onclick=e=>{if(e.target===card)toggleAddEvent();};
   }
@@ -2850,7 +2854,7 @@ function renderEventsList(events){
           return `<div style="display:flex;align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--border)">
             <div style="width:5px;height:5px;border-radius:50%;background:${c.dot};flex-shrink:0"></div>
             <span style="font-size:9px;color:var(--text-soft);width:55px;flex-shrink:0">${fecha}</span>
-            <span style="font-size:9px;font-weight:500;flex:1">${ev.tipo}${ev.descripcion?' — '+ev.descripcion:''}</span>
+            <span style="font-size:9px;font-weight:500;flex:1">${(ev.tipo||'').toUpperCase()}${ev.descripcion?' — '+ev.descripcion.toUpperCase():''}</span>
             ${delBtn}
           </div>`;
         }).join('')}
@@ -2881,8 +2885,8 @@ function openEventEditModal(id){
         </select>
       </div>
       <div style="margin-bottom:12px"><label style="${lbl}">Fecha</label><input type="date" id="ee-fecha" value="${ev.fecha||''}" style="${inp}"></div>
-      <div style="margin-bottom:12px"><label style="${lbl}">Tipo de evento</label><input type="text" id="ee-tipo" value="${(ev.tipo||'').replace(/"/g,'&quot;')}" style="${inp}"></div>
-      <div style="margin-bottom:12px"><label style="${lbl}">Descripción</label><input type="text" id="ee-desc" value="${(ev.descripcion||'').replace(/"/g,'&quot;')}" style="${inp}"></div>
+      <div style="margin-bottom:12px"><label style="${lbl}">Tipo de evento</label><input type="text" id="ee-tipo" value="${(ev.tipo||'').replace(/"/g,'&quot;')}" style="${inp};text-transform:uppercase"></div>
+      <div style="margin-bottom:12px"><label style="${lbl}">Descripción</label><input type="text" id="ee-desc" value="${(ev.descripcion||'').replace(/"/g,'&quot;')}" style="${inp};text-transform:uppercase"></div>
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);margin-bottom:14px;cursor:pointer">
         <input type="checkbox" id="ee-record" ${ev.recordatorio?'checked':''} style="width:15px;height:15px;accent-color:var(--wood)"> Recordatorio
       </label>
@@ -2897,8 +2901,8 @@ async function saveEventEdit(id){
   const body={
     horse:document.getElementById('ee-horse').value,
     fecha:document.getElementById('ee-fecha').value,
-    tipo:document.getElementById('ee-tipo').value.trim(),
-    descripcion:document.getElementById('ee-desc').value.trim()||null,
+    tipo:document.getElementById('ee-tipo').value.trim().toUpperCase(),
+    descripcion:document.getElementById('ee-desc').value.trim().toUpperCase()||null,
     recordatorio:document.getElementById('ee-record').checked
   };
   if(!body.fecha||!body.tipo){toast('Fecha y tipo son obligatorios','err');return;}
@@ -2914,13 +2918,10 @@ async function saveEventEdit(id){
 
 async function addManualEvent(){
   if(!canEdit){toast('Sin permisos','err');return;}
-  const selVal=document.getElementById('ev-horse-select').value;
-  let horses;
-  if(evMultiSel.size)horses=[...evMultiSel];
-  else horses=selVal==='__ALL__'?[...sortedActive()]:(selVal?[selVal]:[]);
+  const horses=[...evMultiSel];
   const fecha=document.getElementById('ev-date').value;
-  const tipo=document.getElementById('ev-tipo').value.trim();
-  const desc=document.getElementById('ev-desc').value.trim();
+  const tipo=document.getElementById('ev-tipo').value.trim().toUpperCase();
+  const desc=document.getElementById('ev-desc').value.trim().toUpperCase();
   const valor=unfmtMiles(document.getElementById('ev-valor')?.value||'')||null;
   if(!horses.length||!fecha||!tipo){toast('Selecciona al menos un caballo, fecha y tipo','err');return;}
   try{
