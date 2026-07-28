@@ -245,7 +245,7 @@ select:focus,input:focus{border-color:var(--accent)}
   .ent-table{table-layout:auto!important;min-width:1100px}
   .apero-filtros-wrap{display:none!important}
   #apero-filter-select{display:block!important}
-  #horse-list>div:first-child{grid-template-columns:1fr 1fr 1fr!important;gap:6px!important}
+  #horse-list>div:first-child{grid-template-columns:1fr 1fr!important;gap:6px!important}
   .year-body{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .year-table{min-width:600px}
   .login-card{width:85%;max-width:320px}
@@ -1298,10 +1298,11 @@ function renderResumen(){
       <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:${active?'var(--cream)':'var(--ink)'}">${label}</span>
     </div>`;
   };
-  const navHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
-    ${navBtn('caballos','horse','CABALLOS')}${navBtn('gastos','coin','GASTOS')}${navBtn('rodeos','trophy','RODEOS')}
+  const navHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+    ${navBtn('caballos','horse','CABALLOS')}${navBtn('gastos','coin','GASTOS')}${navBtn('rodeos','trophy','RODEOS')}${navBtn('arregladores','users','ARREGLADORES')}
   </div>`;
   const rodeosHTML=resSection==='rodeos'?buildResRodeos():'';
+  const arregHTML=resSection==='arregladores'?buildResArregladores():'';
   const horsesHTML=[...horses].sort((a,b)=>{
     const fa=allHorses.find(h=>h.nombre===a)?.favorito?0:1;
     const fb=allHorses.find(h=>h.nombre===b)?.favorito?0:1;
@@ -1437,7 +1438,7 @@ function renderResumen(){
     ${delBtn}
     </div>`;
   }).join('');
-  document.getElementById('horse-list').innerHTML=remindHTML+navHTML+rodeosHTML+
+  document.getElementById('horse-list').innerHTML=remindHTML+navHTML+rodeosHTML+arregHTML+
     (resSection==='caballos'?horsesHTML:'');
 
   const years=getYears();
@@ -3054,6 +3055,63 @@ async function deleteSerieFoto(serieId,url){
     renderResumen();
     toast('Foto eliminada');
   }catch(e){toast('Error','err');}
+}
+
+
+// ===== SECCION ARREGLADORES (Resumen, solo lectura) =====
+let resArrFilter='';
+function setResArrFilter(v){resArrFilter=v;renderResumen();}
+function buildResArregladores(){
+  const now=new Date();
+  const win=[];
+  for(let off=-1;off<=2;off++){
+    const d=new Date(now.getFullYear(),now.getMonth()+off,1);
+    win.push({y:d.getFullYear(),m:d.getMonth()+1});
+  }
+  const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const inWin=e=>win.some(w=>w.y===e.year&&w.m===e.month);
+  const jinetes=[...new Set(allEntrenamientos.filter(e=>inWin(e)&&e.jinete).map(e=>e.jinete))].sort((a,b)=>a.localeCompare(b,'es'));
+  let horseObjs=sortHorsesBy('estado');
+  if(resArrFilter){
+    horseObjs=horseObjs.filter(h=>win.some(w=>{const e=getEnt(h.nombre,w.y,w.m);return e&&e.jinete===resArrFilter;}));
+  }
+  const filtroHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Arreglador</span>
+    <select onchange="setResArrFilter(this.value)" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+      <option value="">Todos</option>
+      ${jinetes.map(j=>`<option value="${j.replace(/"/g,'&quot;')}" ${resArrFilter===j?'selected':''}>${j}</option>`).join('')}
+    </select>
+    ${resArrFilter?`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en trabajo</span>`:''}
+  </div>`;
+  if(!horseObjs.length)return filtroHTML+`<div style="background:var(--cream);border:1.5px dashed var(--gold);border-radius:10px;padding:20px;text-align:center;color:var(--text-soft);font-size:12px;margin-bottom:14px">Sin caballos para mostrar</div>`;
+  let tbl='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px"><table style="border-collapse:collapse;width:100%;table-layout:fixed;min-width:480px">';
+  tbl+='<tr><th style="position:sticky;left:0;background:var(--cream);text-align:left;padding:6px 6px;font-size:10px;color:var(--text-soft);text-transform:uppercase;border-bottom:2px solid var(--gold);z-index:1;width:85px">Caballo</th>';
+  win.forEach(w=>{
+    const isCur=w.y===now.getFullYear()&&w.m===now.getMonth()+1;
+    tbl+=`<th style="padding:6px 4px;font-size:10px;color:${isCur?'var(--ink)':'var(--wood)'};border-bottom:2px solid var(--gold);text-align:center;font-weight:700;text-transform:uppercase;${isCur?'background:rgba(201,169,110,0.18);':''}">${MES[w.m-1]}${w.y!==now.getFullYear()?' '+String(w.y).slice(2):''}</th>`;
+  });
+  tbl+='</tr>';
+  horseObjs.forEach(h=>{
+    tbl+=`<tr><td title="${h.nombre}" style="position:sticky;left:0;background:var(--cream);padding:2px 6px;font-size:10px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92px;height:30px">${h.favorito?'<span style="color:#d4a017;font-size:10px">★</span> ':''}${h.nombre}</td>`;
+    win.forEach(w=>{
+      const e=getEnt(h.nombre,w.y,w.m);
+      const dim=resArrFilter&&e&&e.jinete!==resArrFilter;
+      let inner;
+      if(e&&e.etapa){
+        const c=ETAPA_COLORS[e.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
+        inner=`<div title="${e.etapa}${e.potrero?' ('+e.potrero+')':''}${e.jinete?' — '+e.jinete:''}${e.comentario?' · '+e.comentario:''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden;${dim?'opacity:0.25;':''}">
+          <div style="font-size:8.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.etapa}</div>
+          <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.jinete||e.potrero||'&nbsp;'}</div>
+        </div>`;
+      }else{
+        inner='<div style="border:1px dashed #e8ddc4;border-radius:4px;height:22px;box-sizing:border-box"></div>';
+      }
+      tbl+=`<td style="border-bottom:1px solid var(--border);border-left:1px solid #f0e8d8;padding:1px 2px;text-align:center;vertical-align:middle;overflow:hidden">${inner}</td>`;
+    });
+    tbl+='</tr>';
+  });
+  tbl+='</table></div>';
+  return filtroHTML+tbl;
 }
 
 // ===== SECCION RODEOS (Resumen) =====
