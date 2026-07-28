@@ -1145,6 +1145,7 @@ async function loadAll(){
   }catch(e){if(dot)dot.className='conn-dot err';if(lbl)lbl.textContent='Sin conexión';toast('Error: '+e.message,'err');}
   try{await loadEvents();}catch(e){}
   try{await loadEntrenamiento();}catch(e){}
+  try{await loadRodeos();}catch(e){}
   renderResumen();renderExpBlocks();
   
 }
@@ -1586,7 +1587,7 @@ function renderExpBlocks(){
         <div class="exp-h-block">
           <div class="exp-h-hdr" onclick="tog('rod-h${year}','rod-b${year}','rod-a${year}');loadRodeosForYear(${year})">
             <span class="exp-h-name"><i class="ti ti-trophy" style="font-size:14px;vertical-align:-2px"></i> RODEOS</span>
-            <span style="display:flex;align-items:center;gap:8px"><span class="exp-h-total" id="eyrt${year}">$0</span><span class="exp-h-arrow" id="rod-a${year}">▼</span></span>
+            <span style="display:flex;align-items:center;gap:8px"><span class="exp-h-total" id="eyrt${year}">${yrt?clp(yrt):'$0'}</span><span class="exp-h-arrow" id="rod-a${year}">▼</span></span>
           </div>
           <div class="exp-h-body" id="rod-b${year}">
             <div id="rod-content${year}"><div class="empty">Cargando...</div></div>
