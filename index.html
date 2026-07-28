@@ -1527,7 +1527,7 @@ function renderChart(year){
     return val;
   });
   const rt=document.getElementById('res-year-total');
-  if(rt&&typeof resYear!=='undefined'&&year===resYear){rt.textContent=clp(vals.reduce((s,v)=>s+v,0))||'$0';}
+  if(rt&&typeof resYear!=='undefined'&&year===resYear){rt.textContent=clp(data.reduce((s,v)=>s+v,0))||'$0';}
   const colorMap={CABALLOS:'#7a5c2e',GENERALES:'#2b5fa6',RODEOS:'#1a7a4a',TOTAL:'#c9a96e'};
   const barColor=colorMap[filter]||'#c9a96e';
   if(chartInstances[year])chartInstances[year].destroy();
