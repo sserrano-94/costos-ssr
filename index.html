@@ -210,6 +210,9 @@ select:focus,input:focus{border-color:var(--accent)}
 .horses-table td{text-transform:uppercase}
 .hd-mobile{display:none}
 @media(max-width:768px){.hd-desktop{display:none!important}.hd-mobile{display:grid}
+.horses-table .ht-star{position:sticky;left:0;background:var(--bg);z-index:2}
+.horses-table .ht-name{position:sticky;left:32px;background:var(--bg);z-index:2;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+.horses-table th.ht-star,.horses-table th.ht-name{z-index:3}
 .hd-box-left,.horse-detail .horse-imgs{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box}}
 .horse-meta{font-size:10px;color:var(--text-soft);display:flex;flex-direction:column;gap:1px}
 .horse-total{font-size:11px;font-weight:600;color:var(--accent);text-align:right}
@@ -2081,7 +2084,7 @@ function renderCaballos(){
   const cols=isAdmin?11:10;
   const th=t=>`<th style="padding:6px 8px;font-size:9.5px;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--gold);text-align:left;white-space:nowrap">${t}</th>`;
   let html='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="horses-table" style="border-collapse:collapse;width:100%;min-width:680px">';
-  html+='<tr>'+th('')+th('Caballo')+th('Criadero')+th('Estado')+th('Número')+th('F. Nac.')+th('Edad')+th('Alzada')+th('Padre')+th('Madre')+(isAdmin?th(''):'')+'</tr>';
+  html+='<tr>'+th('').replace('<th ','<th class="ht-star" ')+th('Caballo').replace('<th ','<th class="ht-name" ')+th('Criadero')+th('Estado')+th('Número')+th('F. Nac.')+th('Edad')+th('Alzada')+th('Padre')+th('Madre')+(isAdmin?th(''):'')+'</tr>';
   html+=all.map(h=>{
     const edad=calcAge(h.fecha_nacimiento);
     const dob=h.fecha_nacimiento?new Date(h.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
@@ -2096,8 +2099,8 @@ function renderCaballos(){
     const isEdit=editingHorses.has(h.id);
     const inp='height:24px;font-size:10px;padding:0 5px;border:1px solid var(--gold);border-radius:4px;box-sizing:border-box;background:#fff;outline:none';
     return `<tr class="ht-row" style="${inactive?'opacity:.5;':''}${isEdit?'background:#fdfaf3;':''}">
-      <td style="${td};width:24px">${canEdit?`<span onclick="toggleFavorito(${h.id})" title="${h.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:13px;color:${h.favorito?'#d4a017':'#d8d0c0'}">${h.favorito?'★':'☆'}</span>`:(h.favorito?'<span style="font-size:13px;color:#d4a017">★</span>':'')}</td>
-      <td style="${td};font-weight:700">${isEdit?`<input id="eh-nombre-${h.id}" type="text" value="${h.nombre}" style="${inp};width:110px;font-weight:700;text-transform:uppercase">`:`${h.nombre}${inactive?' <span class="badge-inactive">inactivo</span>':''}`}</td>
+      <td class="ht-star" style="${td};width:24px">${canEdit?`<span onclick="toggleFavorito(${h.id})" title="${h.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:13px;color:${h.favorito?'#d4a017':'#d8d0c0'}">${h.favorito?'★':'☆'}</span>`:(h.favorito?'<span style="font-size:13px;color:#d4a017">★</span>':'')}</td>
+      <td class="ht-name" style="${td};font-weight:700">${isEdit?`<input id="eh-nombre-${h.id}" type="text" value="${h.nombre}" style="${inp};width:110px;font-weight:700;text-transform:uppercase">`:`${h.nombre}${inactive?' <span class="badge-inactive">inactivo</span>':''}`}</td>
       <td style="${td}">${isEdit?`<input id="eh-criadero-${h.id}" type="text" value="${(h.criadero||'').replace(/"/g,'&quot;')}" placeholder="Criadero" style="${inp};width:110px;text-transform:uppercase">`:(h.criadero||'—')}</td>
       <td style="${td}">${isEdit?`<select id="eh-estado-${h.id}" style="${inp};width:130px"><option value="">— Sin estado —</option>${ESTADO_ORDER.map(e=>`<option value="${e}" ${(h.estado||'')===e?'selected':''}>${e}</option>`).join('')}</select>`:(h.estado?`<span style="background:${EB[h.estado]||'#eee'};color:${ET[h.estado]||'#666'};border-radius:9px;padding:1px 7px;font-size:8.5px;font-weight:700;white-space:nowrap">${h.estado}</span>`:'—')}</td>
       <td style="${td}">${isEdit?`<input id="eh-numero-${h.id}" type="text" value="${h.numero||''}" style="${inp};width:70px;text-transform:uppercase">`:numero}</td>
