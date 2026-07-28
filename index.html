@@ -209,7 +209,8 @@ select:focus,input:focus{border-color:var(--accent)}
 .horse-name{font-size:9.5px;font-weight:600;margin-bottom:1px}
 .horses-table td{text-transform:uppercase}
 .hd-mobile{display:none}
-@media(max-width:768px){.hd-desktop{display:none!important}.hd-mobile{display:grid}}
+@media(max-width:768px){.hd-desktop{display:none!important}.hd-mobile{display:grid}
+.hd-box-left,.horse-detail .horse-imgs{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box}}
 .horse-meta{font-size:10px;color:var(--text-soft);display:flex;flex-direction:column;gap:1px}
 .horse-total{font-size:11px;font-weight:600;color:var(--accent);text-align:right}
 .horse-cnt{font-size:11px;color:var(--text-soft);text-align:right;margin-top:2px}
@@ -1381,7 +1382,7 @@ function renderResumen(){
           ${ent&&ent.etapa?`<div class="horse-detail-row">Entrenamiento: <span>${ent.etapa}${ent.jinete?' ('+ent.jinete+')':''}</span></div>`:''}`;
         return `<div class="horse-detail${resOpenHorse===sid?' open':''}" id="det-${sid}">
         <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:stretch">
-          <div style="flex:0 0 auto;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px;box-sizing:border-box">
+          <div class="hd-box-left" style="flex:0 0 auto;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px;box-sizing:border-box">
             <div class="horse-detail-info" style="margin-bottom:12px">${infoRows}</div>
             ${treeHTML}
           </div>
@@ -1450,27 +1451,42 @@ function renderResumen(){
     const colT=am.map(m=>ye.filter(e=>e.month===m).reduce((s,e)=>s+Number(e.amount),0));
     return `<div class="year-block">
       <div class="year-body open" id="ybr${year}" style="display:block">
-        <table class="year-table">
-          <thead>
-            <tr>
-              <th style="border-bottom:none;background:transparent"></th>
-              <th colspan="12" style="border-bottom:none;background:transparent;padding:10px 0 4px">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-                  <span style="font-size:11px;font-weight:600;color:var(--text-soft)">Gasto mensual ${year}</span>
-                  <div style="display:flex;gap:5px;flex-wrap:wrap">
-                    ${['CABALLOS','GENERALES','RODEOS','TOTAL'].map(f=>`<button onclick="setChartFilter(${year},'${f}')" id="cf-${year}-${f}" style="padding:3px 8px;font-size:10px;font-weight:600;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-soft);cursor:pointer;transition:all .15s">${f}</button>`).join('')}
-                  </div>
-                </div>
-                <canvas id="chart-${year}" height="78"></canvas>
-              </th>
-              <th style="border-bottom:none;background:transparent"></th>
-            </tr>
-            <tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr>
-          </thead>
-        <tbody>
-          ${rows.map(r=>`<tr><td>${r.h}</td>${r.cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${r.rt>0?clp(r.rt):clp(0)}</strong></td></tr>`).join('')}
-          <tr><td>TOTAL</td>${colT.map(v=>`<td>${clp(v)}</td>`).join('')}<td>${clp(yt)}</td></tr>
-        </tbody></table>
+        <div style="padding:10px 10px 4px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:11px;font-weight:600;color:var(--text-soft)">Gasto mensual ${year}</span>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              ${['CABALLOS','GENERALES','RODEOS','TOTAL'].map(f=>`<button onclick="setChartFilter(${year},'${f}')" id="cf-${year}-${f}" style="padding:3px 8px;font-size:10px;font-weight:600;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-soft);cursor:pointer;transition:all .15s">${f}</button>`).join('')}
+            </div>
+          </div>
+          <canvas id="chart-${year}" height="78"></canvas>
+        </div>
+        <div id="res-tbl-h${year}">
+          <table class="year-table">
+            <thead><tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
+            <tbody>
+              ${rows.map(r=>`<tr><td>${r.h}</td>${r.cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${r.rt>0?clp(r.rt):clp(0)}</strong></td></tr>`).join('')}
+              <tr><td>TOTAL</td>${colT.map(v=>`<td>${clp(v)}</td>`).join('')}<td>${clp(yt)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="res-tbl-r${year}" style="display:none;padding:4px 10px 10px">
+          ${(()=>{
+            const rds=allRodeos.filter(r=>r.year===year).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+            if(!rds.length)return `<div style="color:var(--text-soft);font-size:12px;padding:14px;text-align:center">Sin rodeos registrados en ${year}</div>`;
+            const rrows=rds.map(r=>{
+              const costs=allRodeosCostos.filter(c=>c.rodeo_id===r.id);
+              const tot=costs.reduce((s,c)=>s+Number(c.monto),0);
+              const det=costs.map(c=>c.categoria||c.cat||'').filter(Boolean).join(', ');
+              return `<tr><td style="font-weight:600">${r.nombre}</td><td>${r.fecha?new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL'):'—'}</td><td>${det||'—'}</td><td style="text-align:right"><strong>${clp(tot)||'$0'}</strong></td></tr>`;
+            }).join('');
+            const rtot=allRodeosCostos.filter(c=>rds.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
+            return `<table class="year-table" style="width:100%">
+              <thead><tr><th style="text-align:left">Rodeo</th><th style="text-align:left">Fecha</th><th style="text-align:left">Detalle</th><th style="text-align:right">Total gastado</th></tr></thead>
+              <tbody>${rrows}
+              <tr><td style="font-weight:700">TOTAL</td><td></td><td></td><td style="text-align:right;font-weight:700">${clp(rtot)||'$0'}</td></tr></tbody>
+            </table>`;
+          })()}
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -1529,6 +1545,8 @@ function renderChart(year){
   });
   const rt=document.getElementById('res-year-total');
   if(rt&&typeof resYear!=='undefined'&&year===resYear){rt.textContent=clp(data.reduce((s,v)=>s+v,0))||'$0';}
+  const tblH=document.getElementById('res-tbl-h'+year), tblR=document.getElementById('res-tbl-r'+year);
+  if(tblH&&tblR){tblH.style.display=filter==='RODEOS'?'none':'';tblR.style.display=filter==='RODEOS'?'':'none';}
   const colorMap={CABALLOS:'#7a5c2e',GENERALES:'#2b5fa6',RODEOS:'#1a7a4a',TOTAL:'#c9a96e'};
   const barColor=colorMap[filter]||'#c9a96e';
   if(chartInstances[year])chartInstances[year].destroy();
@@ -1550,10 +1568,16 @@ function renderChart(year){
 }
 
 // ===== INGRESAR =====
+let expYear=new Date().getFullYear();
+function expChangeYear(d){expYear+=d;renderExpBlocks();}
 function renderExpBlocks(){
   const horses=sortedActive();
-  const years=getYears();
-  document.getElementById('exp-blocks').innerHTML=years.map(year=>{
+  const expCtrls=`<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
+    <button onclick="expChangeYear(-1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
+    <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${expYear}</span>
+    <button onclick="expChangeYear(1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
+  </div>`;
+  document.getElementById('exp-blocks').innerHTML=expCtrls+[expYear].map(year=>{
     const ye=allEntries.filter(e=>e.year===year);
     const yg=allGenerales.filter(e=>e.year===year);
     const yt=ye.reduce((s,e)=>s+Number(e.amount),0);
@@ -1563,11 +1587,8 @@ function renderExpBlocks(){
     const ytotal=yt+ygt+yrt;
     const allHorsesForYear=sortedActive(year);const yhorsesForYear=allHorsesForYear.filter(h=>horseStartYear(h)<=year||allEntries.some(e=>e.horse===h&&e.year===year));
     return `<div class="exp-block">
-      <div class="exp-y-hdr" onclick="tog('eyh${year}','eyb${year}','eya${year}')" id="eyh${year}">
-        <span class="year-title"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${year}</span>
-        <span style="display:flex;align-items:center;gap:12px"><span class="year-total" id="eyt${year}">${ytotal?clp(ytotal):''}</span><span class="year-arrow" id="eya${year}">▼</span></span>
-      </div>
-      <div class="exp-y-body" id="eyb${year}">
+      <div style="display:flex;justify-content:flex-end;padding:2px 6px 8px"><span style="font-size:12px;color:var(--text-soft)">Total ${year}:&nbsp;</span><span class="year-total" id="eyt${year}" style="font-size:13px;font-weight:700;color:var(--wood)">${ytotal?clp(ytotal):'$0'}</span></div>
+      <div class="exp-y-body open" id="eyb${year}" style="display:block">
         <!-- GENERALES section -->
         <div class="exp-h-block">
           <div class="exp-h-hdr" onclick="tog('gen-h${year}','gen-b${year}','gen-a${year}')">
