@@ -3363,10 +3363,13 @@ function buildResArregladores(){
     ${statsHTML}
   </div>
   ${(()=>{
-    const cnt={};
-    sortHorsesBy('estado').forEach(h=>{const e=getEnt(h.nombre,resArrYear,resArrMonth);if(e&&e.jinete)cnt[e.jinete]=(cnt[e.jinete]||0)+1;});
-    const chips=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([j,n])=>
-      `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--cream);border:1px solid var(--gold);color:var(--wood);border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-user" style="font-size:10px"></i> ${j} <span style="background:var(--wood);color:var(--cream);border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`).join(' ');
+    const cnt={};const who={};
+    sortHorsesBy('estado').forEach(h=>{const e=getEnt(h.nombre,resArrYear,resArrMonth);if(e&&e.jinete){cnt[e.jinete]=(cnt[e.jinete]||0)+1;(who[e.jinete]=who[e.jinete]||[]).push(h.nombre);}});
+    const chips=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([j,n])=>{
+      const on=resArrFilter===j;
+      const next=(on?'':j).replace(/'/g,"\\'");
+      return `<span onclick="setResArrFilter('${next}')" title="${(who[j]||[]).join(', ').replace(/"/g,'&quot;')}" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-user" style="font-size:10px"></i> ${j} <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`;
+    }).join(' ');
     return chips?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px"><span style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;align-self:center">${MESES_L[resArrMonth-1]}:</span>${chips}</div>`:'';
   })()}`;
   if(!horseObjs.length)return ctrls+`<div style="background:var(--cream);border:1.5px dashed var(--gold);border-radius:10px;padding:20px;text-align:center;color:var(--text-soft);font-size:12px;margin-bottom:14px">Sin caballos para mostrar</div>`;
