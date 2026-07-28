@@ -1422,14 +1422,19 @@ function renderResumen(){
   const years=getYears();
   const ybEl=document.getElementById('year-blocks');
   if(ybEl)ybEl.style.display=resSection==='gastos'?'block':'none';
-  const ytSel=allEntries.filter(e=>e.year===resYear).reduce((s,e)=>s+Number(e.amount),0);
+  const _fSel=(typeof chartFilters!=='undefined'&&chartFilters[resYear])||'TOTAL';
+  const _cabY=allEntries.filter(e=>e.year===resYear).reduce((s,e)=>s+Number(e.amount),0);
+  const _genY=allGenerales.filter(e=>e.year===resYear).reduce((s,e)=>s+Number(e.monto),0);
+  const _rodsY=allRodeos.filter(r=>r.year===resYear);
+  const _rodY=allRodeosCostos.filter(c=>_rodsY.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
+  const ytSel=_fSel==='CABALLOS'?_cabY:_fSel==='GENERALES'?_genY:_fSel==='RODEOS'?_rodY:(_cabY+_genY+_rodY);
   const yearCtrls=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:8px">
       <button onclick="resChangeYear(-1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
       <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${resYear}</span>
       <button onclick="resChangeYear(1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
     </div>
-    <span class="year-total" style="font-size:15px;font-weight:700;color:var(--wood)">${clp(ytSel)}</span>
+    <span class="year-total" id="res-year-total" style="font-size:15px;font-weight:700;color:var(--wood)">${clp(ytSel)||'$0'}</span>
   </div>`;
   document.getElementById('year-blocks').innerHTML=yearCtrls+[resYear].map(year=>{
     const ye=allEntries.filter(e=>e.year===year);
@@ -1521,6 +1526,8 @@ function renderChart(year){
     }
     return val;
   });
+  const rt=document.getElementById('res-year-total');
+  if(rt&&typeof resYear!=='undefined'&&year===resYear){rt.textContent=clp(vals.reduce((s,v)=>s+v,0))||'$0';}
   const colorMap={CABALLOS:'#7a5c2e',GENERALES:'#2b5fa6',RODEOS:'#1a7a4a',TOTAL:'#c9a96e'};
   const barColor=colorMap[filter]||'#c9a96e';
   if(chartInstances[year])chartInstances[year].destroy();
