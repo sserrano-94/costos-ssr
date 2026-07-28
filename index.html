@@ -208,6 +208,8 @@ select:focus,input:focus{border-color:var(--accent)}
 .horse-card-full.inactive{opacity:.5}
 .horse-name{font-size:9.5px;font-weight:600;margin-bottom:1px}
 .horses-table td{text-transform:uppercase}
+.hd-mobile{display:none}
+@media(max-width:768px){.hd-desktop{display:none!important}.hd-mobile{display:grid}}
 .horse-meta{font-size:10px;color:var(--text-soft);display:flex;flex-direction:column;gap:1px}
 .horse-total{font-size:11px;font-weight:600;color:var(--accent);text-align:right}
 .horse-cnt{font-size:11px;color:var(--text-soft);text-align:right;margin-top:2px}
@@ -1338,16 +1340,12 @@ function renderResumen(){
         </div>
         <span class="horse-list-arrow" id="arr-${sid}">▼</span>
       </div>
-      <div class="horse-detail" id="det-${sid}">
-        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;justify-content:center">
-          ${(()=>{
-            const g=(info&&info.genealogia)||{};
-            const pv=padre!=='—'?padre:'';const mv=madre!=='—'?madre:'';
-            const anyGen=pv||mv||Object.values(g).some(v=>v);
-            if(!anyGen)return '';
-            const box=(v,main)=>`<div style="height:100%;display:flex;align-items:center;padding:0 6px;border-radius:4px;font-size:${main?'9.5':'8.5'}px;font-weight:${main?'700':'600'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${v?(main?'background:var(--wood);color:var(--cream);border:1px solid var(--wood-dark)':'background:var(--cream);color:var(--ink);border:1px solid var(--gold)'):'border:1px dashed #e0d5bd;color:#d0c5aa'}" title="${v||''}">${v||'—'}</div>`;
-            return `<div style="flex:0 0 auto">
-              <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px"><i class="ti ti-binary-tree-2" style="font-size:10px;vertical-align:-2px"></i> Genealogía</div>
+      ${(()=>{
+        const g=(info&&info.genealogia)||{};
+        const pv=padre!=='—'?padre:'';const mv=madre!=='—'?madre:'';
+        const anyGen=pv||mv||Object.values(g).some(v=>v);
+        const box=(v,main)=>`<div style="height:100%;display:flex;align-items:center;padding:0 6px;border-radius:4px;font-size:${main?'9.5':'8.5'}px;font-weight:${main?'700':'600'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${v?(main?'background:var(--wood);color:var(--cream);border:1px solid var(--wood-dark)':'background:var(--cream);color:var(--ink);border:1px solid var(--gold)'):'border:1px dashed #e0d5bd;color:#d0c5aa'}" title="${v||''}">${v||'—'}</div>`;
+        const treeHTML=anyGen?`<div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px"><i class="ti ti-binary-tree-2" style="font-size:10px;vertical-align:-2px"></i> Genealogía</div>
               <div style="display:grid;grid-template-columns:92px 92px 92px;grid-template-rows:repeat(16,10px);gap:2px">
                 <div style="grid-column:1;grid-row:4/6">${box(pv,1)}</div>
                 <div style="grid-column:1;grid-row:12/14">${box(mv,1)}</div>
@@ -1363,27 +1361,29 @@ function renderResumen(){
                 <div style="grid-column:3;grid-row:11/13">${box(g.bmpm)}</div>
                 <div style="grid-column:3;grid-row:13/15">${box(g.bmmp)}</div>
                 <div style="grid-column:3;grid-row:15/17">${box(g.bmmm)}</div>
-              </div>
-            </div>`;
-          })()}
+              </div>`:'';
+        const now=new Date();
+        const ent=(typeof allEntrenamientos!=='undefined')?allEntrenamientos.find(e=>e.horse===nombre&&e.year===now.getFullYear()&&e.month===(now.getMonth()+1)):null;
+        const infoRows=`
+          ${info&&info.criadero?`<div class="horse-detail-row">Criadero: <span>${info.criadero}</span></div>`:''}
+          <div class="horse-detail-row">Número: <span>${numero}</span></div>
+          <div class="horse-detail-row">Nacimiento: <span>${dob}</span></div>
+          <div class="horse-detail-row">Alzada: <span>${(info&&info.alzada)||'—'}</span></div>
+          ${info&&info.estado?`<div class="horse-detail-row">Estado: <span>${info.estado}</span></div>`:''}
+          ${ent&&ent.etapa?`<div class="horse-detail-row">Entrenamiento: <span>${ent.etapa}${ent.jinete?' ('+ent.jinete+')':''}</span></div>`:''}`;
+        return `<div class="horse-detail" id="det-${sid}">
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;justify-content:center">
+          <div style="flex:0 0 auto">
+            ${treeHTML}
+            <div class="horse-detail-info hd-desktop" style="margin-top:10px">${infoRows}</div>
+          </div>
           <div class="horse-imgs" style="flex:1;min-width:200px">
             ${mainImg}
             ${extras?`<div class="extra-imgs">${extras}</div>`:''}
           </div>
         </div>
-        <div class="horse-detail-info">
-          <div class="horse-detail-row">Número: <span>${numero}</span></div>
-          <div class="horse-detail-row">Nacimiento: <span>${dob}</span></div>
-          <div class="horse-detail-row">Alzada: <span>${(info&&info.alzada)||'—'}</span></div>
-          ${info&&info.estado?`<div class="horse-detail-row">Estado: <span>${info.estado}</span></div>`:''}
-          ${(()=>{
-            const now=new Date();
-            const ent=(typeof allEntrenamientos!=='undefined')?allEntrenamientos.find(e=>e.horse===nombre&&e.year===now.getFullYear()&&e.month===(now.getMonth()+1)):null;
-            if(!ent||!ent.etapa)return '';
-            return `<div class="horse-detail-row">Entrenamiento: <span>${ent.etapa}${ent.jinete?' ('+ent.jinete+')':''}</span></div>`;
-          })()}
-        </div>
-      </div>
+        <div class="horse-detail-info hd-mobile">${infoRows}</div>
+      </div>`;})()}
     </div>
     ${delBtn}
     </div>`;
@@ -1493,8 +1493,8 @@ function renderChart(year){
     }
     return val;
   });
-  const colorMap={CABALLOS:'var(--wood)',GENERALES:'#185FA5',RODEOS:'#1a7a4a',TOTAL:'var(--gold)'};
-  const barColor=colorMap[filter]||'var(--gold)';
+  const colorMap={CABALLOS:'#7a5c2e',GENERALES:'#2b5fa6',RODEOS:'#1a7a4a',TOTAL:'#c9a96e'};
+  const barColor=colorMap[filter]||'#c9a96e';
   if(chartInstances[year])chartInstances[year].destroy();
   chartInstances[year]=new Chart(canvas,{
     type:'bar',
