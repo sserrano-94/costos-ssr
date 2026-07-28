@@ -1203,6 +1203,14 @@ function getHorseImg(nombre){
   if(fotos.length>0)return fotos[0].url;
   return null;
 }
+let resSection=null;
+let resYear=new Date().getFullYear();
+function showResSection(sec){
+  resSection=(resSection===sec?null:sec);
+  renderResumen();
+}
+function resChangeYear(d){resYear+=d;renderResumen();}
+
 function renderResumen(){
   const horses=sortedActive();
   // Empty state for new users with no horses
@@ -1268,7 +1276,18 @@ function renderResumen(){
       </div>`;
     }
   }catch(e){}
-  document.getElementById('horse-list').innerHTML=remindHTML+dashHTML+[...horses].sort((a,b)=>{
+  const navBtn=(sec,icon,label)=>{
+    const active=resSection===sec;
+    return `<div onclick="showResSection('${sec}')" style="cursor:pointer;user-select:none;background:${active?'var(--wood)':'var(--surface)'};border:1.5px solid ${active?'var(--wood-dark)':'var(--gold)'};border-radius:10px;padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:all .15s">
+      <i class="ti ti-${icon}" style="font-size:20px;color:${active?'var(--cream)':'var(--wood)'}"></i>
+      <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:${active?'var(--cream)':'var(--ink)'}">${label}</span>
+    </div>`;
+  };
+  const navHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+    ${navBtn('caballos','horse','CABALLOS')}${navBtn('gastos','coin','GASTOS')}${navBtn('rodeos','trophy','RODEOS')}
+  </div>`;
+  const rodeosHTML=resSection==='rodeos'?`<div style="background:var(--cream);border:1.5px dashed var(--gold);border-radius:10px;padding:24px;text-align:center;color:var(--text-soft);font-size:12px;margin-bottom:14px"><i class="ti ti-trophy" style="font-size:26px;color:var(--gold)"></i><br>Sección Rodeos — próximamente</div>`:'';
+  const horsesHTML=[...horses].sort((a,b)=>{
     const fa=allHorses.find(h=>h.nombre===a)?.favorito?0:1;
     const fb=allHorses.find(h=>h.nombre===b)?.favorito?0:1;
     return fa-fb;
@@ -1369,13 +1388,22 @@ function renderResumen(){
     ${delBtn}
     </div>`;
   }).join('');
+  document.getElementById('horse-list').innerHTML=remindHTML+dashHTML+navHTML+rodeosHTML+
+    (resSection==='caballos'?horsesHTML:'');
 
   const years=getYears();
-  document.getElementById('year-blocks').innerHTML=years.map(year=>{
+  const ybEl=document.getElementById('year-blocks');
+  if(ybEl)ybEl.style.display=resSection==='gastos'?'block':'none';
+  const yearCtrls=`<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
+    <button onclick="resChangeYear(-1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
+    <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center">${resYear}</span>
+    <button onclick="resChangeYear(1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
+  </div>`;
+  document.getElementById('year-blocks').innerHTML=yearCtrls+[resYear].map(year=>{
     const ye=allEntries.filter(e=>e.year===year);
     const yt=ye.reduce((s,e)=>s+Number(e.amount),0);
     const yhAll=sortedActive(year);const yh=yhAll;
-    if(!yh.length)return'';
+    if(!yh.length)return'<div style="background:var(--cream);border:1.5px dashed var(--gold);border-radius:10px;padding:20px;text-align:center;color:var(--text-soft);font-size:12px">Sin gastos registrados en '+year+'</div>';
     const am=[1,2,3,4,5,6,7,8,9,10,11,12];
     const rows=yh.map(h=>{
       const cells=am.map(m=>ye.filter(e=>e.horse===h&&e.month===m).reduce((s,e)=>s+Number(e.amount),0));
