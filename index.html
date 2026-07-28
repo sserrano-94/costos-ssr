@@ -2853,6 +2853,24 @@ const RODEO_CATS = ['Invitación','Flete','Series','Peticero','Supermercado','Ot
 
 
 
+
+async function deleteRodeoFull(id){
+  const r=allRodeos.find(x=>x.id===id);
+  const nSeries=allRodeoSeries.filter(s=>s.rodeo_id===id).length;
+  if(!await mancosConfirm(`¿Eliminar el rodeo "${r?r.nombre:''}"${nSeries?` con sus ${nSeries} serie${nSeries!==1?'s':''}`:''} y todos sus costos?`))return;
+  try{
+    await sbFetch('rodeo_series?rodeo_id=eq.'+id,{method:'DELETE'});
+    await sbFetch('rodeos_costos?rodeo_id=eq.'+id,{method:'DELETE'});
+    await sbFetch('rodeos?id=eq.'+id,{method:'DELETE'});
+    allRodeoSeries=allRodeoSeries.filter(s=>s.rodeo_id!==id);
+    allRodeosCostos=allRodeosCostos.filter(c=>c.rodeo_id!==id);
+    allRodeos=allRodeos.filter(x=>x.id!==id);
+    resOpenRodeos.delete(id);
+    renderResumen();renderExpBlocks();
+    toast('Rodeo eliminado');
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
 // ===== MODAL AGREGAR RODEO (completo) =====
 function openRodeoFullModal(){
   if(!canEdit)return;
@@ -3312,7 +3330,15 @@ function buildResRodeos(){
     ${canEdit?`<button onclick="openRodeoFullModal()" style="height:30px;padding:0 14px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar rodeo</button>`:''}
   </div>`;
   if(!rds.length)return ctrls+`<div style="background:var(--cream);border:1.5px dashed var(--gold);border-radius:10px;padding:20px;text-align:center;color:var(--text-soft);font-size:12px;margin-bottom:14px">Sin rodeos registrados en ${resRodYear}</div>`;
+  const MESES_LR=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  let lastMonth=-1;
   const blocks=rds.map(r=>{
+    const rMonth=r.fecha?new Date(r.fecha+'T12:00:00').getMonth():null;
+    let monthHdr='';
+    if(rMonth!==null&&rMonth!==lastMonth){
+      lastMonth=rMonth;
+      monthHdr=`<div style="font-size:10px;font-weight:700;color:var(--wood);text-transform:uppercase;letter-spacing:1.5px;margin:12px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--gold)"><i class="ti ti-calendar" style="font-size:11px;vertical-align:-2px"></i> ${MESES_LR[rMonth]}</div>`;
+    }
     const series=allRodeoSeries.filter(s=>s.rodeo_id===r.id);
     const open=resOpenRodeos.has(r.id);
     const fecha=r.fecha?new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL'):'—';
@@ -3352,12 +3378,16 @@ function buildResRodeos(){
         <div style="margin-top:5px">${fotosHTML}</div>
       </div>`;
     }).join('');
-    return `<div class="exp-h-block" style="margin-bottom:8px">
+    return `${monthHdr}<div class="exp-h-block" style="margin-bottom:8px">
       <div class="exp-horse-hdr" onclick="resToggleRodeo(${r.id})">
-        <div><span class="exp-horse-name"><i class="ti ti-trophy" style="font-size:13px;vertical-align:-2px;color:var(--wood)"></i> ${r.nombre}</span>
-          <span style="font-size:10px;color:var(--text-soft);margin-left:8px">${meta?meta+' · ':''}${fecha}</span></div>
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <span class="exp-horse-name"><i class="ti ti-trophy" style="font-size:13px;vertical-align:-2px;color:var(--wood)"></i> ${r.nombre}</span>
+          ${r.tipo?`<span style="font-size:10px;color:var(--text-soft);padding-left:19px">${r.tipo}</span>`:''}
+          <span style="font-size:10px;color:var(--text-soft);padding-left:19px">${fecha}</span>
+        </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:10px;color:var(--text-soft)">${series.length} serie${series.length!==1?'s':''}</span>
+          ${canEdit?`<span onclick="event.stopPropagation();deleteRodeoFull(${r.id})" title="Eliminar rodeo" style="cursor:pointer;color:var(--red)"><i class="ti ti-trash" style="font-size:13px"></i></span>`:''}
           <span class="exp-h-arrow${open?' open':''}">▼</span>
         </div>
       </div>
