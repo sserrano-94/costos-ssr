@@ -1426,11 +1426,11 @@ function renderResumen(){
             }else{
               chip=`<div style="border:1px dashed #e0d5bd;border-radius:4px;height:22px;box-sizing:border-box"></div>`;
             }
-            return `<div><div style="font-size:8px;color:var(--text-soft);font-weight:700;text-transform:uppercase;text-align:center;margin-bottom:2px">${m}</div>${chip}</div>`;
+            return `<div class="ent-strip-m" data-m="${i+1}"><div style="font-size:8px;color:var(--text-soft);font-weight:700;text-transform:uppercase;text-align:center;margin-bottom:2px">${m}</div>${chip}</div>`;
           }).join('');
           return `<div style="margin-top:14px;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px">
             <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px"><i class="ti ti-run" style="font-size:10px;vertical-align:-2px"></i> Entrenamiento <span onclick="resEntChangeYear(-1)" style="cursor:pointer;padding:0 4px;color:var(--wood);font-size:10px;user-select:none">‹</span>${cy2}<span onclick="resEntChangeYear(1)" style="cursor:pointer;padding:0 4px;color:var(--wood);font-size:10px;user-select:none">›</span></div>
-            <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:0 5px;overflow-x:auto">${cells}</div>
+            <div class="ent-strip-scroll" style="display:grid;grid-template-columns:repeat(12,minmax(58px,1fr));gap:0 5px;overflow-x:auto;-webkit-overflow-scrolling:touch">${cells}</div>
           </div>`;
         })()}
       </div>`;})()}
@@ -1440,6 +1440,14 @@ function renderResumen(){
   }).join('');
   document.getElementById('horse-list').innerHTML=remindHTML+navHTML+rodeosHTML+arregHTML+
     (resSection==='caballos'?horsesHTML:'');
+  if(resSection==='caballos'&&resOpenHorse){setTimeout(()=>{
+    const cm=new Date().getMonth()+1;
+    document.querySelectorAll('.ent-strip-scroll').forEach(sc=>{
+      if(sc.scrollWidth<=sc.clientWidth)return;
+      const el=sc.querySelector('.ent-strip-m[data-m="'+cm+'"]');
+      if(el)sc.scrollLeft=Math.max(0,el.offsetLeft-sc.clientWidth/2+el.offsetWidth/2);
+    });
+  },60);}
   if(resSection==='arregladores'){setTimeout(()=>{const sc=document.getElementById('arr-tbl-scroll');const th=document.getElementById('arr-m-'+resArrMonth);if(sc&&th&&sc.scrollWidth>sc.clientWidth){sc.scrollLeft=Math.max(0,th.offsetLeft-100);}},60);}
 
   const years=getYears();
@@ -1503,13 +1511,13 @@ function renderResumen(){
               const costs=allRodeosCostos.filter(c=>c.rodeo_id===r.id);
               const tot=costs.reduce((s,c)=>s+Number(c.monto),0);
               const det=costs.map(c=>c.categoria||c.cat||'').filter(Boolean).join(', ');
-              return `<tr><td style="font-weight:600">${r.nombre}</td><td>${r.fecha?new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL'):'—'}</td><td>${det||'—'}</td><td style="text-align:right"><strong>${clp(tot)||'$0'}</strong></td></tr>`;
+              return `<tr><td style="font-weight:600;text-align:left">${r.nombre}</td><td style="text-align:left">${r.fecha?new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL'):'—'}</td><td style="text-align:left">${det||'—'}</td><td style="text-align:right"><strong>${clp(tot)||'$0'}</strong></td></tr>`;
             }).join('');
             const rtot=allRodeosCostos.filter(c=>rds.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
             return `<table class="year-table" style="width:100%">
               <thead><tr><th style="text-align:left">Rodeo</th><th style="text-align:left">Fecha</th><th style="text-align:left">Detalle</th><th style="text-align:right">Total gastado</th></tr></thead>
               <tbody>${rrows}
-              <tr><td style="font-weight:700">TOTAL</td><td></td><td></td><td style="text-align:right;font-weight:700">${clp(rtot)||'$0'}</td></tr></tbody>
+              <tr><td style="font-weight:700;text-align:left">TOTAL</td><td></td><td></td><td style="text-align:right;font-weight:700">${clp(rtot)||'$0'}</td></tr></tbody>
             </table>`;
           })()}
         </div>
@@ -2145,7 +2153,7 @@ function renderCaballos(){
   const cols=isAdmin?11:10;
   const th=t=>`<th style="padding:6px 8px;font-size:9.5px;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--gold);text-align:left;white-space:nowrap">${t}</th>`;
   let html='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="horses-table" style="border-collapse:collapse;width:100%;min-width:680px">';
-  html+='<tr>'+th('').replace('<th ','<th class="ht-star" ')+th('Caballo').replace('<th ','<th class="ht-name" ')+th('Criadero')+th('Estado')+th('Número')+th('F. Nac.')+th('Edad')+th('Alzada')+th('Padre')+th('Madre')+(isAdmin?th(''):'')+'</tr>';
+  html+='<tr>'+th('').replace('<th ','<th class="ht-star" ')+th('Caballo').replace('<th ','<th class="ht-name" ')+th('Criadero')+th('Estado')+th('Número')+th('F. Nac.')+th('Edad')+th('Raza')+th('Alzada')+th('Padre')+th('Madre')+(isAdmin?th(''):'')+'</tr>';
   html+=all.map(h=>{
     const edad=calcAge(h.fecha_nacimiento);
     const dob=h.fecha_nacimiento?new Date(h.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
@@ -2167,6 +2175,7 @@ function renderCaballos(){
       <td style="${td}">${isEdit?`<input id="eh-numero-${h.id}" type="text" value="${h.numero||''}" style="${inp};width:70px;text-transform:uppercase">`:numero}</td>
       <td style="${td}">${isEdit?`<input id="eh-dob-${h.id}" type="date" value="${h.fecha_nacimiento||''}" style="${inp};width:115px">`:dob}</td>
       <td style="${td}">${edad}</td>
+      <td style="${td}">${isEdit?`<input id="eh-raza-${h.id}" type="text" list="razas-list" value="${(h.raza||'').replace(/"/g,'&quot;')}" placeholder="Chileno" style="${inp};width:90px;text-transform:uppercase">`:(h.raza||'—')}</td>
       <td style="${td}">${isEdit?`<input id="eh-alzada-${h.id}" type="text" value="${h.alzada||''}" placeholder="1.42" style="${inp};width:52px">`:(h.alzada||'—')}</td>
       <td style="${td}">${padre||'—'}</td>
       <td style="${td}">${madre||'—'}</td>
@@ -2504,13 +2513,14 @@ async function saveEditHorse(id){
   const madre=gv('gm');
   const genealogia={abpp:gv('abpp'),abpm:gv('abpm'),abmp:gv('abmp'),abmm:gv('abmm'),bppp:gv('bppp'),bppm:gv('bppm'),bpmp:gv('bpmp'),bpmm:gv('bpmm'),bmpp:gv('bmpp'),bmpm:gv('bmpm'),bmmp:gv('bmmp'),bmmm:gv('bmmm')};
   const alzada=document.getElementById('eh-alzada-'+id)?.value.trim()||null;
+  const raza=document.getElementById('eh-raza-'+id)?.value.trim().toUpperCase()||null;
   const criadero=document.getElementById('eh-criadero-'+id)?.value.trim().toUpperCase()||null;
   if(!nombre){toast('Ingresa el nombre','err');return;}
   try{
     const estado=document.getElementById('eh-estado-'+id)?.value||'';
-    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,padre,madre,estado,alzada,genealogia,criadero})});
+    await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({nombre,numero,fecha_nacimiento:dob||null,padre,madre,estado,alzada,raza,genealogia,criadero})});
     const h=allHorses.find(h=>h.id===id);
-    const estado2=document.getElementById('eh-estado-'+id)?.value||'';if(h){h.nombre=nombre;h.numero=numero;h.fecha_nacimiento=dob||null;h.padre=padre;h.madre=madre;h.estado=estado2;h.alzada=alzada;h.genealogia=genealogia;h.criadero=criadero;}
+    const estado2=document.getElementById('eh-estado-'+id)?.value||'';if(h){h.nombre=nombre;h.numero=numero;h.fecha_nacimiento=dob||null;h.padre=padre;h.madre=madre;h.estado=estado2;h.alzada=alzada;h.raza=raza;h.genealogia=genealogia;h.criadero=criadero;}
     // Upload photo if selected
     const photoInput=document.getElementById('eh-photo-'+id);
     if(photoInput&&photoInput.files&&photoInput.files[0]){
@@ -4869,5 +4879,6 @@ async function delInvItem(id){
   </div>
 </div>
 
+<datalist id="razas-list"><option value="CHILENO"><option value="FRISÓN"><option value="PONY"><option value="MESTIZO"><option value="CUARTO DE MILLA"><option value="ÁRABE"><option value="PURA SANGRE"></datalist>
 </body>
 </html>
