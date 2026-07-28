@@ -381,13 +381,11 @@ select:focus,input:focus{border-color:var(--accent)}
     </div>
 
     <div id="cab-sub-entrenamiento" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-        <div style="font-size:12px;color:var(--text-soft)">Etapa y jinete por caballo y mes</div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <button onclick="entYear--;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
-          <span id="ent-year-label" style="font-size:14px;font-weight:700;color:var(--ink);min-width:48px;text-align:center"></span>
-          <button onclick="entYear++;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
-        </div>
+      <div style="font-size:12px;color:var(--text-soft);margin-bottom:8px">Etapa y jinete por caballo y mes</div>
+      <div style="display:flex;align-items:center;justify-content:flex-start;gap:8px;margin-bottom:10px">
+        <button onclick="entYear--;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
+        <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> <span id="ent-year-label"></span></span>
+        <button onclick="entYear++;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
       </div>
       <div id="ent-summary" style="margin-bottom:10px"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
@@ -411,9 +409,9 @@ select:focus,input:focus{border-color:var(--accent)}
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
       <div style="display:flex;align-items:center;gap:8px">
-        <button onclick="prevMonth()" style="width:32px;height:32px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;font-size:16px">‹</button>
-        <span id="cal-title" style="font-size:15px;font-weight:600;min-width:160px;text-align:center"></span>
-        <button onclick="nextMonth()" style="width:32px;height:32px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;font-size:16px">›</button>
+        <button onclick="prevMonth()" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;font-size:13px">‹</button>
+        <span id="cal-title" style="font-size:15px;font-weight:700;color:var(--ink);min-width:150px;text-align:center"></span>
+        <button onclick="nextMonth()" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;font-size:13px">›</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <select id="cal-horse-filter" onchange="renderCalendar()" style="height:32px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface)"><option value="">Todos los caballos</option></select>
@@ -1575,7 +1573,7 @@ let expYear=new Date().getFullYear();
 function expChangeYear(d){expYear+=d;renderExpBlocks();}
 function renderExpBlocks(){
   const horses=sortedActive();
-  const expCtrls=`<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
+  const expCtrls=`<div style="display:flex;align-items:center;justify-content:flex-start;gap:8px;margin-bottom:10px">
     <button onclick="expChangeYear(-1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
     <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${expYear}</span>
     <button onclick="expChangeYear(1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
@@ -3216,9 +3214,11 @@ let rodeoModalContext=null;
 function openRodeoGastoModal(rodeoId, rsid){
   if(!canEdit){toast('Sin permisos','err');return;}
   rodeoModalContext={rodeoId, rsid};
-  const usedCats=allRodeosCostos.filter(c=>c.rodeo_id===rodeoId).map(c=>c.categoria);
   const sel=document.getElementById('rodeo-modal-cat');
-  sel.innerHTML=RODEO_CATS.filter(c=>!usedCats.includes(c)).map(c=>`<option>${c}</option>`).join('');
+  sel.innerHTML=RODEO_CATS.map(c=>`<option>${c}</option>`).join('')+'<option value="__OTRA__">+ Otra categoría...</option>';
+  sel.onchange=function(){const w=document.getElementById('rodeo-modal-cat-custom');if(w)w.style.display=this.value==='__OTRA__'?'block':'none';};
+  const cw=document.getElementById('rodeo-modal-cat-custom');
+  if(cw){cw.style.display='none';cw.value='';}
   document.getElementById('rodeo-modal-amt').value='';
   document.getElementById('rodeo-modal-note').value='';
   document.getElementById('rodeo-modal').style.display='flex';
@@ -3233,7 +3233,11 @@ function closeRodeoModal(){
 async function saveRodeoGastoModal(){
   if(!rodeoModalContext)return;
   const {rodeoId, rsid}=rodeoModalContext;
-  const cat=document.getElementById('rodeo-modal-cat').value;
+  let cat=document.getElementById('rodeo-modal-cat').value;
+  if(cat==='__OTRA__'){
+    cat=document.getElementById('rodeo-modal-cat-custom').value.trim().toUpperCase();
+    if(!cat){toast('Escribe el nombre de la categoría','err');return;}
+  }
   const monto=+document.getElementById('rodeo-modal-amt').value;
   const nota=document.getElementById('rodeo-modal-note').value.trim();
   if(!monto){toast('Ingresa el monto','err');return;}
@@ -4224,6 +4228,7 @@ async function delInvItem(id){
     <div class="form-field" style="margin-bottom:10px">
       <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Categoría</label>
       <select id="rodeo-modal-cat" style="width:100%;height:36px;font-size:13px"></select>
+      <input type="text" id="rodeo-modal-cat-custom" placeholder="Nombre de la nueva categoría" style="display:none;width:100%;height:34px;margin-top:6px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none;text-transform:uppercase">
     </div>
     <div class="form-field" style="margin-bottom:10px">
       <label style="font-size:12px;font-weight:500;color:var(--text-soft)">Monto</label>
