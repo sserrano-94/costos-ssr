@@ -1160,6 +1160,7 @@ function tog(hdrId,bodyId,arrId){
     const yr=parseInt(bodyId.replace('ybr',''));
     if(yr)setTimeout(()=>{ chartFilters[yr]=chartFilters[yr]||'TOTAL'; renderChart(yr); updateChartButtons(yr); },50);
   }
+  if(o){b.querySelectorAll('.exp-h-block,.exp-m-block').forEach(x=>{x.style.display='';});}
   // If closing, collapse all nested open elements inside
   if(o){
     b.querySelectorAll('.exp-y-body.open,.exp-h-body.open,.exp-m-body.open,.year-body.open').forEach(el=>el.classList.remove('open'));
@@ -1575,7 +1576,10 @@ function renderExpBlocks(){
             <span style="display:flex;align-items:center;gap:8px"><span class="exp-h-total" id="eyct${year}">${yt?clp(yt):'$0'}</span><span class="exp-h-arrow" id="cab-a${year}">▼</span></span>
           </div>
           <div class="exp-h-body" id="cab-b${year}">
-            ${yhorsesForYear.map(h=>buildExpHorse(h,year,ye)).join('')}
+            ${[...yhorsesForYear].sort((a,b)=>{
+              const ca=ye.some(e=>e.horse===a)?0:1, cb=ye.some(e=>e.horse===b)?0:1;
+              return ca-cb;
+            }).map(h=>buildExpHorse(h,year,ye)).join('')}
           </div>
         </div>
         <!-- RODEOS section -->
@@ -1621,7 +1625,7 @@ function buildExpGenMonth(year,month,yg){
   const isCurrentMonth=(month===new Date().getMonth()+1&&year===new Date().getFullYear());
   const mhdrStyle=isCurrentMonth?'background:#e8f0fe;border-left:3px solid var(--accent);':'';
   return `<div class="exp-m-block" id="emb${msid}">
-    <div class="exp-m-hdr" style="${mhdrStyle}" onclick="tog('emh${msid}','embd${msid}','ema${msid}')">
+    <div class="exp-m-hdr" style="${mhdrStyle}" onclick="expToggleMonth('${msid}')">
       <span class="exp-m-name" style="${isCurrentMonth?'color:var(--accent);font-weight:700;':''}">${MONTHS_F[month]}</span>
       <span style="display:flex;align-items:center;gap:8px"><span class="exp-m-total" id="emt${msid}">${mt?clp(mt):'$0'}</span><span class="exp-m-arrow" id="ema${msid}">▼</span></span>
     </div>
@@ -1632,16 +1636,26 @@ function buildExpGenMonth(year,month,yg){
   </div>`;
 }
 
-let expOpenHorse=null;
+function expToggleMonth(msid){
+  const cur=document.getElementById('emb'+msid);
+  const body=document.getElementById('embd'+msid);
+  if(!cur||!body)return;
+  const opening=!body.classList.contains('open');
+  const parent=cur.parentElement;
+  parent.querySelectorAll('.exp-m-block').forEach(b=>{
+    b.style.display=(opening&&b.id!=='emb'+msid)?'none':'';
+  });
+  tog('emh'+msid,'embd'+msid,'ema'+msid);
+}
+
 function expToggleHorse(sid){
-  const wasOpen=expOpenHorse===sid;
-  expOpenHorse=wasOpen?null:sid;
-  // Hide/show sibling horse blocks within the same year body
   const cur=document.getElementById('ehb'+sid);
-  if(!cur)return;
+  const body=document.getElementById('ehbd'+sid);
+  if(!cur||!body)return;
+  const opening=!body.classList.contains('open');
   const parent=cur.parentElement;
   parent.querySelectorAll('.exp-h-block').forEach(b=>{
-    b.style.display=(expOpenHorse&&b.id!=='ehb'+sid)?'none':'';
+    b.style.display=(opening&&b.id!=='ehb'+sid)?'none':'';
   });
   tog('ehh'+sid,'ehbd'+sid,'eha'+sid);
 }
@@ -1688,7 +1702,7 @@ function buildExpMonth(horse,year,month,he,parentSid){
   const isCurrentMonth=(month===new Date().getMonth()+1&&year===new Date().getFullYear());
   const mhdrStyle=isCurrentMonth?'background:#e8f0fe;border-left:3px solid var(--accent);':'';
   return `<div class="exp-m-block" id="emb${msid}">
-    <div class="exp-m-hdr" style="${mhdrStyle}" onclick="tog('emh${msid}','embd${msid}','ema${msid}')">
+    <div class="exp-m-hdr" style="${mhdrStyle}" onclick="expToggleMonth('${msid}')">
       <span class="exp-m-name" style="${isCurrentMonth?'color:var(--accent);font-weight:700;':''}">${MONTHS_F[month]}</span>
       <span style="display:flex;align-items:center;gap:8px"><span class="exp-m-total" id="emt${msid}">${mt?clp(mt):'$0'}</span><span class="exp-m-arrow" id="ema${msid}">▼</span></span>
     </div>
