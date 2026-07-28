@@ -1209,6 +1209,8 @@ function getHorseImg(nombre){
 let resSection=null;
 let resYear=new Date().getFullYear();
 let resOpenHorse=null;
+let resEntYear=new Date().getFullYear();
+function resEntChangeYear(d){resEntYear+=d;renderResumen();}
 function resToggleHorse(sid){resOpenHorse=(resOpenHorse===sid?null:sid);renderResumen();}
 function showResSection(sec){
   resSection=(resSection===sec?null:sec);
@@ -1386,7 +1388,7 @@ function renderResumen(){
           </div>
         </div>
         ${(()=>{
-          const cy2=new Date().getFullYear();
+          const cy2=resEntYear;
           const MES3=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
           const cells=MES3.map((m,i)=>{
             const e=(typeof allEntrenamientos!=='undefined')?allEntrenamientos.find(x=>x.horse===nombre&&x.year===cy2&&x.month===i+1):null;
@@ -1403,7 +1405,7 @@ function renderResumen(){
             return `<div><div style="font-size:8px;color:var(--text-soft);font-weight:700;text-transform:uppercase;text-align:center;margin-bottom:2px">${m}</div>${chip}</div>`;
           }).join('');
           return `<div style="margin-top:14px;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px">
-            <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px"><i class="ti ti-run" style="font-size:10px;vertical-align:-2px"></i> Entrenamiento ${cy2}</div>
+            <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px"><i class="ti ti-run" style="font-size:10px;vertical-align:-2px"></i> Entrenamiento <span onclick="resEntChangeYear(-1)" style="cursor:pointer;padding:0 4px;color:var(--wood);font-size:10px;user-select:none">‹</span>${cy2}<span onclick="resEntChangeYear(1)" style="cursor:pointer;padding:0 4px;color:var(--wood);font-size:10px;user-select:none">›</span></div>
             <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:0 5px;overflow-x:auto">${cells}</div>
           </div>`;
         })()}
@@ -1630,12 +1632,26 @@ function buildExpGenMonth(year,month,yg){
   </div>`;
 }
 
+let expOpenHorse=null;
+function expToggleHorse(sid){
+  const wasOpen=expOpenHorse===sid;
+  expOpenHorse=wasOpen?null:sid;
+  // Hide/show sibling horse blocks within the same year body
+  const cur=document.getElementById('ehb'+sid);
+  if(!cur)return;
+  const parent=cur.parentElement;
+  parent.querySelectorAll('.exp-h-block').forEach(b=>{
+    b.style.display=(expOpenHorse&&b.id!=='ehb'+sid)?'none':'';
+  });
+  tog('ehh'+sid,'ehbd'+sid,'eha'+sid);
+}
+
 function buildExpHorse(horse,year,ye){
   const he=ye.filter(e=>e.horse===horse);
   const ht=he.reduce((s,e)=>s+Number(e.amount),0);
   const sid=horse.replace(/[^a-zA-Z0-9]/g,'_')+'_'+year;
   return `<div class="exp-h-block" id="ehb${sid}">
-    <div class="exp-horse-hdr" onclick="tog('ehh${sid}','ehbd${sid}','eha${sid}')">
+    <div class="exp-horse-hdr" onclick="expToggleHorse('${sid}')">
       <span class="exp-horse-name">${horse}</span>
       <span style="display:flex;align-items:center;gap:8px"><span class="exp-h-total" id="eht${sid}">${ht?clp(ht):'$0'}</span><span class="exp-h-arrow" id="eha${sid}">▼</span></span>
     </div>
