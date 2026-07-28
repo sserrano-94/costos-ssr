@@ -1373,8 +1373,8 @@ function renderResumen(){
           ${info&&info.estado?`<div class="horse-detail-row">Estado: <span>${info.estado}</span></div>`:''}
           ${ent&&ent.etapa?`<div class="horse-detail-row">Entrenamiento: <span>${ent.etapa}${ent.jinete?' ('+ent.jinete+')':''}</span></div>`:''}`;
         return `<div class="horse-detail" id="det-${sid}">
-        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">
-          <div style="flex:0 0 auto;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px">
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:stretch">
+          <div style="flex:0 0 auto;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px;box-sizing:border-box">
             <div class="horse-detail-info" style="margin-bottom:12px">${infoRows}</div>
             ${treeHTML}
           </div>
@@ -1394,10 +1394,14 @@ function renderResumen(){
   const years=getYears();
   const ybEl=document.getElementById('year-blocks');
   if(ybEl)ybEl.style.display=resSection==='gastos'?'block':'none';
-  const yearCtrls=`<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
-    <button onclick="resChangeYear(-1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
-    <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center">${resYear}</span>
-    <button onclick="resChangeYear(1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
+  const ytSel=allEntries.filter(e=>e.year===resYear).reduce((s,e)=>s+Number(e.amount),0);
+  const yearCtrls=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button onclick="resChangeYear(-1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
+      <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${resYear}</span>
+      <button onclick="resChangeYear(1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
+    </div>
+    <span class="year-total" style="font-size:15px;font-weight:700;color:var(--wood)">${clp(ytSel)}</span>
   </div>`;
   document.getElementById('year-blocks').innerHTML=yearCtrls+[resYear].map(year=>{
     const ye=allEntries.filter(e=>e.year===year);
@@ -1411,10 +1415,6 @@ function renderResumen(){
     });
     const colT=am.map(m=>ye.filter(e=>e.month===m).reduce((s,e)=>s+Number(e.amount),0));
     return `<div class="year-block">
-      <div class="year-header" onclick="tog('yhr${year}','ybr${year}','yar${year}')" id="yhr${year}">
-        <span class="year-title"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${year}</span>
-        <span style="display:flex;align-items:center;gap:12px"><span class="year-total">${clp(yt)}</span><span class="year-arrow" id="yar${year}" style="transform:rotate(180deg)">▼</span></span>
-      </div>
       <div class="year-body open" id="ybr${year}" style="display:block">
         <table class="year-table">
           <thead>
