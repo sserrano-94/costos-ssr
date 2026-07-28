@@ -1373,12 +1373,12 @@ function renderResumen(){
           ${info&&info.estado?`<div class="horse-detail-row">Estado: <span>${info.estado}</span></div>`:''}
           ${ent&&ent.etapa?`<div class="horse-detail-row">Entrenamiento: <span>${ent.etapa}${ent.jinete?' ('+ent.jinete+')':''}</span></div>`:''}`;
         return `<div class="horse-detail" id="det-${sid}">
-        <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
-          <div style="flex:0 0 auto">
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">
+          <div style="flex:0 0 auto;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px">
             <div class="horse-detail-info" style="margin-bottom:12px">${infoRows}</div>
             ${treeHTML}
           </div>
-          <div class="horse-imgs" style="flex:0 1 auto;max-width:420px;min-width:200px">
+          <div class="horse-imgs" style="flex:0 1 auto;max-width:420px;min-width:200px;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:10px">
             ${mainImg}
             ${extras?`<div class="extra-imgs">${extras}</div>`:''}
           </div>
@@ -2169,19 +2169,6 @@ function setMainPhoto(sid, src, nombre){
   const horseImgs=document.querySelector('#det-'+sid+' .horse-imgs');
   // Remove old buttons
   ['orig-btn-','del-photo-btn-','set-principal-btn-'].forEach(p=>{const el=document.getElementById(p+sid);if(el)el.remove();});
-  // Back button
-  const origBtn=document.createElement('button');
-  origBtn.id='orig-btn-'+sid;
-  origBtn.textContent='← Volver';
-  origBtn.style.cssText='margin:4px 4px 4px 8px;background:none;border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text-soft)';
-  origBtn.onclick=()=>{
-    mainImg.src=mainImg.dataset.original;
-    ['orig-btn-','del-photo-btn-','set-principal-btn-'].forEach(p=>{const el=document.getElementById(p+sid);if(el)el.remove();});
-    // Unwrap main-img-wrapper if exists
-    const wrapper=document.querySelector('#det-'+sid+' .main-img-wrapper');
-    if(wrapper){wrapper.parentNode.insertBefore(mainImg,wrapper);wrapper.remove();}
-  };
-  horseImgs.insertBefore(origBtn, horseImgs.querySelector('.extra-imgs')||horseImgs.querySelector('.add-photo-btn'));
   if(isAdmin){
     // Set as principal button
     const currentPrincipal=getHorseImg(nombre||'');
