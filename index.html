@@ -2153,7 +2153,23 @@ function renderCaballos(){
   const cols=isAdmin?11:10;
   const th=t=>`<th style="padding:6px 8px;font-size:9.5px;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--gold);text-align:left;white-space:nowrap">${t}</th>`;
   let html='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="horses-table" style="border-collapse:collapse;width:100%;min-width:680px">';
-  html+='<tr>'+th('').replace('<th ','<th class="ht-star" ')+th('Caballo').replace('<th ','<th class="ht-name" ')+th('Criadero')+th('Estado')+th('Número')+th('F. Nac.')+th('Edad')+th('Raza')+th('Alzada')+th('Padre')+th('Madre')+(isAdmin?th(''):'')+'</tr>';
+  const bulkBar=selectedHorses.size?`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--cream);border:1.5px solid var(--gold);border-radius:10px;padding:8px 12px;margin-bottom:10px">
+    <span style="font-size:11px;font-weight:700;color:var(--wood)">${selectedHorses.size} seleccionado${selectedHorses.size!==1?'s':''}</span>
+    <select id="bulk-field" onchange="bulkFieldChanged()" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);outline:none;cursor:pointer">
+      <option value="raza">Raza</option>
+      <option value="alzada">Alzada</option>
+      <option value="criadero">Criadero</option>
+      <option value="estado">Estado</option>
+      <option value="padre">Padre</option>
+      <option value="madre">Madre</option>
+    </select>
+    <input type="text" id="bulk-value" list="razas-list" placeholder="Valor" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--gold);border-radius:6px;outline:none;text-transform:uppercase;width:150px">
+    <button onclick="bulkApplyHorses()" style="height:28px;padding:0 12px;font-size:11px;font-weight:700;border-radius:6px;border:none;background:var(--wood);color:var(--cream);cursor:pointer">Aplicar</button>
+    <button onclick="clearHorseSelection()" style="height:28px;padding:0 10px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text-soft)">Cancelar</button>
+    <datalist id="bulk-horses-list">${allHorses.map(x=>`<option value="${x.nombre}">`).join('')}</datalist>
+  </div>`:'';
+  html=bulkBar+html;
+  html+='<tr>'+th('').replace('<th ','<th class="ht-star" ')+th('Caballo').replace('<th ','<th class="ht-name" ')+th('Criadero')+th('Estado')+th('Número')+th('F. Nac.')+th('Edad')+th('Raza')+th('Alzada')+th('Padre')+th('Madre')+(isAdmin?th(''):'')+(isAdmin?th(''):'')+'</tr>';
   html+=all.map(h=>{
     const edad=calcAge(h.fecha_nacimiento);
     const dob=h.fecha_nacimiento?new Date(h.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
@@ -2179,7 +2195,8 @@ function renderCaballos(){
       <td style="${td}">${isEdit?`<input id="eh-alzada-${h.id}" type="text" value="${h.alzada||''}" placeholder="1.42" style="${inp};width:52px">`:(h.alzada||'—')}</td>
       <td style="${td}">${padre||'—'}</td>
       <td style="${td}">${madre||'—'}</td>
-      ${isAdmin?`<td style="${td};width:26px;text-align:center"><span onclick="toggleEditHorse(${h.id})" style="cursor:pointer;color:#bbb" title="Editar"><i class="ti ti-pencil" style="font-size:13px;vertical-align:-2px"></i></span></td>`:''}
+      ${isAdmin?`<td style="${td};width:26px;text-align:center"><span onclick="toggleEditHorse(${h.id})" style="cursor:pointer;color:#bbb" title="Editar"><i class="ti ti-pencil" style="font-size:13px;vertical-align:-2px"></i></span></td>
+      ${isAdmin?`<td style="${td};width:26px;text-align:center"><input type="checkbox" onchange="toggleSelectHorse(${h.id})" ${selectedHorses.has(h.id)?'checked':''} style="width:14px;height:14px;accent-color:var(--wood);cursor:pointer"></td>`:''}`:''}
     </tr>
     <tr id="hc-body-row-${h.id}" style="display:${isOpen?'table-row':'none'}">
       <td colspan="${cols}" style="background:#fdfaf3;border-bottom:1px solid var(--border);padding:10px 12px">
@@ -2545,6 +2562,59 @@ async function saveEditHorse(id){
     renderCaballos();
     renderResumen();
     toast('✓ Caballo actualizado');
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
+
+// ===== SELECCION MULTIPLE CABALLOS =====
+let selectedHorses=new Set();
+function toggleSelectHorse(id){
+  if(selectedHorses.has(id))selectedHorses.delete(id);else selectedHorses.add(id);
+  renderCaballos();
+}
+function clearHorseSelection(){selectedHorses.clear();renderCaballos();}
+function bulkFieldChanged(){
+  const f=document.getElementById('bulk-field').value;
+  const inp=document.getElementById('bulk-value');
+  const lists={raza:'razas-list',estado:'estados-list',padre:'bulk-horses-list',madre:'bulk-horses-list',criadero:''};
+  inp.setAttribute('list',lists[f]||'');
+  inp.placeholder=f==='alzada'?'1.42':(f==='padre'||f==='madre'?'Nombre del '+f:'Valor');
+}
+async function bulkApplyHorses(){
+  const field=document.getElementById('bulk-field').value;
+  let val=document.getElementById('bulk-value').value.trim();
+  if(!val){toast('Ingresa un valor','err');return;}
+  if(field!=='alzada')val=val.toUpperCase();
+  const ids=[...selectedHorses];
+  if(!await mancosConfirm(`¿Aplicar ${field.toUpperCase()} = "${val}" a ${ids.length} caballo${ids.length!==1?'s':''}?`))return;
+  // Genealogía del padre/madre si existe registro
+  let linVals=null,linKeys=null;
+  if(field==='padre'||field==='madre'){
+    const found=(typeof findLineage==='function')?findLineage(val):null;
+    if(found){
+      linKeys=field==='padre'?['abpp','abpm','bppp','bppm','bpmp','bpmm']:['abmp','abmm','bmpp','bmpm','bmmp','bmmm'];
+      linVals=[found.lin.f,found.lin.m,found.lin.gf1,found.lin.gf2,found.lin.gf3,found.lin.gf4].map(v=>v?String(v).toUpperCase():null);
+      if(!linVals.some(v=>v)){linKeys=null;linVals=null;}
+    }
+  }
+  try{
+    for(const id of ids){
+      const h=allHorses.find(x=>x.id===id);
+      if(!h)continue;
+      const body={};
+      body[field]=val;
+      if(linKeys){
+        const g={...(h.genealogia||{})};
+        linKeys.forEach((k,i)=>{if(linVals[i])g[k]=linVals[i];});
+        body.genealogia=g;
+        h.genealogia=g;
+      }
+      await sbFetch('caballos?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body),headers:{'Prefer':'return=minimal'}});
+      h[field]=val;
+    }
+    selectedHorses.clear();
+    renderCaballos();renderResumen();
+    toast('✓ '+ids.length+' caballos actualizados'+(linKeys?' (genealogía autocompletada)':''));
   }catch(e){toast('Error: '+e.message,'err');}
 }
 
@@ -3100,6 +3170,27 @@ function uploadSerieFoto(serieId){
   };
   inp.click();
 }
+
+function viewSerieFoto(serieId,url){
+  const s=allRodeoSeries.find(x=>x.id===serieId);
+  const r=s?allRodeos.find(x=>x.id===s.rodeo_id):null;
+  const caption=(r?r.nombre:'')+(s&&s.serie?' — '+s.serie:'');
+  const ov=document.createElement('div');
+  ov.id='serie-foto-view';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(20,14,5,0.88);display:flex;align-items:center;justify-content:center;z-index:10000;flex-direction:column';
+  ov.innerHTML=`
+    <div style="position:absolute;top:16px;left:16px;color:#e8dcc8;font-size:12px;font-weight:600;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${caption}</div>
+    <div style="position:absolute;top:10px;right:14px;display:flex;gap:14px;align-items:center">
+      ${canEdit?`<span id="sfv-del" title="Eliminar foto" style="cursor:pointer;color:#e8dcc8;background:rgba(255,255,255,0.12);border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center"><i class="ti ti-trash" style="font-size:15px"></i></span>`:''}
+      <span onclick="document.getElementById('serie-foto-view').remove()" style="cursor:pointer;color:#e8dcc8;font-size:22px;line-height:1">✕</span>
+    </div>
+    <img src="${url}" style="max-width:92%;max-height:86%;border-radius:8px;box-shadow:0 10px 50px rgba(0,0,0,0.5)">`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  const del=document.getElementById('sfv-del');
+  if(del)del.onclick=()=>deleteSerieFoto(serieId,url);
+}
+
 async function deleteSerieFoto(serieId,url){
   if(!await mancosConfirm('¿Eliminar esta foto?'))return;
   try{
@@ -3107,6 +3198,7 @@ async function deleteSerieFoto(serieId,url){
     const fotos=(s.fotos||[]).filter(u=>u!==url);
     await sbFetch('rodeo_series?id=eq.'+serieId,{method:'PATCH',body:JSON.stringify({fotos}),headers:{'Prefer':'return=minimal'}});
     s.fotos=fotos;
+    document.getElementById('serie-foto-view')?.remove();
     renderResumen();
     toast('Foto eliminada');
   }catch(e){toast('Error','err');}
@@ -3357,9 +3449,8 @@ function buildResRodeos(){
       const tot=(Number(s.puntos1)||0)+(Number(s.puntos2)||0)+(Number(s.puntos3)||0)+(Number(s.puntos4)||0);
       const isCampS=/campeon/i.test(s.serie||'');
       const fotos=(s.fotos||[]);
-      const fotosHTML=fotos.map(u=>`<span style="position:relative;display:inline-block;margin:2px">
-        <img src="${u}" onclick="viewFotoFull('${u}','${(r.nombre+' — '+(s.serie||'')).replace(/'/g,"\\'")}')" style="height:40px;width:40px;object-fit:cover;border-radius:4px;border:1.5px solid var(--gold);cursor:zoom-in">
-        ${canEdit?`<span onclick="deleteSerieFoto(${s.id},'${u}')" style="position:absolute;top:-5px;right:-5px;width:14px;height:14px;background:var(--red);color:#fff;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer">×</span>`:''}
+      const fotosHTML=fotos.map(u=>`<span style="display:inline-block;margin:2px">
+        <img src="${u}" onclick="viewSerieFoto(${s.id},'${u}')" style="height:40px;width:40px;object-fit:cover;border-radius:4px;border:1.5px solid var(--gold);cursor:zoom-in">
       </span>`).join('')+(canEdit?`<span onclick="uploadSerieFoto(${s.id})" title="Agregar foto" style="display:inline-flex;height:40px;width:40px;border:1.5px dashed var(--gold);border-radius:4px;align-items:center;justify-content:center;cursor:pointer;color:#a07840;background:var(--cream);margin:2px;vertical-align:top"><i class="ti ti-plus" style="font-size:16px"></i></span>`:'');
       return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin:6px 0;background:var(--surface)">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
@@ -4879,6 +4970,7 @@ async function delInvItem(id){
   </div>
 </div>
 
+<datalist id="estados-list"><option value="Potrillo/Potranca"><option value="Manso de montura"><option value="Topeando"><option value="Corriendo en la casa"><option value="Corriendo"><option value="Reproducción"></datalist>
 <datalist id="razas-list"><option value="CHILENO"><option value="FRISÓN"><option value="PONY"><option value="MESTIZO"><option value="CUARTO DE MILLA"><option value="ÁRABE"><option value="PURA SANGRE"></datalist>
 </body>
 </html>
