@@ -2169,7 +2169,7 @@ function renderCaballos(){
     <datalist id="bulk-horses-list">${allHorses.map(x=>`<option value="${x.nombre}">`).join('')}</datalist>
   </div>`:'';
   html=bulkBar+html;
-  html+='<tr>'+th('').replace('<th ','<th class="ht-star" ')+th('Caballo').replace('<th ','<th class="ht-name" ')+th('Criadero')+th('Estado')+th('Número')+th('F. Nac.')+th('Edad')+th('Raza')+th('Alzada')+th('Padre')+th('Madre')+(isAdmin?th(''):'')+(isAdmin?th(''):'')+'</tr>';
+  html+='<tr>'+th('').replace('<th ','<th class="ht-star" ')+th('Caballo').replace('<th ','<th class="ht-name" ')+th('Criadero')+th('Estado')+th('Número')+th('F. Nac.')+th('Edad')+th('Raza')+th('Alzada')+th('Padre')+th('Madre')+(canEdit&&!isSubuser?th('')+th(''):'')+'</tr>';
   html+=all.map(h=>{
     const edad=calcAge(h.fecha_nacimiento);
     const dob=h.fecha_nacimiento?new Date(h.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
@@ -2195,8 +2195,8 @@ function renderCaballos(){
       <td style="${td}">${isEdit?`<input id="eh-alzada-${h.id}" type="text" value="${h.alzada||''}" placeholder="1.42" style="${inp};width:52px">`:(h.alzada||'—')}</td>
       <td style="${td}">${padre||'—'}</td>
       <td style="${td}">${madre||'—'}</td>
-      ${isAdmin?`<td style="${td};width:26px;text-align:center"><span onclick="toggleEditHorse(${h.id})" style="cursor:pointer;color:#bbb" title="Editar"><i class="ti ti-pencil" style="font-size:13px;vertical-align:-2px"></i></span></td>
-      ${isAdmin?`<td style="${td};width:26px;text-align:center"><input type="checkbox" onchange="toggleSelectHorse(${h.id})" ${selectedHorses.has(h.id)?'checked':''} style="width:14px;height:14px;accent-color:var(--wood);cursor:pointer"></td>`:''}`:''}
+      ${canEdit&&!isSubuser?`<td style="${td};width:26px;text-align:center"><span onclick="toggleEditHorse(${h.id})" style="cursor:pointer;color:#bbb" title="Editar"><i class="ti ti-pencil" style="font-size:13px;vertical-align:-2px"></i></span></td>
+      <td style="${td};width:26px;text-align:center"><input type="checkbox" onchange="toggleSelectHorse(${h.id})" ${selectedHorses.has(h.id)?'checked':''} style="width:14px;height:14px;accent-color:var(--wood);cursor:pointer"></td>`:''}
     </tr>
     <tr id="hc-body-row-${h.id}" style="display:${isOpen?'table-row':'none'}">
       <td colspan="${cols}" style="background:#fdfaf3;border-bottom:1px solid var(--border);padding:10px 12px">
@@ -2822,7 +2822,7 @@ function renderEventsList(events){
         ${evs.map(ev=>{
           const c=getEventColor(ev.tipo, ev.fecha, ev.horse);
           const fecha=new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-CL');
-          const delBtn=isAdmin?`<button onclick="deleteEvent(${ev.id})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:11px;padding:0 3px">×</button>`:'';
+          const delBtn=canEdit?`<span onclick="openEventEditModal(${ev.id})" title="Editar" style="cursor:pointer;color:#bbb;padding:0 3px"><i class="ti ti-pencil" style="font-size:11px"></i></span><button onclick="deleteEvent(${ev.id})" title="Eliminar" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:12px;padding:0 3px">×</button>`:'';
           return `<div style="display:flex;align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--border)">
             <div style="width:5px;height:5px;border-radius:50%;background:${c.dot};flex-shrink:0"></div>
             <span style="font-size:9px;color:var(--text-soft);width:55px;flex-shrink:0">${fecha}</span>
@@ -2831,6 +2831,61 @@ function renderEventsList(events){
           </div>`;
         }).join('')}
       </div>`).join('');
+}
+
+
+function openEventEditModal(id){
+  if(!canEdit)return;
+  const ev=allEvents.find(x=>x.id===id);
+  if(!ev)return;
+  const horsesAZ=[...sortedActive()].sort((a,b)=>a.localeCompare(b,'es'));
+  const m=document.createElement('div');
+  m.id='event-edit-modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(30,20,8,0.45);display:flex;align-items:center;justify-content:center;z-index:9999';
+  const inp='width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none';
+  const lbl='font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px';
+  m.innerHTML=`<div style="background:var(--cream);border-radius:12px;overflow:hidden;width:90%;max-width:340px;box-shadow:0 12px 40px rgba(61,43,15,0.35)">
+    <div style="background:var(--wood);padding:13px 18px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:13px;font-weight:700;color:var(--cream)"><i class="ti ti-calendar-event" style="font-size:14px;vertical-align:-2px"></i> Editar evento</span>
+      <span onclick="document.getElementById('event-edit-modal').remove()" style="color:var(--cream-soft);cursor:pointer;font-size:18px">✕</span>
+    </div>
+    <div style="padding:16px 18px">
+      <div style="margin-bottom:12px"><label style="${lbl}">Caballo</label>
+        <select id="ee-horse" style="${inp};background:#fff">
+          ${horsesAZ.map(h=>`<option ${ev.horse===h?'selected':''}>${h}</option>`).join('')}
+          ${!horsesAZ.includes(ev.horse)?`<option selected>${ev.horse}</option>`:''}
+        </select>
+      </div>
+      <div style="margin-bottom:12px"><label style="${lbl}">Fecha</label><input type="date" id="ee-fecha" value="${ev.fecha||''}" style="${inp}"></div>
+      <div style="margin-bottom:12px"><label style="${lbl}">Tipo de evento</label><input type="text" id="ee-tipo" value="${(ev.tipo||'').replace(/"/g,'&quot;')}" style="${inp}"></div>
+      <div style="margin-bottom:12px"><label style="${lbl}">Descripción</label><input type="text" id="ee-desc" value="${(ev.descripcion||'').replace(/"/g,'&quot;')}" style="${inp}"></div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);margin-bottom:14px;cursor:pointer">
+        <input type="checkbox" id="ee-record" ${ev.recordatorio?'checked':''} style="width:15px;height:15px;accent-color:var(--wood)"> Recordatorio
+      </label>
+      <button onclick="saveEventEdit(${id})" style="width:100%;height:38px;font-size:13px;font-weight:700;border-radius:6px;border:none;background:var(--wood);color:var(--cream);cursor:pointer">GUARDAR</button>
+    </div>
+  </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click',e=>{if(e.target===m)m.remove();});
+}
+
+async function saveEventEdit(id){
+  const body={
+    horse:document.getElementById('ee-horse').value,
+    fecha:document.getElementById('ee-fecha').value,
+    tipo:document.getElementById('ee-tipo').value.trim(),
+    descripcion:document.getElementById('ee-desc').value.trim()||null,
+    recordatorio:document.getElementById('ee-record').checked
+  };
+  if(!body.fecha||!body.tipo){toast('Fecha y tipo son obligatorios','err');return;}
+  document.getElementById('event-edit-modal').remove();
+  try{
+    await sbFetch('eventos?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body),headers:{'Prefer':'return=minimal'}});
+    const ev=allEvents.find(x=>x.id===id);
+    if(ev)Object.assign(ev,body);
+    renderCalendar();renderResumen();
+    toast('✓ Evento actualizado');
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 async function addManualEvent(){
