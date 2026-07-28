@@ -1299,7 +1299,7 @@ function renderResumen(){
     </div>`;
   };
   const navHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
-    ${navBtn('caballos','horse','CABALLOS')}${navBtn('gastos','coin','GASTOS')}${navBtn('rodeos','trophy','RODEOS')}${navBtn('arregladores','users','ARREGLADORES')}
+    ${navBtn('caballos','horse','CABALLOS')}${navBtn('gastos','coin','GASTOS')}${navBtn('rodeos','trophy','RODEOS')}${navBtn('arregladores','users','ARREGLADORES Y JINETES')}
   </div>`;
   const rodeosHTML=resSection==='rodeos'?buildResRodeos():'';
   const arregHTML=resSection==='arregladores'?buildResArregladores():'';
@@ -1440,6 +1440,7 @@ function renderResumen(){
   }).join('');
   document.getElementById('horse-list').innerHTML=remindHTML+navHTML+rodeosHTML+arregHTML+
     (resSection==='caballos'?horsesHTML:'');
+  if(resSection==='arregladores'){setTimeout(()=>{const sc=document.getElementById('arr-tbl-scroll');const th=document.getElementById('arr-m-'+resArrMonth);if(sc&&th&&sc.scrollWidth>sc.clientWidth){sc.scrollLeft=Math.max(0,th.offsetLeft-100);}},60);}
 
   const years=getYears();
   const ybEl=document.getElementById('year-blocks');
@@ -2927,7 +2928,7 @@ function openSerieModal(rodeoId,serieId){
           </select>
           <input type="text" id="sm-serie-custom" placeholder="Nombre serie" style="${inp};display:${s&&!SERIES_LIST.includes(s.serie)?'block':'none'};margin-top:5px;text-transform:uppercase" value="${s&&!SERIES_LIST.includes(s.serie)?(s.serie||''):''}">
         </div>
-        <div><label style="${lbl}">Valor serie</label><input type="text" inputmode="numeric" id="sm-valor" value="${s&&s.valor?Number(s.valor).toLocaleString('es-CL'):''}" oninput="fmtMiles(this)" placeholder="$" style="${inp}"></div>
+        <div id="sm-valor-wrap" style="display:${/campeon/i.test(s?.serie||'')?'none':'block'}"><label style="${lbl}">Valor serie</label><input type="text" inputmode="numeric" id="sm-valor" value="${s&&s.valor?Number(s.valor).toLocaleString('es-CL'):''}" oninput="fmtMiles(this)" placeholder="$" style="${inp}"></div>
         <div><label style="${lbl}">Caballo 1</label><input type="text" id="sm-cab1" list="sm-horses" value="${s?.caballo1||''}" style="${inp};text-transform:uppercase"></div>
         <div><label style="${lbl}">Jinete 1</label><input type="text" id="sm-jin1" list="sm-jinetes" value="${s?.jinete1||''}" style="${inp};text-transform:uppercase"></div>
         <div><label style="${lbl}">Caballo 2</label><input type="text" id="sm-cab2" list="sm-horses" value="${s?.caballo2||''}" style="${inp};text-transform:uppercase"></div>
@@ -2951,6 +2952,7 @@ function openSerieModal(rodeoId,serieId){
     document.getElementById('sm-serie-custom').style.display=this.value==='__OTRA__'?'block':'none';
     const isC=/campeon/i.test(this.value);
     document.querySelectorAll('#serie-modal .sm-p34').forEach(d=>d.style.display=isC?'block':'none');
+    const vw=document.getElementById('sm-valor-wrap');if(vw)vw.style.display=isC?'none':'block';
     smTotal();
   };
 }
@@ -2962,7 +2964,8 @@ function smTotal(){
 async function saveSerie(rodeoId,serieId){
   let serie=document.getElementById('sm-serie').value;
   if(serie==='__OTRA__'){serie=document.getElementById('sm-serie-custom').value.trim().toUpperCase();if(!serie){toast('Escribe el nombre de la serie','err');return;}}
-  const valor=unfmtMiles(document.getElementById('sm-valor').value)||null;
+  let valor=unfmtMiles(document.getElementById('sm-valor').value)||null;
+  if(/campeon/i.test(serie))valor=null;
   const g=id=>document.getElementById(id).value.trim()||null;
   const body={serie,valor,
     caballo1:g('sm-cab1')?.toUpperCase()||null,caballo2:g('sm-cab2')?.toUpperCase()||null,
@@ -3082,43 +3085,70 @@ async function deleteSerieFoto(serieId,url){
 }
 
 
-// ===== SECCION ARREGLADORES (Resumen, solo lectura) =====
+// ===== SECCION ARREGLADORES Y JINETES (Resumen, solo lectura) =====
 let resArrFilter='';
+let resArrYear=new Date().getFullYear();
+let resArrMonth=new Date().getMonth()+1;
 function setResArrFilter(v){resArrFilter=v;renderResumen();}
+function setResArrMonth(m){resArrMonth=Number(m);renderResumen();}
+function resArrChangeYear(d){resArrYear+=d;renderResumen();}
+
 function buildResArregladores(){
   const now=new Date();
-  const win=[];
-  for(let off=-1;off<=2;off++){
-    const d=new Date(now.getFullYear(),now.getMonth()+off,1);
-    win.push({y:d.getFullYear(),m:d.getMonth()+1});
-  }
   const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  const inWin=e=>win.some(w=>w.y===e.year&&w.m===e.month);
-  const jinetes=[...new Set(allEntrenamientos.filter(e=>inWin(e)&&e.jinete).map(e=>e.jinete))].sort((a,b)=>a.localeCompare(b,'es'));
+  const MESES_L=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const jinetes=[...new Set(allEntrenamientos.filter(e=>e.year===resArrYear&&e.jinete).map(e=>e.jinete))].sort((a,b)=>a.localeCompare(b,'es'));
   let horseObjs=sortHorsesBy('estado');
   if(resArrFilter){
-    horseObjs=horseObjs.filter(h=>win.some(w=>{const e=getEnt(h.nombre,w.y,w.m);return e&&e.jinete===resArrFilter;}));
+    horseObjs=horseObjs.filter(h=>{const e=getEnt(h.nombre,resArrYear,resArrMonth);return e&&e.jinete===resArrFilter;});
   }
-  const filtroHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-    <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Arreglador</span>
-    <select onchange="setResArrFilter(this.value)" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
-      <option value="">Todos</option>
-      ${jinetes.map(j=>`<option value="${j.replace(/"/g,'&quot;')}" ${resArrFilter===j?'selected':''}>${j}</option>`).join('')}
-    </select>
-    ${resArrFilter?`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en trabajo</span>`:''}
+  // Stats del jinete: rodeos y premios del año
+  let statsHTML='';
+  if(resArrFilter){
+    const js=(typeof allRodeoSeries!=='undefined')?allRodeoSeries.filter(s=>{
+      const rod=allRodeos.find(r=>r.id===s.rodeo_id);
+      return rod&&rod.year===resArrYear&&(s.jinete1===resArrFilter||s.jinete2===resArrFilter);
+    }):[];
+    const nRodeos=new Set(js.map(s=>s.rodeo_id)).size;
+    const nPremios=js.filter(s=>s.lugar).length;
+    statsHTML=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en ${MESES_L[resArrMonth-1]}</span>
+      <span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)"><i class="ti ti-trophy" style="font-size:10px;vertical-align:-1px"></i> ${nRodeos} rodeo${nRodeos!==1?'s':''}</span>
+      <span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)"><i class="ti ti-award" style="font-size:10px;vertical-align:-1px"></i> ${nPremios} premio${nPremios!==1?'s':''}</span>`;
+  }
+  const ctrls=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button onclick="resArrChangeYear(-1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
+      <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${resArrYear}</span>
+      <button onclick="resArrChangeYear(1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Mes</span>
+      <select onchange="setResArrMonth(this.value)" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+        ${MESES_L.map((m,i)=>`<option value="${i+1}" ${resArrMonth===i+1?'selected':''}>${m}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Arreglador</span>
+      <select onchange="setResArrFilter(this.value)" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+        <option value="">Todos</option>
+        ${jinetes.map(j=>`<option value="${j.replace(/"/g,'&quot;')}" ${resArrFilter===j?'selected':''}>${j}</option>`).join('')}
+      </select>
+    </div>
+    ${statsHTML}
   </div>`;
-  if(!horseObjs.length)return filtroHTML+`<div style="background:var(--cream);border:1.5px dashed var(--gold);border-radius:10px;padding:20px;text-align:center;color:var(--text-soft);font-size:12px;margin-bottom:14px">Sin caballos para mostrar</div>`;
-  let tbl='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px"><table style="border-collapse:collapse;width:100%;table-layout:fixed;min-width:480px">';
+  if(!horseObjs.length)return ctrls+`<div style="background:var(--cream);border:1.5px dashed var(--gold);border-radius:10px;padding:20px;text-align:center;color:var(--text-soft);font-size:12px;margin-bottom:14px">Sin caballos para mostrar</div>`;
+  let tbl='<div id="arr-tbl-scroll" style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px"><table class="ent-table" style="border-collapse:collapse;width:100%;table-layout:fixed">';
   tbl+='<tr><th style="position:sticky;left:0;background:var(--cream);text-align:left;padding:6px 6px;font-size:10px;color:var(--text-soft);text-transform:uppercase;border-bottom:2px solid var(--gold);z-index:1;width:85px">Caballo</th>';
-  win.forEach(w=>{
-    const isCur=w.y===now.getFullYear()&&w.m===now.getMonth()+1;
-    tbl+=`<th style="padding:6px 4px;font-size:10px;color:${isCur?'var(--ink)':'var(--wood)'};border-bottom:2px solid var(--gold);text-align:center;font-weight:700;text-transform:uppercase;${isCur?'background:rgba(201,169,110,0.18);':''}">${MES[w.m-1]}${w.y!==now.getFullYear()?' '+String(w.y).slice(2):''}</th>`;
-  });
+  for(let m=1;m<=12;m++){
+    const sel=m===resArrMonth;
+    tbl+=`<th id="arr-m-${m}" onclick="setResArrMonth(${m})" style="padding:6px 4px;font-size:10px;color:${sel?'var(--ink)':'var(--wood)'};border-bottom:2px solid var(--gold);text-align:center;font-weight:700;text-transform:uppercase;cursor:pointer;${sel?'background:rgba(201,169,110,0.25);':''}">${MES[m-1]}</th>`;
+  }
   tbl+='</tr>';
   horseObjs.forEach(h=>{
     tbl+=`<tr><td title="${h.nombre}" style="position:sticky;left:0;background:var(--cream);padding:2px 6px;font-size:10px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92px;height:30px">${h.favorito?'<span style="color:#d4a017;font-size:10px">★</span> ':''}${h.nombre}</td>`;
-    win.forEach(w=>{
-      const e=getEnt(h.nombre,w.y,w.m);
+    for(let m=1;m<=12;m++){
+      const e=getEnt(h.nombre,resArrYear,m);
+      const sel=m===resArrMonth;
       const dim=resArrFilter&&e&&e.jinete!==resArrFilter;
       let inner;
       if(e&&e.etapa){
@@ -3130,12 +3160,12 @@ function buildResArregladores(){
       }else{
         inner='<div style="border:1px dashed #e8ddc4;border-radius:4px;height:22px;box-sizing:border-box"></div>';
       }
-      tbl+=`<td style="border-bottom:1px solid var(--border);border-left:1px solid #f0e8d8;padding:1px 2px;text-align:center;vertical-align:middle;overflow:hidden">${inner}</td>`;
-    });
+      tbl+=`<td style="border-bottom:1px solid var(--border);border-left:1px solid #f0e8d8;padding:1px 2px;text-align:center;vertical-align:middle;overflow:hidden;${sel?'background:rgba(201,169,110,0.12);':''}">${inner}</td>`;
+    }
     tbl+='</tr>';
   });
   tbl+='</table></div>';
-  return filtroHTML+tbl;
+  return ctrls+tbl;
 }
 
 // ===== SECCION RODEOS (Resumen) =====
