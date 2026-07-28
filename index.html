@@ -870,23 +870,24 @@ async function loadUsersList(){
 
 async function changeCriadero(uid,val){
   initSupabase();
-  await supabaseClient.from('perfiles').update({criadero:val.trim()||null}).eq('id',uid);
-  if(currentUser&&uid===currentUser.id)userCriadero=val.trim();
+  const{error}=await supabaseClient.rpc('admin_update_perfil',{target_id:uid,new_criadero:val.trim()||''});
+  if(error){toast('Error: '+error.message,'err');return;}
+  if(currentUser&&uid===currentUser.id){userCriadero=val.trim();const hc=document.getElementById('header-criadero');if(hc)hc.textContent=userCriadero;}
   toast('Criadero actualizado');
 }
 
 async function changeParentUser(uid,parentId){
   initSupabase();
-  await supabaseClient.from('perfiles').update({parent_user_id:parentId||null}).eq('id',uid);
+  const{error}=await supabaseClient.rpc('admin_update_perfil',{target_id:uid,new_parent:parentId||null});
+  if(error){toast('Error: '+error.message,'err');return;}
   toast('Usuario asociado actualizado');
 }
 
 async function changeUserRol(uid,rol){
-  // Protect super admin
-  const{data:p}=await supabaseClient.from('perfiles').select('email').eq('id',uid).single();
-  if(p&&p.email==='s.serrano@baumsystem.com'){toast('No se puede modificar al super admin','err');loadUsersList();return;}
-  await supabaseClient.from('perfiles').update({rol}).eq('id',uid);
-  toast('Rol actualizado');
+  initSupabase();
+  const{error}=await supabaseClient.rpc('admin_update_perfil',{target_id:uid,new_rol:rol});
+  if(error){toast(error.message.includes('super admin')?'No se puede modificar al super admin':'Error: '+error.message,'err');}
+  else toast('Rol actualizado');
   loadUsersList();
 }
 
