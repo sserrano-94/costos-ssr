@@ -291,6 +291,7 @@ select:focus,input:focus{border-color:var(--accent)}
     <span class="login-chip"><i class="ti ti-calendar"></i> Calendario</span>
     <span class="login-chip"><i class="ti ti-horseshoe"></i> Aperos</span>
   </div>
+  <div style="margin-top:10px;font-size:9px;color:rgba(253,246,236,0.55);letter-spacing:1px">v27.07-2</div>
   </div>
 </div>
 
@@ -4076,7 +4077,7 @@ function openInvUso(itemId){
   document.getElementById('inv-uso-mes').value=new Date().getMonth()+1;
   document.getElementById('inv-uso-modal').style.display='flex';
 }
-window.addEventListener('load', function(){ checkSession(); setTimeout(hideSplash,6000); });
+console.log('MANCOS v27.07-2');window.addEventListener('load', function(){ checkSession(); setTimeout(hideSplash,6000); });
 document.addEventListener('DOMContentLoaded',function(){
   const cantEl=document.getElementById('inv-uso-cantidad');
   if(cantEl)cantEl.addEventListener('input',function(){
