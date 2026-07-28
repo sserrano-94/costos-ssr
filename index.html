@@ -1399,7 +1399,7 @@ function renderResumen(){
             const yearRodIds=new Set(allRodeos.filter(r=>r.year===resHRYear).map(r=>r.id));
             const mySeries=(typeof allRodeoSeries!=='undefined')?allRodeoSeries.filter(s=>(s.caballo1===nombre||s.caballo2===nombre)&&yearRodIds.has(s.rodeo_id)):[];
             const rodeosCorridos=new Set(mySeries.map(s=>s.rodeo_id)).size;
-            const novillos=mySeries.reduce((s,x)=>s+(x.puntos1!==null&&x.puntos1!==undefined?1:0)+(x.puntos2!==null&&x.puntos2!==undefined?1:0),0);
+            const novillos=mySeries.reduce((s,x)=>s+[x.puntos1,x.puntos2,x.puntos3,x.puntos4].filter(p=>p!==null&&p!==undefined).length,0);
             const premios=mySeries.filter(s=>s.lugar).length;
             const figuraciones=mySeries.filter(s=>s.lugar&&/campeon/i.test(s.serie||'')).length;
             return `<div style="flex:0 0 auto;align-self:flex-start;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px;min-width:160px">
@@ -2934,7 +2934,9 @@ function openSerieModal(rodeoId,serieId){
         <div><label style="${lbl}">Jinete 2</label><input type="text" id="sm-jin2" list="sm-jinetes" value="${s?.jinete2||''}" style="${inp};text-transform:uppercase"></div>
         <div><label style="${lbl}">Puntos 1er toro</label><input type="number" id="sm-p1" value="${s?.puntos1??''}" oninput="smTotal()" style="${inp}"></div>
         <div><label style="${lbl}">Puntos 2do toro</label><input type="number" id="sm-p2" value="${s?.puntos2??''}" oninput="smTotal()" style="${inp}"></div>
-        <div style="display:flex;align-items:flex-end"><span style="background:var(--wood);color:var(--cream);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;width:100%;text-align:center;box-sizing:border-box">TOTAL: <span id="sm-total">${((s?Number(s.puntos1)||0:0)+(s?Number(s.puntos2)||0:0))}</span></span></div>
+        <div class="sm-p34" style="display:${/campeon/i.test(s?.serie||'')?'block':'none'}"><label style="${lbl}">Puntos 3er toro</label><input type="number" id="sm-p3" value="${s?.puntos3??''}" oninput="smTotal()" style="${inp}"></div>
+        <div class="sm-p34" style="display:${/campeon/i.test(s?.serie||'')?'block':'none'}"><label style="${lbl}">Puntos 4to toro</label><input type="number" id="sm-p4" value="${s?.puntos4??''}" oninput="smTotal()" style="${inp}"></div>
+        <div style="display:flex;align-items:flex-end"><span style="background:var(--wood);color:var(--cream);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;width:100%;text-align:center;box-sizing:border-box">TOTAL: <span id="sm-total">${s?((Number(s.puntos1)||0)+(Number(s.puntos2)||0)+(Number(s.puntos3)||0)+(Number(s.puntos4)||0)):0}</span></span></div>
         <div><label style="${lbl}">Lugar obtenido (N°)</label><input type="number" id="sm-lugar" value="${s?.lugar?String(s.lugar).replace(/[^0-9]/g,''):''}" placeholder="Ej: 2" min="1" style="${inp}"></div>
         <div style="grid-column:1/-1"><label style="${lbl}">Link serie (transmisión)</label><input type="url" id="sm-link" value="${s?.link||''}" placeholder="https://..." style="${inp}"></div>
       </div>
@@ -2945,12 +2947,16 @@ function openSerieModal(rodeoId,serieId){
   </div>`;
   document.body.appendChild(m);
   m.addEventListener('click',e=>{if(e.target===m)m.remove();});
-  document.getElementById('sm-serie').onchange=function(){document.getElementById('sm-serie-custom').style.display=this.value==='__OTRA__'?'block':'none';};
+  document.getElementById('sm-serie').onchange=function(){
+    document.getElementById('sm-serie-custom').style.display=this.value==='__OTRA__'?'block':'none';
+    const isC=/campeon/i.test(this.value);
+    document.querySelectorAll('#serie-modal .sm-p34').forEach(d=>d.style.display=isC?'block':'none');
+    smTotal();
+  };
 }
 function smTotal(){
-  const p1=Number(document.getElementById('sm-p1').value)||0;
-  const p2=Number(document.getElementById('sm-p2').value)||0;
-  document.getElementById('sm-total').textContent=p1+p2;
+  const v=id=>Number(document.getElementById(id)?.value)||0;
+  document.getElementById('sm-total').textContent=v('sm-p1')+v('sm-p2')+v('sm-p3')+v('sm-p4');
 }
 
 async function saveSerie(rodeoId,serieId){
@@ -2963,6 +2969,8 @@ async function saveSerie(rodeoId,serieId){
     jinete1:g('sm-jin1')?.toUpperCase()||null,jinete2:g('sm-jin2')?.toUpperCase()||null,
     puntos1:document.getElementById('sm-p1').value===''?null:Number(document.getElementById('sm-p1').value),
     puntos2:document.getElementById('sm-p2').value===''?null:Number(document.getElementById('sm-p2').value),
+    puntos3:document.getElementById('sm-p3').value===''?null:Number(document.getElementById('sm-p3').value),
+    puntos4:document.getElementById('sm-p4').value===''?null:Number(document.getElementById('sm-p4').value),
     lugar:g('sm-lugar'),link:g('sm-link')};
   document.getElementById('serie-modal').remove();
   try{
@@ -2975,6 +2983,22 @@ async function saveSerie(rodeoId,serieId){
       s=res[0];allRodeoSeries.push(s);
     }
     await syncSerieCosto(s,rodeoId);
+    // Lugar en una serie normal => se agrega automáticamente Serie de Campeones (4 animales)
+    if(body.lugar&&!/campeon/i.test(serie)){
+      const yaExiste=allRodeoSeries.some(x=>x.rodeo_id===rodeoId&&x.origen_serie_id===s.id);
+      if(!yaExiste){
+        try{
+          const rc=await sbFetch('rodeo_series',{method:'POST',body:JSON.stringify({
+            rodeo_id:rodeoId,serie:'Serie de Campeones',
+            caballo1:body.caballo1,caballo2:body.caballo2,
+            jinete1:body.jinete1,jinete2:body.jinete2,
+            origen_serie_id:s.id,user_id:currentUser?.id
+          })});
+          allRodeoSeries.push(rc[0]);
+          toast('✓ Serie de Campeones agregada automáticamente');
+        }catch(e){}
+      }
+    }
     renderResumen();renderExpBlocks();
     toast('✓ Serie guardada');
   }catch(e){toast('Error: '+e.message,'err');}
@@ -3148,7 +3172,8 @@ function buildResRodeos(){
     const fecha=r.fecha?new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL'):'—';
     const meta=[r.medialuna,r.tipo].filter(Boolean).join(' · ');
     const seriesHTML=series.map(s=>{
-      const tot=(Number(s.puntos1)||0)+(Number(s.puntos2)||0);
+      const tot=(Number(s.puntos1)||0)+(Number(s.puntos2)||0)+(Number(s.puntos3)||0)+(Number(s.puntos4)||0);
+      const isCampS=/campeon/i.test(s.serie||'');
       const fotos=(s.fotos||[]);
       const fotosHTML=fotos.map(u=>`<span style="position:relative;display:inline-block;margin:2px">
         <img src="${u}" onclick="viewFotoFull('${u}','${(r.nombre+' — '+(s.serie||'')).replace(/'/g,"\\'")}')" style="height:40px;width:40px;object-fit:cover;border-radius:4px;border:1.5px solid var(--gold);cursor:zoom-in">
@@ -3174,6 +3199,8 @@ function buildResRodeos(){
         <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:5px;font-size:11px">
           <span style="color:var(--text-soft)">1er toro: <b style="color:var(--ink)">${s.puntos1??'—'}</b></span>
           <span style="color:var(--text-soft)">2do toro: <b style="color:var(--ink)">${s.puntos2??'—'}</b></span>
+          ${isCampS||s.puntos3!=null||s.puntos4!=null?`<span style="color:var(--text-soft)">3er toro: <b style="color:var(--ink)">${s.puntos3??'—'}</b></span>
+          <span style="color:var(--text-soft)">4to toro: <b style="color:var(--ink)">${s.puntos4??'—'}</b></span>`:''}
           <span style="background:var(--wood);color:var(--cream);border-radius:10px;padding:1px 10px;font-weight:700">TOTAL: ${tot}</span>
         </div>
         <div style="margin-top:5px">${fotosHTML}</div>
