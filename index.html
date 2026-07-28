@@ -1472,7 +1472,7 @@ function renderResumen(){
           </div>
           <canvas id="chart-${year}" height="78"></canvas>
         </div>
-        <div id="res-tbl-h${year}">
+        <div id="res-tbl-h${year}" style="display:none">
           <table class="year-table">
             <thead><tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
             <tbody>
@@ -1496,6 +1496,44 @@ function renderResumen(){
               <thead><tr><th style="text-align:left">Rodeo</th><th style="text-align:left">Fecha</th><th style="text-align:left">Detalle</th><th style="text-align:right">Total gastado</th></tr></thead>
               <tbody>${rrows}
               <tr><td style="font-weight:700">TOTAL</td><td></td><td></td><td style="text-align:right;font-weight:700">${clp(rtot)||'$0'}</td></tr></tbody>
+            </table>`;
+          })()}
+        </div>
+        <div id="res-tbl-g${year}" style="display:none;padding:4px 10px 10px">
+          ${(()=>{
+            const cats=[...new Set(yg.map(e=>e.categoria))].sort((a,b)=>a.localeCompare(b,'es'));
+            if(!cats.length)return `<div style="color:var(--text-soft);font-size:12px;padding:14px;text-align:center">Sin gastos generales en ${year}</div>`;
+            const grows=cats.map(cat=>{
+              const cells=am.map(m=>yg.filter(e=>e.categoria===cat&&e.month===m).reduce((s,e)=>s+Number(e.monto),0));
+              const rt=cells.reduce((s,v)=>s+v,0);
+              return `<tr><td>${cat}</td>${cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${clp(rt)}</strong></td></tr>`;
+            }).join('');
+            const gcolT=am.map(m=>yg.filter(e=>e.month===m).reduce((s,e)=>s+Number(e.monto),0));
+            return `<table class="year-table">
+              <thead><tr><th>Categoría</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
+              <tbody>${grows}
+              <tr><td>TOTAL</td>${gcolT.map(v=>`<td>${clp(v)}</td>`).join('')}<td>${clp(ygt)}</td></tr></tbody>
+            </table>`;
+          })()}
+        </div>
+        <div id="res-tbl-t${year}" style="padding:4px 10px 10px">
+          ${(()=>{
+            const cabM=am.map(m=>ye.filter(e=>e.month===m).reduce((s,e)=>s+Number(e.amount),0));
+            const genM=am.map(m=>yg.filter(e=>e.month===m).reduce((s,e)=>s+Number(e.monto),0));
+            const rodM=am.map(m=>{
+              const rods=allRodeos.filter(r=>r.year===year&&r.fecha&&(new Date(r.fecha+'T12:00:00').getMonth()+1)===m);
+              return allRodeosCostos.filter(c=>rods.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
+            });
+            const totM=am.map((_,i)=>cabM[i]+genM[i]+rodM[i]);
+            const row=(name,cells,tot,bold)=>`<tr>${bold?`<td style="font-weight:700">${name}</td>`:`<td>${name}</td>`}${cells.map(v=>`<td${bold?' style="font-weight:700"':''}>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${clp(tot)}</strong></td></tr>`;
+            return `<table class="year-table">
+              <thead><tr><th></th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
+              <tbody>
+                ${row('CABALLOS',cabM,yt)}
+                ${row('GENERALES',genM,ygt)}
+                ${row('RODEOS',rodM,yrt)}
+                ${row('TOTAL',totM,ytotal,true)}
+              </tbody>
             </table>`;
           })()}
         </div>
@@ -1557,8 +1595,8 @@ function renderChart(year){
   });
   const rt=document.getElementById('res-year-total');
   if(rt&&typeof resYear!=='undefined'&&year===resYear){rt.textContent=clp(data.reduce((s,v)=>s+v,0))||'$0';}
-  const tblH=document.getElementById('res-tbl-h'+year), tblR=document.getElementById('res-tbl-r'+year);
-  if(tblH&&tblR){tblH.style.display=filter==='RODEOS'?'none':'';tblR.style.display=filter==='RODEOS'?'':'none';}
+  const _tbls={CABALLOS:'res-tbl-h',GENERALES:'res-tbl-g',RODEOS:'res-tbl-r',TOTAL:'res-tbl-t'};
+  Object.entries(_tbls).forEach(([f,p])=>{const el=document.getElementById(p+year);if(el)el.style.display=(filter===f)?'':'none';});
   const colorMap={CABALLOS:'#7a5c2e',GENERALES:'#2b5fa6',RODEOS:'#1a7a4a',TOTAL:'#c9a96e'};
   const barColor=colorMap[filter]||'#c9a96e';
   if(chartInstances[year])chartInstances[year].destroy();
