@@ -3089,6 +3089,8 @@ async function deleteSerieFoto(serieId,url){
 let resArrFilter='';
 let resArrYear=new Date().getFullYear();
 let resArrMonth=new Date().getMonth()+1;
+let resArrEtapa='';
+function setResArrEtapa(v){resArrEtapa=v;renderResumen();}
 function setResArrFilter(v){resArrFilter=v;renderResumen();}
 function setResArrMonth(m){resArrMonth=Number(m);renderResumen();}
 function resArrChangeYear(d){resArrYear+=d;renderResumen();}
@@ -3099,12 +3101,23 @@ function buildResArregladores(){
   const MESES_L=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const jinetes=[...new Set(allEntrenamientos.filter(e=>e.year===resArrYear&&e.jinete).map(e=>e.jinete))].sort((a,b)=>a.localeCompare(b,'es'));
   let horseObjs=sortHorsesBy('estado');
+  if(resArrEtapa){
+    horseObjs=horseObjs.filter(h=>{for(let m=1;m<=12;m++){const e=getEnt(h.nombre,resArrYear,m);if(e&&e.etapa===resArrEtapa)return true;}return false;});
+  }
   if(resArrFilter){
     horseObjs=horseObjs.filter(h=>{const e=getEnt(h.nombre,resArrYear,resArrMonth);return e&&e.jinete===resArrFilter;});
   }
   let statsHTML='';
   if(resArrFilter){
-    statsHTML=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en ${MESES_L[resArrMonth-1]}</span>`;
+    const porEtapa={};
+    horseObjs.forEach(h=>{const e=getEnt(h.nombre,resArrYear,resArrMonth);if(e&&e.etapa&&e.jinete===resArrFilter)porEtapa[e.etapa]=(porEtapa[e.etapa]||0)+1;});
+    const etapaChips=ETAPAS.filter(et=>porEtapa[et]).map(et=>{
+      const c=ETAPA_COLORS[et]||{bg:'#eee',text:'#666',border:'#bbb'};
+      return `<span style="display:inline-flex;align-items:center;gap:4px;background:${c.bg};border:1px solid ${c.border};color:${c.text};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:700">${et} <span style="background:${c.border};color:#fff;border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${porEtapa[et]}</span></span>`;
+    }).join(' ');
+    statsHTML=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en ${MESES_L[resArrMonth-1]}</span> ${etapaChips}`;
+  }else if(resArrEtapa){
+    statsHTML=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en ${resArrEtapa} (${resArrYear})</span>`;
   }
   const ctrls=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:8px">
@@ -3113,9 +3126,10 @@ function buildResArregladores(){
       <button onclick="resArrChangeYear(1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
     </div>
     <div style="display:flex;align-items:center;gap:6px">
-      <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Mes</span>
-      <select onchange="setResArrMonth(this.value)" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
-        ${MESES_L.map((m,i)=>`<option value="${i+1}" ${resArrMonth===i+1?'selected':''}>${m}</option>`).join('')}
+      <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Etapa</span>
+      <select onchange="setResArrEtapa(this.value)" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+        <option value="">Todas</option>
+        ${ETAPAS.map(et=>`<option value="${et}" ${resArrEtapa===et?'selected':''}>${et}</option>`).join('')}
       </select>
     </div>
     <div style="display:flex;align-items:center;gap:6px">
@@ -3151,7 +3165,8 @@ function buildResArregladores(){
       let inner;
       if(e&&e.etapa){
         const c=ETAPA_COLORS[e.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
-        inner=`<div title="${e.etapa}${e.potrero?' ('+e.potrero+')':''}${e.jinete?' — '+e.jinete:''}${e.comentario?' · '+e.comentario:''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden;${dim?'opacity:0.25;':''}${sel?'':'filter:grayscale(1);opacity:0.5;'}">
+        const gray=resArrEtapa?(e.etapa!==resArrEtapa):(!sel);
+        inner=`<div title="${e.etapa}${e.potrero?' ('+e.potrero+')':''}${e.jinete?' — '+e.jinete:''}${e.comentario?' · '+e.comentario:''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden;${dim?'opacity:0.25;':''}${gray?'filter:grayscale(1);opacity:0.5;':''}">
           <div style="font-size:8.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.etapa}</div>
           <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.jinete||e.potrero||'&nbsp;'}</div>
         </div>`;
