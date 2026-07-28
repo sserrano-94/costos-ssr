@@ -3102,18 +3102,9 @@ function buildResArregladores(){
   if(resArrFilter){
     horseObjs=horseObjs.filter(h=>{const e=getEnt(h.nombre,resArrYear,resArrMonth);return e&&e.jinete===resArrFilter;});
   }
-  // Stats del jinete: rodeos y premios del año
   let statsHTML='';
   if(resArrFilter){
-    const js=(typeof allRodeoSeries!=='undefined')?allRodeoSeries.filter(s=>{
-      const rod=allRodeos.find(r=>r.id===s.rodeo_id);
-      return rod&&rod.year===resArrYear&&(s.jinete1===resArrFilter||s.jinete2===resArrFilter);
-    }):[];
-    const nRodeos=new Set(js.map(s=>s.rodeo_id)).size;
-    const nPremios=js.filter(s=>s.lugar).length;
-    statsHTML=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en ${MESES_L[resArrMonth-1]}</span>
-      <span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)"><i class="ti ti-trophy" style="font-size:10px;vertical-align:-1px"></i> ${nRodeos} rodeo${nRodeos!==1?'s':''}</span>
-      <span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)"><i class="ti ti-award" style="font-size:10px;vertical-align:-1px"></i> ${nPremios} premio${nPremios!==1?'s':''}</span>`;
+    statsHTML=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en ${MESES_L[resArrMonth-1]}</span>`;
   }
   const ctrls=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:8px">
@@ -3165,7 +3156,70 @@ function buildResArregladores(){
     tbl+='</tr>';
   });
   tbl+='</table></div>';
-  return ctrls+tbl;
+
+  // ===== Tabla 2: RODEOS por jinete y mes =====
+  const seriesY=(typeof allRodeoSeries!=='undefined')?allRodeoSeries.filter(s=>{
+    const rod=allRodeos.find(r=>r.id===s.rodeo_id);
+    return rod&&rod.year===resArrYear;
+  }):[];
+  let rodTbl='';
+  const jinetesRodAll=[...new Set(seriesY.flatMap(s=>[s.jinete1,s.jinete2]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+  const jinetesRod=resArrFilter?jinetesRodAll.filter(j=>j===resArrFilter):jinetesRodAll;
+  let rodStats='';
+  if(resArrFilter){
+    const js=seriesY.filter(s=>s.jinete1===resArrFilter||s.jinete2===resArrFilter);
+    const nR=new Set(js.map(s=>s.rodeo_id)).size;
+    const nP=js.filter(s=>s.lugar).length;
+    const nF=js.filter(s=>s.lugar&&/campeon/i.test(s.serie||'')).length;
+    rodStats=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)"><i class="ti ti-trophy" style="font-size:10px;vertical-align:-1px"></i> ${nR} rodeo${nR!==1?'s':''}</span>
+      <span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)"><i class="ti ti-award" style="font-size:10px;vertical-align:-1px"></i> ${nP} premio${nP!==1?'s':''}</span>
+      <span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)"><i class="ti ti-star" style="font-size:10px;vertical-align:-1px"></i> ${nF} figuraci${nF!==1?'ones':'ón'}</span>`;
+  }
+  const rodHdr=`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 8px">
+    <span style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px"><i class="ti ti-trophy" style="font-size:10px;vertical-align:-2px"></i> Rodeos ${resArrYear}</span>
+    ${rodStats}
+  </div>`;
+  if(!seriesY.length){
+    rodTbl=rodHdr+`<div style="background:var(--cream);border:1.5px dashed var(--gold);border-radius:10px;padding:16px;text-align:center;color:var(--text-soft);font-size:12px;margin-bottom:14px">Sin rodeos registrados en ${resArrYear}</div>`;
+  }else if(!jinetesRod.length){
+    rodTbl=rodHdr+`<div style="background:var(--cream);border:1.5px dashed var(--gold);border-radius:10px;padding:16px;text-align:center;color:var(--text-soft);font-size:12px;margin-bottom:14px">Sin participación en rodeos de ${resArrYear}</div>`;
+  }else{
+    rodTbl='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px"><table class="ent-table" style="border-collapse:collapse;width:100%;table-layout:fixed">';
+    rodTbl+='<tr><th style="position:sticky;left:0;background:var(--cream);text-align:left;padding:6px 6px;font-size:10px;color:var(--text-soft);text-transform:uppercase;border-bottom:2px solid var(--gold);z-index:1;width:85px">Jinete</th>';
+    for(let m=1;m<=12;m++){
+      const sel=m===resArrMonth;
+      rodTbl+=`<th style="padding:6px 4px;font-size:10px;color:${sel?'var(--ink)':'var(--wood)'};border-bottom:2px solid var(--gold);text-align:center;font-weight:700;text-transform:uppercase;${sel?'background:rgba(201,169,110,0.25);':''}">${MES[m-1]}</th>`;
+    }
+    rodTbl+='</tr>';
+    jinetesRod.forEach(j=>{
+      rodTbl+=`<tr><td title="${j}" style="position:sticky;left:0;background:var(--cream);padding:2px 6px;font-size:10px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92px">${j}</td>`;
+      for(let m=1;m<=12;m++){
+        const sel=m===resArrMonth;
+        const rodeoIds=[...new Set(seriesY.filter(s=>(s.jinete1===j||s.jinete2===j)&&(()=>{const r=allRodeos.find(x=>x.id===s.rodeo_id);return r&&r.fecha&&(new Date(r.fecha+'T12:00:00').getMonth()+1)===m;})()).map(s=>s.rodeo_id))];
+        let inner='';
+        if(rodeoIds.length){
+          inner=rodeoIds.map(rid=>{
+            const rod=allRodeos.find(x=>x.id===rid);
+            const ss=seriesY.filter(s=>s.rodeo_id===rid&&(s.jinete1===j||s.jinete2===j));
+            const conLugar=ss.filter(s=>s.lugar);
+            const tip=rod.nombre+' — '+ss.map(s=>(s.serie||'Serie')+(s.lugar?' ('+lugarOrdinal(s.lugar)+')':'')).join(', ');
+            const sub=conLugar.length?('<i class="ti ti-award" style="font-size:7px"></i> '+lugarOrdinal(conLugar.sort((a,b)=>Number(a.lugar)-Number(b.lugar))[0].lugar)):(ss.length+' serie'+(ss.length>1?'s':''));
+            return `<div title="${tip.replace(/"/g,'&quot;')}" style="background:${conLugar.length?'#fdf3dc':'var(--cream)'};border:1px solid var(--gold);border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden;margin:1px 0">
+              <div style="font-size:8.5px;font-weight:700;color:var(--wood);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${rod.nombre}</div>
+              <div style="font-size:7.5px;color:var(--wood);opacity:0.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div>
+            </div>`;
+          }).join('');
+        }else{
+          inner='<div style="border:1px dashed #e8ddc4;border-radius:4px;height:22px;box-sizing:border-box"></div>';
+        }
+        rodTbl+=`<td style="border-bottom:1px solid var(--border);border-left:1px solid #f0e8d8;padding:1px 2px;text-align:center;vertical-align:middle;overflow:hidden;${sel?'background:rgba(201,169,110,0.12);':''}">${inner}</td>`;
+      }
+      rodTbl+='</tr>';
+    });
+    rodTbl+='</table></div>';
+    rodTbl=rodHdr+rodTbl;
+  }
+  return ctrls+tbl+rodTbl;
 }
 
 // ===== SECCION RODEOS (Resumen) =====
