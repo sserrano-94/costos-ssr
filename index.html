@@ -1208,6 +1208,8 @@ function getHorseImg(nombre){
 }
 let resSection=null;
 let resYear=new Date().getFullYear();
+let resOpenHorse=null;
+function resToggleHorse(sid){resOpenHorse=(resOpenHorse===sid?null:sid);renderResumen();}
 function showResSection(sec){
   resSection=(resSection===sec?null:sec);
   renderResumen();
@@ -1294,7 +1296,7 @@ function renderResumen(){
     const fa=allHorses.find(h=>h.nombre===a)?.favorito?0:1;
     const fb=allHorses.find(h=>h.nombre===b)?.favorito?0:1;
     return fa-fb;
-  }).map(nombre=>{
+  }).filter(nombre=>!resOpenHorse||nombre.replace(/[^a-zA-Z0-9]/g,'_')===resOpenHorse).map(nombre=>{
     const info=allHorses.find(h=>h.nombre===nombre);
     const edad=info?calcAge(info.fecha_nacimiento):'—';
     const geo=GEO[nombre]||{};
@@ -1334,12 +1336,12 @@ function renderResumen(){
     const delBtn='';
     return `<div style="display:flex;align-items:center;gap:4px">
     <div class="horse-list-item" style="flex:1">
-      <div class="horse-list-header" onclick="tog(null,'det-${sid}','arr-${sid}')">
+      <div class="horse-list-header" onclick="resToggleHorse('${sid}')">
         <div style="display:flex;align-items:center;gap:8px">
           ${info?(canEdit?`<span onclick="event.stopPropagation();toggleFavorito(${info.id})" title="${info.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:15px;color:${info.favorito?'#d4a017':'#d8d0c0'};flex-shrink:0">${info.favorito?'★':'☆'}</span>`:(info.favorito?'<span style="font-size:15px;color:#d4a017;flex-shrink:0">★</span>':'')):''}
           <div><div class="horse-list-name">${nombre}</div><div class="horse-list-age">${edad}</div></div>
         </div>
-        <span class="horse-list-arrow" id="arr-${sid}">▼</span>
+        <span class="horse-list-arrow${resOpenHorse===sid?' open':''}" id="arr-${sid}">▼</span>
       </div>
       ${(()=>{
         const g=(info&&info.genealogia)||{};
@@ -1372,7 +1374,7 @@ function renderResumen(){
           <div class="horse-detail-row">Alzada: <span>${(info&&info.alzada)||'—'}</span></div>
           ${info&&info.estado?`<div class="horse-detail-row">Estado: <span>${info.estado}</span></div>`:''}
           ${ent&&ent.etapa?`<div class="horse-detail-row">Entrenamiento: <span>${ent.etapa}${ent.jinete?' ('+ent.jinete+')':''}</span></div>`:''}`;
-        return `<div class="horse-detail" id="det-${sid}">
+        return `<div class="horse-detail${resOpenHorse===sid?' open':''}" id="det-${sid}">
         <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:stretch">
           <div style="flex:0 0 auto;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px;box-sizing:border-box">
             <div class="horse-detail-info" style="margin-bottom:12px">${infoRows}</div>
@@ -1383,6 +1385,28 @@ function renderResumen(){
             ${extras?`<div class="extra-imgs">${extras}</div>`:''}
           </div>
         </div>
+        ${(()=>{
+          const cy2=new Date().getFullYear();
+          const MES3=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+          const cells=MES3.map((m,i)=>{
+            const e=(typeof allEntrenamientos!=='undefined')?allEntrenamientos.find(x=>x.horse===nombre&&x.year===cy2&&x.month===i+1):null;
+            let chip;
+            if(e&&e.etapa){
+              const c=ETAPA_COLORS[e.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
+              chip=`<div title="${e.etapa}${e.potrero?' ('+e.potrero+')':''}${e.jinete?' — '+e.jinete:''}${e.comentario?' · '+e.comentario:''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;height:22px;box-sizing:border-box;overflow:hidden">
+                <div style="font-size:8.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.etapa}</div>
+                <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.jinete||e.potrero||'&nbsp;'}</div>
+              </div>`;
+            }else{
+              chip=`<div style="border:1px dashed #e0d5bd;border-radius:4px;height:22px;box-sizing:border-box"></div>`;
+            }
+            return `<div><div style="font-size:8px;color:var(--text-soft);font-weight:700;text-transform:uppercase;text-align:center;margin-bottom:2px">${m}</div>${chip}</div>`;
+          }).join('');
+          return `<div style="margin-top:14px;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px">
+            <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px"><i class="ti ti-run" style="font-size:10px;vertical-align:-2px"></i> Entrenamiento ${cy2}</div>
+            <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:0 5px;overflow-x:auto">${cells}</div>
+          </div>`;
+        })()}
       </div>`;})()}
     </div>
     ${delBtn}
