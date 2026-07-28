@@ -441,9 +441,11 @@ select:focus,input:focus{border-color:var(--accent)}
         <div style="padding:18px">
           <div style="margin-bottom:12px">
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Caballo</label>
-            <select id="ev-horse-select" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
+            <select id="ev-horse-select" onchange="if(this.value){evMultiSel.clear();renderEvHorseChips();}" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
               <option value="">Selecciona caballo...</option>
             </select>
+            <div style="font-size:9px;color:var(--text-soft);margin-top:6px;text-transform:uppercase;font-weight:600">O toca varios caballos:</div>
+            <div id="ev-horse-multi" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;max-height:90px;overflow-y:auto"></div>
           </div>
           <div style="margin-bottom:12px">
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Fecha</label>
@@ -452,6 +454,10 @@ select:focus,input:focus{border-color:var(--accent)}
           <div style="margin-bottom:12px">
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Tipo</label>
             <input type="text" id="ev-tipo" placeholder="Ej: Veterinario" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Valor (opcional — se suma a costos del caballo)</label>
+            <input type="text" inputmode="numeric" id="ev-valor" oninput="fmtMiles(this)" placeholder="$" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;outline:none">
           </div>
           <div style="margin-bottom:12px">
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Descripción</label>
@@ -2303,6 +2309,23 @@ async function addHorse(){
   btn.innerHTML='Agregar caballo';btn.disabled=false;
 }
 
+
+let evMultiSel=new Set();
+function renderEvHorseChips(){
+  const box=document.getElementById('ev-horse-multi');
+  if(!box)return;
+  const horsesAZ=[...sortedActive()].sort((a,b)=>a.localeCompare(b,'es'));
+  box.innerHTML=horsesAZ.map(h=>{
+    const on=evMultiSel.has(h);
+    return `<span onclick="toggleEvHorseChip('${h.replace(/'/g,"\\'")}')" style="cursor:pointer;user-select:none;border-radius:12px;padding:3px 10px;font-size:10px;font-weight:700;border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};background:${on?'var(--wood)':'var(--cream)'};color:${on?'var(--cream)':'var(--wood)'}">${h}</span>`;
+  }).join('');
+}
+function toggleEvHorseChip(h){
+  if(evMultiSel.has(h))evMultiSel.delete(h);else evMultiSel.add(h);
+  if(evMultiSel.size)document.getElementById('ev-horse-select').value='';
+  renderEvHorseChips();
+}
+
 function toggleAddEvent(){
   const card=document.getElementById('add-event-card');
   const opening=card.style.display==='none';
@@ -2313,6 +2336,7 @@ function toggleAddEvent(){
     const cur=sel.value;
     sel.innerHTML='<option value="">Selecciona caballo...</option><option value="__ALL__">— Todos los caballos —</option>'+horsesAZ.map(h=>`<option value="${h}">${h}</option>`).join('');
     if(cur)sel.value=cur;
+    renderEvHorseChips();
     card.onclick=e=>{if(e.target===card)toggleAddEvent();};
   }
 }
@@ -2891,33 +2915,56 @@ async function saveEventEdit(id){
 async function addManualEvent(){
   if(!canEdit){toast('Sin permisos','err');return;}
   const selVal=document.getElementById('ev-horse-select').value;
-  const horses=selVal==='__ALL__'?[...sortedActive()]:(selVal?[selVal]:[]);
+  let horses;
+  if(evMultiSel.size)horses=[...evMultiSel];
+  else horses=selVal==='__ALL__'?[...sortedActive()]:(selVal?[selVal]:[]);
   const fecha=document.getElementById('ev-date').value;
   const tipo=document.getElementById('ev-tipo').value.trim();
   const desc=document.getElementById('ev-desc').value.trim();
+  const valor=unfmtMiles(document.getElementById('ev-valor')?.value||'')||null;
   if(!horses.length||!fecha||!tipo){toast('Selecciona al menos un caballo, fecha y tipo','err');return;}
   try{
+    const d=new Date(fecha+'T12:00:00');
+    const year=d.getFullYear(),month=d.getMonth()+1;
     for(const horse of horses){
       const res=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha,tipo,descripcion:desc,user_id:currentUser?.id,recordatorio:document.getElementById('ev-recordatorio')?.checked||false})});
-      allEvents=[...allEvents,...res];
+      let evNew=res[0];
+      if(valor){
+        try{
+          const cRes=await sbFetch('costos',{method:'POST',body:JSON.stringify({horse,year,month,cat:tipo.toUpperCase(),amount:valor,note:desc||'Evento calendario',user_id:currentUser?.id})});
+          allEntries=[...cRes,...allEntries];
+          await sbFetch('eventos?id=eq.'+evNew.id,{method:'PATCH',body:JSON.stringify({costo_id:cRes[0].id}),headers:{'Prefer':'return=minimal'}});
+          evNew.costo_id=cRes[0].id;
+        }catch(e){}
+      }
+      allEvents=[...allEvents,evNew];
     }
     document.getElementById('ev-date').value='';
     document.getElementById('ev-tipo').value='';
     document.getElementById('ev-desc').value='';
     document.getElementById('ev-horse-select').value='';
+    const vv=document.getElementById('ev-valor');if(vv)vv.value='';
     const rc=document.getElementById('ev-recordatorio');if(rc)rc.checked=false;
+    evMultiSel.clear();
     toggleAddEvent();
-    renderCalendar();
-    toast('✓ '+horses.length+' evento(s) agregado(s)');
+    renderCalendar();renderResumen();renderExpBlocks();
+    toast('✓ '+horses.length+' evento(s) agregado(s)'+(valor?' con costo':''));
   }catch(e){toast('Error: '+e.message,'err');}
 }
 
 async function deleteEvent(id){
-  if(!await mancosConfirm('¿Eliminar evento?'))return;
+  const ev0=allEvents.find(e=>e.id===id);
+  if(!await mancosConfirm('¿Eliminar evento?'+(ev0&&ev0.costo_id?' (también se eliminará su costo asociado)':'')))return;
   try{
+    if(ev0&&ev0.costo_id){
+      try{
+        await sbFetch('costos?id=eq.'+ev0.costo_id,{method:'DELETE'});
+        allEntries=allEntries.filter(c=>c.id!==ev0.costo_id);
+      }catch(e){}
+    }
     await sbFetch('eventos?id=eq.'+id,{method:'DELETE'});
     allEvents=allEvents.filter(e=>e.id!==id);
-    renderCalendar();
+    renderCalendar();renderResumen();renderExpBlocks();
     toast('Evento eliminado');
   }catch(e){toast('Error','err');}
 }
