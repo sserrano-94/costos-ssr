@@ -3323,7 +3323,7 @@ function buildResArregladores(){
   const jinetes=[...new Set(allEntrenamientos.filter(e=>e.year===resArrYear&&e.jinete).map(e=>e.jinete))].sort((a,b)=>a.localeCompare(b,'es'));
   let horseObjs=sortHorsesBy('estado');
   if(resArrEtapa){
-    horseObjs=horseObjs.filter(h=>{for(let m=1;m<=12;m++){const e=getEnt(h.nombre,resArrYear,m);if(e&&e.etapa===resArrEtapa)return true;}return false;});
+    horseObjs=horseObjs.filter(h=>{const e=getEnt(h.nombre,resArrYear,resArrMonth);return e&&e.etapa===resArrEtapa;});
   }
   if(resArrFilter==='__POTRERO__'){
     horseObjs=horseObjs.filter(h=>{const e=getEnt(h.nombre,resArrYear,resArrMonth);return e&&e.etapa==='Potrero';});
@@ -3342,7 +3342,7 @@ function buildResArregladores(){
     }).join(' ');
     statsHTML=etapaChips;
   }else if(resArrEtapa){
-    statsHTML=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en ${resArrEtapa} (${resArrYear})</span>`;
+    statsHTML=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en ${resArrEtapa} — ${MESES_L[resArrMonth-1]}</span>`;
   }
   const ctrls=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:8px">
