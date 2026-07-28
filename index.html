@@ -1516,7 +1516,7 @@ function renderChart(year){
       val+=allGenerales.filter(e=>e.year===year&&e.month===m).reduce((s,e)=>s+Number(e.monto),0);
     }
     if(filter==='RODEOS'||filter==='TOTAL'){
-      const rods=allRodeos.filter(r=>r.year===year&&r.month===m);
+      const rods=allRodeos.filter(r=>r.year===year&&r.fecha&&(new Date(r.fecha+'T12:00:00').getMonth()+1)===m);
       val+=allRodeosCostos.filter(c=>rods.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
     }
     return val;
