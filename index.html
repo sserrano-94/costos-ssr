@@ -1395,7 +1395,7 @@ function renderResumen(){
           ${(()=>{
             const mySeries=(typeof allRodeoSeries!=='undefined')?allRodeoSeries.filter(s=>s.caballo1===nombre||s.caballo2===nombre):[];
             const rodeosCorridos=new Set(mySeries.map(s=>s.rodeo_id)).size;
-            const novillos=mySeries.length*2;
+            const novillos=mySeries.reduce((s,x)=>s+(x.puntos1!==null&&x.puntos1!==undefined?1:0)+(x.puntos2!==null&&x.puntos2!==undefined?1:0),0);
             return `<div style="flex:0 0 auto;align-self:flex-start;border:1px solid var(--gold);background:rgba(253,246,236,0.5);border-radius:10px;padding:12px 14px;min-width:150px">
               <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px"><i class="ti ti-trophy" style="font-size:10px;vertical-align:-2px"></i> Rodeos</div>
               <div style="font-size:11px;color:var(--ink);padding:2px 0">Rodeos corridos: <b>${rodeosCorridos}</b></div>
@@ -2878,13 +2878,13 @@ function openSerieModal(rodeoId,serieId){
         </div>
         <div><label style="${lbl}">Valor serie</label><input type="text" inputmode="numeric" id="sm-valor" value="${s&&s.valor?Number(s.valor).toLocaleString('es-CL'):''}" oninput="fmtMiles(this)" placeholder="$" style="${inp}"></div>
         <div><label style="${lbl}">Caballo 1</label><input type="text" id="sm-cab1" list="sm-horses" value="${s?.caballo1||''}" style="${inp};text-transform:uppercase"></div>
-        <div><label style="${lbl}">Jinete 1</label><input type="text" id="sm-jin1" list="sm-jinetes" value="${s?.jinete1||''}" style="${inp}"></div>
+        <div><label style="${lbl}">Jinete 1</label><input type="text" id="sm-jin1" list="sm-jinetes" value="${s?.jinete1||''}" style="${inp};text-transform:uppercase"></div>
         <div><label style="${lbl}">Caballo 2</label><input type="text" id="sm-cab2" list="sm-horses" value="${s?.caballo2||''}" style="${inp};text-transform:uppercase"></div>
-        <div><label style="${lbl}">Jinete 2</label><input type="text" id="sm-jin2" list="sm-jinetes" value="${s?.jinete2||''}" style="${inp}"></div>
+        <div><label style="${lbl}">Jinete 2</label><input type="text" id="sm-jin2" list="sm-jinetes" value="${s?.jinete2||''}" style="${inp};text-transform:uppercase"></div>
         <div><label style="${lbl}">Puntos 1er toro</label><input type="number" id="sm-p1" value="${s?.puntos1??''}" oninput="smTotal()" style="${inp}"></div>
         <div><label style="${lbl}">Puntos 2do toro</label><input type="number" id="sm-p2" value="${s?.puntos2??''}" oninput="smTotal()" style="${inp}"></div>
         <div style="display:flex;align-items:flex-end"><span style="background:var(--wood);color:var(--cream);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;width:100%;text-align:center;box-sizing:border-box">TOTAL: <span id="sm-total">${((s?Number(s.puntos1)||0:0)+(s?Number(s.puntos2)||0:0))}</span></span></div>
-        <div><label style="${lbl}">Lugar obtenido</label><input type="text" id="sm-lugar" value="${s?.lugar||''}" placeholder="Ej: 2do lugar" style="${inp};text-transform:uppercase"></div>
+        <div><label style="${lbl}">Lugar obtenido (N°)</label><input type="number" id="sm-lugar" value="${s?.lugar?String(s.lugar).replace(/[^0-9]/g,''):''}" placeholder="Ej: 2" min="1" style="${inp}"></div>
         <div style="grid-column:1/-1"><label style="${lbl}">Link serie (transmisión)</label><input type="url" id="sm-link" value="${s?.link||''}" placeholder="https://..." style="${inp}"></div>
       </div>
       <datalist id="sm-horses">${horsesAZ.map(h=>`<option value="${h}">`).join('')}</datalist>
@@ -2909,10 +2909,10 @@ async function saveSerie(rodeoId,serieId){
   const g=id=>document.getElementById(id).value.trim()||null;
   const body={serie,valor,
     caballo1:g('sm-cab1')?.toUpperCase()||null,caballo2:g('sm-cab2')?.toUpperCase()||null,
-    jinete1:g('sm-jin1'),jinete2:g('sm-jin2'),
+    jinete1:g('sm-jin1')?.toUpperCase()||null,jinete2:g('sm-jin2')?.toUpperCase()||null,
     puntos1:document.getElementById('sm-p1').value===''?null:Number(document.getElementById('sm-p1').value),
     puntos2:document.getElementById('sm-p2').value===''?null:Number(document.getElementById('sm-p2').value),
-    lugar:g('sm-lugar')?.toUpperCase()||null,link:g('sm-link')};
+    lugar:g('sm-lugar'),link:g('sm-link')};
   document.getElementById('serie-modal').remove();
   try{
     let s;
@@ -3015,6 +3015,14 @@ function resToggleRodeo(id){
   renderResumen();
 }
 
+function lugarOrdinal(n){
+  const x=parseInt(String(n).replace(/[^0-9]/g,''));
+  if(!x)return n||'';
+  const suf={1:'er',2:'do',3:'er',4:'to',5:'to',6:'to',7:'mo',8:'vo',9:'no'}[x%10===0?10:(x>10&&x<20?4:x%10)]||'º';
+  const map={1:'1er',2:'2do',3:'3er',4:'4to',5:'5to',6:'6to',7:'7mo',8:'8vo',9:'9no',10:'10mo'};
+  return (map[x]||x+'º')+' lugar';
+}
+
 function buildResRodeos(){
   const rds=allRodeos.filter(r=>r.year===resRodYear).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
   const ctrls=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap">
@@ -3043,7 +3051,7 @@ function buildResRodeos(){
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span style="background:var(--gold);color:var(--ink);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700">${s.serie||'Serie'}</span>
             ${s.valor?`<span style="font-size:10px;color:var(--text-soft)">Valor: <b style="color:var(--wood)">${clp(s.valor)}</b></span>`:''}
-            ${s.lugar?`<span style="background:#fdf3dc;border:1px solid var(--gold);border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;color:var(--wood)"><i class="ti ti-award" style="font-size:10px;vertical-align:-1px"></i> ${s.lugar}</span>`:''}
+            ${s.lugar?`<span style="background:#fdf3dc;border:1px solid var(--gold);border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;color:var(--wood)"><i class="ti ti-award" style="font-size:10px;vertical-align:-1px"></i> ${lugarOrdinal(s.lugar)}</span>`:''}
             ${s.link?`<a href="${s.link}" target="_blank" style="font-size:10px;color:#2b5fa6;text-decoration:underline"><i class="ti ti-video" style="font-size:11px;vertical-align:-2px"></i> Ver serie</a>`:''}
           </div>
           ${canEdit?`<div style="display:flex;gap:8px">
