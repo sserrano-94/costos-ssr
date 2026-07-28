@@ -110,10 +110,10 @@ main{max-width:1400px;margin:0 auto;padding:20px 24px 60px}
 .year-arrow.open{transform:rotate(180deg)}
 .year-body{display:none;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);overflow-x:auto}
 .year-body.open{display:block}
-.year-table{width:auto;border-collapse:collapse;font-size:7.5px;table-layout:auto}
-.year-table th{font-size:7px;font-weight:600;color:var(--text-soft);text-transform:uppercase;padding:3px 4px;border-bottom:1px solid var(--border);background:#fafaf8;text-align:right;white-space:nowrap;width:52px}
+.year-table{width:100%;border-collapse:collapse;font-size:10px;table-layout:auto}
+.year-table th{font-size:9px;font-weight:600;color:var(--text-soft);text-transform:uppercase;padding:5px 6px;border-bottom:1px solid var(--border);background:#fafaf8;text-align:right;white-space:nowrap}
 .year-table th:first-child{text-align:left;width:auto;min-width:80px}
-.year-table td{padding:3px 4px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;width:52px}
+.year-table td{padding:5px 6px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .year-table td:first-child{text-align:left;font-weight:600;color:var(--text);width:auto;min-width:80px}
 .year-table tr:last-child td{border-bottom:none;font-weight:700;background:#f7f6f3;color:var(--accent)}
 .year-table tbody tr:hover:not(:last-child) td{background:var(--accent-light)}
@@ -1388,7 +1388,7 @@ function renderResumen(){
     ${delBtn}
     </div>`;
   }).join('');
-  document.getElementById('horse-list').innerHTML=remindHTML+dashHTML+navHTML+rodeosHTML+
+  document.getElementById('horse-list').innerHTML=remindHTML+navHTML+rodeosHTML+
     (resSection==='caballos'?horsesHTML:'');
 
   const years=getYears();
@@ -1413,9 +1413,9 @@ function renderResumen(){
     return `<div class="year-block">
       <div class="year-header" onclick="tog('yhr${year}','ybr${year}','yar${year}')" id="yhr${year}">
         <span class="year-title"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${year}</span>
-        <span style="display:flex;align-items:center;gap:12px"><span class="year-total">${clp(yt)}</span><span class="year-arrow" id="yar${year}">▼</span></span>
+        <span style="display:flex;align-items:center;gap:12px"><span class="year-total">${clp(yt)}</span><span class="year-arrow" id="yar${year}" style="transform:rotate(180deg)">▼</span></span>
       </div>
-      <div class="year-body" id="ybr${year}">
+      <div class="year-body open" id="ybr${year}" style="display:block">
         <table class="year-table">
           <thead>
             <tr>
@@ -1427,7 +1427,7 @@ function renderResumen(){
                     ${['CABALLOS','GENERALES','RODEOS','TOTAL'].map(f=>`<button onclick="setChartFilter(${year},'${f}')" id="cf-${year}-${f}" style="padding:3px 8px;font-size:10px;font-weight:600;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-soft);cursor:pointer;transition:all .15s">${f}</button>`).join('')}
                   </div>
                 </div>
-                <canvas id="chart-${year}" height="50"></canvas>
+                <canvas id="chart-${year}" height="78"></canvas>
               </th>
               <th style="border-bottom:none;background:transparent"></th>
             </tr>
@@ -1440,6 +1440,7 @@ function renderResumen(){
       </div>
     </div>`;
   }).join('');
+  if(resSection==='gastos'){setTimeout(()=>{try{chartFilters[resYear]=chartFilters[resYear]||'TOTAL';renderChart(resYear);updateChartButtons(resYear);}catch(e){}},60);}
 }
 
 // ===== GRAFICOS RESUMEN =====
