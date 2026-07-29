@@ -209,10 +209,15 @@ select:focus,input:focus{border-color:var(--accent)}
 .horse-name{font-size:9.5px;font-weight:600;margin-bottom:1px}
 .horses-table td{text-transform:uppercase}
 .hd-mobile{display:none}
+.arr-chips-row{display:flex;gap:6px;margin-bottom:10px;align-items:center}
+@media(min-width:769px){.arr-top-gap{margin-top:22px!important}.arr-chips-row{flex-wrap:wrap!important;overflow-x:visible}}
 @media(max-width:768px){.hd-desktop{display:none!important}.hd-mobile{display:grid}
 .horses-table .ht-star{position:sticky;left:0;background:var(--bg);z-index:2}
 .horses-table .ht-name{position:sticky;left:32px;background:var(--bg);z-index:2;max-width:110px;overflow:hidden;text-overflow:ellipsis}
 .horses-table th.ht-star,.horses-table th.ht-name{z-index:3}
+.arr-chips-row{flex-wrap:nowrap!important;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:5px}
+.arr-chips-row>span{flex-shrink:0}
+.arr-top-gap{margin-top:0}
 .hd-box-left,.horse-detail .horse-imgs{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box}}
 .horse-meta{font-size:10px;color:var(--text-soft);display:flex;flex-direction:column;gap:1px}
 .horse-total{font-size:11px;font-weight:600;color:var(--accent);text-align:right}
@@ -2804,6 +2809,8 @@ function renderCalendar(){
       tag.title=ev.horse+': '+ev.tipo+(ev.descripcion?' — '+ev.descripcion:'');
       tag.innerHTML=(ev.recordatorio?'<i class="ti ti-bell" style="font-size:9px;vertical-align:-1px"></i> ':'')+ev.horse;
       tag.style.whiteSpace='nowrap';tag.style.overflow='hidden';tag.style.textOverflow='ellipsis';tag.style.fontWeight='600';
+      tag.style.cursor='pointer';
+      tag.onclick=e=>{e.stopPropagation();highlightEventInList(ev.id);};
       cell.appendChild(tag);
     });
 
@@ -2849,7 +2856,7 @@ function renderEventsList(events){
           const c=getEventColor(ev.tipo, ev.fecha, ev.horse);
           const fecha=new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-CL');
           const delBtn=canEdit?`<span onclick="openEventEditModal(${ev.id})" title="Editar" style="cursor:pointer;color:#bbb;padding:0 3px"><i class="ti ti-pencil" style="font-size:11px"></i></span><button onclick="deleteEvent(${ev.id})" title="Eliminar" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:12px;padding:0 3px">×</button>`:'';
-          return `<div style="display:flex;align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--border)">
+          return `<div id="evli-${ev.id}" style="display:flex;align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--border);border-radius:4px">
             <div style="width:5px;height:5px;border-radius:50%;background:${c.dot};flex-shrink:0"></div>
             <span style="font-size:9px;color:var(--text-soft);width:55px;flex-shrink:0">${fecha}</span>
             <span style="font-size:9px;font-weight:500;flex:1">${(ev.tipo||'').toUpperCase()}${ev.descripcion?' — '+ev.descripcion.toUpperCase():''}</span>
@@ -2949,6 +2956,16 @@ async function addManualEvent(){
     renderCalendar();renderResumen();renderExpBlocks();
     toast('✓ '+horses.length+' evento(s) agregado(s)'+(valor?' con costo':''));
   }catch(e){toast('Error: '+e.message,'err');}
+}
+
+
+function highlightEventInList(id){
+  const el=document.getElementById('evli-'+id);
+  if(!el)return;
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  el.style.transition='background .35s';
+  el.style.background='#f3dfae';
+  setTimeout(()=>{el.style.background='';},1800);
 }
 
 async function deleteEvent(id){
@@ -3344,20 +3361,12 @@ function buildResArregladores(){
   }else if(resArrEtapa){
     statsHTML=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en ${resArrEtapa} — ${MESES_L[resArrMonth-1]}</span>`;
   }
-  const ctrls=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+  const ctrls=`<div class="arr-top-gap" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:8px">
       <button onclick="resArrChangeYear(-1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
       <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${resArrYear}</span>
       <button onclick="resArrChangeYear(1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
     </div>
-    <div style="display:flex;align-items:center;gap:6px">
-      <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Etapa</span>
-      <select onchange="setResArrEtapa(this.value)" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
-        <option value="">Todas</option>
-        ${ETAPAS.map(et=>`<option value="${et}" ${resArrEtapa===et?'selected':''}>${et}</option>`).join('')}
-      </select>
-    </div>
-    ${statsHTML}
   </div>
   ${(()=>{
     const cnt={};const who={};const potrero=[];const pesebrera=[];
@@ -3372,17 +3381,25 @@ function buildResArregladores(){
     const mkChip=(key,icon,label,n,titleList)=>{
       const on=resArrFilter===key;
       const next=(on?'':key).replace(/'/g,"\\'");
-      return `<span onclick="setResArrFilter('${next}')" title="${(titleList||[]).join(', ').replace(/"/g,'&quot;')}" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-${icon}" style="font-size:10px"></i> ${label} <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`;
+      return `<span onclick="setResArrFilter('${next}')" title="${(titleList||[]).join(', ').replace(/"/g,'&quot;')}" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:14px;padding:5px 13px;font-size:11.5px;font-weight:600"><i class="ti ti-${icon}" style="font-size:12px"></i> ${label} <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">${n}</span></span>`;
     };
     const totalChip=(()=>{
       const on=!resArrFilter;
-      return `<span onclick="setResArrFilter('')" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:700">TOTAL <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${activos.length}</span></span>`;
+      return `<span onclick="setResArrFilter('')" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:14px;padding:5px 13px;font-size:11.5px;font-weight:700">TOTAL <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">${activos.length}</span></span>`;
     })();
     const arrChips=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([j,n])=>mkChip(j,'user',j,n,who[j])).join(' ');
     const potChip=potrero.length?mkChip('__POTRERO__','plant-2','POTRERO',potrero.length,potrero):'';
     const pesChip=pesebrera.length?mkChip('__PESEBRERA__','home','PESEBRERA',pesebrera.length,pesebrera):'';
-    return `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;align-items:center"><span style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px">${MESES_L[resArrMonth-1]}:</span>${totalChip} ${arrChips} ${potChip} ${pesChip}</div>`;
-  })()}`;
+    return `<div class="arr-chips-row"><span style="font-size:10px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px">${MESES_L[resArrMonth-1]}:</span>${totalChip} ${arrChips} ${potChip} ${pesChip}</div>`;
+  })()}
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Etapa</span>
+    <select onchange="setResArrEtapa(this.value)" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+      <option value="">Todas</option>
+      ${ETAPAS.map(et=>`<option value="${et}" ${resArrEtapa===et?'selected':''}>${et}</option>`).join('')}
+    </select>
+    ${statsHTML}
+  </div>`;
   if(!horseObjs.length)return ctrls+`<div style="background:var(--cream);border:1.5px dashed var(--gold);border-radius:10px;padding:20px;text-align:center;color:var(--text-soft);font-size:12px;margin-bottom:14px">Sin caballos para mostrar</div>`;
   let tbl='<div id="arr-tbl-scroll" style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px"><table class="ent-table" style="border-collapse:collapse;width:100%;table-layout:fixed">';
   tbl+='<tr><th style="position:sticky;left:0;background:var(--cream);text-align:left;padding:6px 6px;font-size:10px;color:var(--text-soft);text-transform:uppercase;border-bottom:2px solid var(--gold);z-index:1;width:85px">Caballo</th>';
@@ -3596,10 +3613,10 @@ function buildResRodeos(){
     }).join('');
     return `${monthHdr}<div class="exp-h-block" style="margin-bottom:8px">
       <div class="exp-horse-hdr" onclick="resToggleRodeo(${r.id})">
-        <div style="display:flex;flex-direction:column;gap:1px">
-          <span class="exp-horse-name"><i class="ti ti-trophy" style="font-size:13px;vertical-align:-2px;color:var(--wood)"></i> ${r.nombre}</span>
-          ${r.tipo?`<span style="font-size:10px;color:var(--text-soft);padding-left:19px">${r.tipo}</span>`:''}
-          <span style="font-size:10px;color:var(--text-soft);padding-left:19px">${fecha}</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0">
+          <span class="exp-horse-name" style="white-space:nowrap"><i class="ti ti-trophy" style="font-size:13px;vertical-align:-2px;color:var(--wood)"></i> ${r.nombre}</span>
+          ${r.tipo?`<span style="font-size:10px;color:var(--text-soft);white-space:nowrap">${r.tipo}</span>`:''}
+          <span style="font-size:10px;color:var(--text-soft);white-space:nowrap">${fecha}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:10px;color:var(--text-soft)">${series.length} serie${series.length!==1?'s':''}</span>
