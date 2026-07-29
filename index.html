@@ -1352,7 +1352,7 @@ function renderResumen(){
         </div>
         ${fdate?`<div style="font-size:8px;color:var(--text-soft);margin-top:1px;line-height:1">${fdate}</div>`:''}
       </div>`;
-    }).join('')+(canEdit?`<div style="display:inline-block;margin:2px;vertical-align:top"><div onclick="openPhotoUpload('${nombre.replace(/'/g,"\'")}','${sid}')" title="Agregar foto" style="height:60px;width:60px;border:2px dashed var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#a07840;background:var(--cream)"><i class="ti ti-plus" style="font-size:22px"></i></div></div>`:'');
+    }).join('')+(canEdit?`<div style="display:inline-block;margin:2px 2px 2px 4px;vertical-align:middle;align-self:center"><div onclick="openPhotoUpload('${nombre.replace(/'/g,"\'")}','${sid}')" title="Agregar foto" style="height:20px;width:20px;border:1px dashed #e6dcc6;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#d3c5a6;background:transparent"><i class="ti ti-plus" style="font-size:11px"></i></div></div>`:'');
     const delBtn='';
     return `<div style="display:flex;align-items:center;gap:4px">
     <div class="horse-list-item" style="flex:1">
