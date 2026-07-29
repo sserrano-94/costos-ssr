@@ -3381,16 +3381,19 @@ function buildResArregladores(){
     const mkChip=(key,icon,label,n,titleList)=>{
       const on=resArrFilter===key;
       const next=(on?'':key).replace(/'/g,"\\'");
-      return `<span onclick="setResArrFilter('${next}')" title="${(titleList||[]).join(', ').replace(/"/g,'&quot;')}" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:14px;padding:5px 13px;font-size:11.5px;font-weight:600"><i class="ti ti-${icon}" style="font-size:12px"></i> ${label} <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">${n}</span></span>`;
+      return `<span onclick="setResArrFilter('${next}')" title="${(titleList||[]).join(', ').replace(/"/g,'&quot;')}" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'#fff'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:14px;padding:5px 13px;font-size:11.5px;font-weight:600"><i class="ti ti-${icon}" style="font-size:12px"></i> ${label} <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">${n}</span></span>`;
     };
     const totalChip=(()=>{
       const on=!resArrFilter;
-      return `<span onclick="setResArrFilter('')" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:14px;padding:5px 13px;font-size:11.5px;font-weight:700">TOTAL <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">${activos.length}</span></span>`;
+      return `<span onclick="setResArrFilter('')" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'#fff'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:14px;padding:5px 13px;font-size:11.5px;font-weight:700">TOTAL <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">${activos.length}</span></span>`;
     })();
     const arrChips=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([j,n])=>mkChip(j,'user',j,n,who[j])).join(' ');
     const potChip=potrero.length?mkChip('__POTRERO__','plant-2','POTRERO',potrero.length,potrero):'';
     const pesChip=pesebrera.length?mkChip('__PESEBRERA__','home','PESEBRERA',pesebrera.length,pesebrera):'';
-    return `<div class="arr-chips-row"><span style="font-size:10px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px">${MESES_L[resArrMonth-1]}:</span>${totalChip} ${arrChips} ${potChip} ${pesChip}</div>`;
+    return `<div style="border:1.5px solid var(--gold);background:var(--cream);border-radius:10px;padding:10px 12px;margin-bottom:12px">
+      <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">${MESES_L[resArrMonth-1]} ${resArrYear}</div>
+      <div class="arr-chips-row" style="margin-bottom:0">${totalChip} ${arrChips} ${potChip} ${pesChip}</div>
+    </div>`;
   })()}
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
     <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Etapa</span>
