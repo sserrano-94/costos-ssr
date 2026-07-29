@@ -467,11 +467,10 @@ select:focus,input:focus{border-color:var(--accent)}
             <label style="font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px">Descripción</label>
             <input type="text" id="ev-desc" placeholder="Detalle opcional" style="width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none;text-transform:uppercase">
           </div>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;background:#fff;border:1.5px solid var(--gold);border-radius:6px;padding:9px 12px">
-            <input type="checkbox" id="ev-recordatorio" style="cursor:pointer;width:15px;height:15px;accent-color:var(--wood)">
-            <span style="font-size:12px;font-weight:600;color:var(--ink)"><i class="ti ti-bell" style="font-size:13px;vertical-align:-2px;color:var(--wood)"></i> Es recordatorio</span>
-            <span style="font-size:10px;color:var(--text-soft);margin-left:auto">te avisará al entrar</span>
-          </label>
+          <div style="margin-bottom:16px;background:#fff;border:1.5px solid var(--gold);border-radius:6px;padding:9px 12px">
+            <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:5px"><i class="ti ti-bell" style="font-size:13px;vertical-align:-2px;color:var(--wood)"></i> Recordar nuevamente <span style="font-size:10px;color:var(--text-soft);font-weight:400">(opcional — fecha en que debes repetir este evento)</span></div>
+            <input type="date" id="ev-remind-date" style="width:100%;height:34px;padding:0 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none">
+          </div>
           <button onclick="addManualEvent()" style="width:100%;height:38px;font-size:13px;font-weight:700;border-radius:6px;border:none;background:var(--wood);color:var(--cream);cursor:pointer">+ Agregar evento</button>
         </div>
       </div>
@@ -2933,7 +2932,7 @@ async function addManualEvent(){
     const d=new Date(fecha+'T12:00:00');
     const year=d.getFullYear(),month=d.getMonth()+1;
     for(const horse of horses){
-      const res=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha,tipo,descripcion:desc,user_id:currentUser?.id,recordatorio:document.getElementById('ev-recordatorio')?.checked||false})});
+      const res=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha,tipo,descripcion:desc,user_id:currentUser?.id,recordatorio:false})});
       let evNew=res[0];
       if(valor){
         try{
@@ -2944,13 +2943,20 @@ async function addManualEvent(){
         }catch(e){}
       }
       allEvents=[...allEvents,evNew];
+      const remindDate=document.getElementById('ev-remind-date')?.value;
+      if(remindDate){
+        try{
+          const rRes=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse,fecha:remindDate,tipo,descripcion:desc?desc+' (RECORDATORIO)':'RECORDATORIO',user_id:currentUser?.id,recordatorio:true})});
+          allEvents=[...allEvents,...rRes];
+        }catch(e){}
+      }
     }
     document.getElementById('ev-date').value='';
     document.getElementById('ev-tipo').value='';
     document.getElementById('ev-desc').value='';
     document.getElementById('ev-horse-select').value='';
     const vv=document.getElementById('ev-valor');if(vv)vv.value='';
-    const rc=document.getElementById('ev-recordatorio');if(rc)rc.checked=false;
+    const rd=document.getElementById('ev-remind-date');if(rd)rd.value='';
     evMultiSel.clear();
     toggleAddEvent();
     renderCalendar();renderResumen();renderExpBlocks();
@@ -3385,7 +3391,7 @@ function buildResArregladores(){
     }).join(' ');
     const totalChip=(()=>{
       const on=!resArrFilter&&!resArrEtapa;
-      return `<span onclick="resArrFilter='';resArrEtapa='';renderResumen();" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:700">TOTAL <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${activos.length}</span></span>`;
+      return `<span onclick="resArrFilter='';resArrEtapa='';renderResumen();" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:700">TOTAL CABALLOS <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${activos.length}</span></span>`;
     })();
     const arrChips=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([j,n])=>{
       const on=resArrFilter===j;
@@ -3393,9 +3399,12 @@ function buildResArregladores(){
       return `<span onclick="setResArrFilter('${next}')" title="${(who[j]||[]).join(', ').replace(/"/g,'&quot;')}" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-user" style="font-size:10px"></i> ${j} <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`;
     }).join(' ');
     return `<div style="border:1.5px solid var(--gold);background:var(--cream);border-radius:10px;padding:10px 12px;margin-bottom:12px">
-      <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${MESES_L[resArrMonth-1]} ${resArrYear}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+        <span style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px">${MESES_L[resArrMonth-1]} ${resArrYear}</span>
+        ${totalChip}
+      </div>
       <div class="arr-chips-row" style="margin-bottom:0">${etapaChips||'<span style="font-size:10px;color:var(--text-soft)">Sin etapas este mes</span>'}</div>
-      <div class="arr-chips-row" style="margin-bottom:0;padding-top:7px;border-top:1px dashed var(--gold);margin-top:7px">${totalChip} ${arrChips}</div>
+      <div class="arr-chips-row" style="margin-bottom:0;padding-top:7px;border-top:1px dashed var(--gold);margin-top:7px">${arrChips}</div>
     </div>`;
   })()}
   ${statsHTML?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;align-items:center">${statsHTML}</div>`:''}`;
@@ -4417,8 +4426,12 @@ function renderEntrenamiento(){
       const jineteChips=Object.entries(porJinete).sort((a,b)=>b[1]-a[1]).map(([j,n])=>
         `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--cream);border:1px solid var(--gold);color:var(--wood);border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-user" style="font-size:10px"></i> ${j} <span style="background:var(--wood);color:var(--cream);border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`
       ).join(' ');
+      const totalCab=sortedActive().length;
       sum.innerHTML=`<div style="border:1.5px solid var(--gold);background:var(--cream);border-radius:10px;padding:10px 12px">
-        <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${MESES_L[cm-1]} ${cy}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+          <span style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px">${MESES_L[cm-1]} ${cy}</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;background:var(--wood);border:1px solid var(--wood-dark);color:var(--cream);border-radius:12px;padding:2px 9px;font-size:10px;font-weight:700">TOTAL CABALLOS <span style="background:var(--cream);color:var(--wood);border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${totalCab}</span></span>
+        </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:${jineteChips?'7px':'0'}">${etapaChips}</div>
         ${jineteChips?`<div style="display:flex;gap:5px;flex-wrap:wrap;padding-top:7px;border-top:1px dashed var(--gold)">${jineteChips}</div>`:''}
       </div>`;
