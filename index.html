@@ -3208,21 +3208,23 @@ async function saveSerie(rodeoId,serieId){
       s=res[0];allRodeoSeries.push(s);
     }
     await syncSerieCosto(s,rodeoId);
-    // Lugar en una serie normal => se agrega automáticamente Serie de Campeones (4 animales)
-    if(body.lugar&&!/campeon/i.test(serie)){
-      const yaExiste=allRodeoSeries.some(x=>x.rodeo_id===rodeoId&&x.origen_serie_id===s.id);
-      if(!yaExiste){
-        try{
-          const rc=await sbFetch('rodeo_series',{method:'POST',body:JSON.stringify({
-            rodeo_id:rodeoId,serie:'Serie de Campeones',
-            caballo1:body.caballo1,caballo2:body.caballo2,
-            jinete1:body.jinete1,jinete2:body.jinete2,
-            origen_serie_id:s.id,user_id:currentUser?.id
-          })});
-          allRodeoSeries.push(rc[0]);
-          toast('✓ Serie de Campeones agregada automáticamente');
-        }catch(e){}
-      }
+    // Lugar en serie normal => Serie de Campeones automática.
+    // Repara también series premiadas del rodeo que quedaron sin su campeones.
+    const pendientes=allRodeoSeries.filter(x=>
+      x.rodeo_id===rodeoId&&x.lugar&&!/campeon/i.test(x.serie||'')&&
+      !allRodeoSeries.some(c=>c.rodeo_id===rodeoId&&c.origen_serie_id===x.id)
+    );
+    for(const src of pendientes){
+      try{
+        const rc=await sbFetch('rodeo_series',{method:'POST',body:JSON.stringify({
+          rodeo_id:rodeoId,serie:'Serie de Campeones',
+          caballo1:src.caballo1,caballo2:src.caballo2,
+          jinete1:src.jinete1,jinete2:src.jinete2,
+          origen_serie_id:src.id,user_id:currentUser?.id
+        })});
+        allRodeoSeries.push(rc[0]);
+        toast('✓ Serie de Campeones agregada ('+(src.serie||'serie')+')');
+      }catch(e){toast('No se pudo crear campeones: '+e.message,'err');}
     }
     renderResumen();renderExpBlocks();
     toast('✓ Serie guardada');
@@ -3591,7 +3593,7 @@ function buildResRodeos(){
       const fotos=(s.fotos||[]);
       const fotosHTML=fotos.map(u=>`<span style="display:inline-block;margin:2px">
         <img src="${u}" onclick="viewSerieFoto(${s.id},'${u}')" style="height:40px;width:40px;object-fit:cover;border-radius:4px;border:1.5px solid var(--gold);cursor:zoom-in">
-      </span>`).join('')+(canEdit?`<span onclick="uploadSerieFoto(${s.id})" title="Agregar foto" style="display:inline-flex;height:40px;width:40px;border:1.5px dashed var(--gold);border-radius:4px;align-items:center;justify-content:center;cursor:pointer;color:#a07840;background:var(--cream);margin:2px;vertical-align:top"><i class="ti ti-plus" style="font-size:16px"></i></span>`:'');
+      </span>`).join('')+(canEdit?`<span onclick="uploadSerieFoto(${s.id})" title="Agregar foto" style="display:inline-flex;height:20px;width:20px;border:1px dashed #e6dcc6;border-radius:50%;align-items:center;justify-content:center;cursor:pointer;color:#d3c5a6;background:transparent;margin:2px 2px 2px 4px;vertical-align:top;align-self:center"><i class="ti ti-plus" style="font-size:11px"></i></span>`:'');
       return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin:6px 0;background:var(--surface)">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -3609,13 +3611,14 @@ function buildResRodeos(){
           <span><i class="ti ti-horse" style="font-size:11px;vertical-align:-2px;color:var(--wood)"></i> <b>${s.caballo1||'—'}</b>${s.jinete1?` <span style="color:var(--text-soft)">(${s.jinete1})</span>`:''}</span>
           <span><i class="ti ti-horse" style="font-size:11px;vertical-align:-2px;color:var(--wood)"></i> <b>${s.caballo2||'—'}</b>${s.jinete2?` <span style="color:var(--text-soft)">(${s.jinete2})</span>`:''}</span>
         </div>
-        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:5px;font-size:11px">
-          <span style="color:var(--text-soft)">1er toro: <b style="color:var(--ink)">${s.puntos1??'—'}</b></span>
-          <span style="color:var(--text-soft)">2do toro: <b style="color:var(--ink)">${s.puntos2??'—'}</b></span>
-          ${isCampS||s.puntos3!=null||s.puntos4!=null?`<span style="color:var(--text-soft)">3er toro: <b style="color:var(--ink)">${s.puntos3??'—'}</b></span>
-          <span style="color:var(--text-soft)">4to toro: <b style="color:var(--ink)">${s.puntos4??'—'}</b></span>`:''}
-          <span style="background:var(--wood);color:var(--cream);border-radius:10px;padding:1px 10px;font-weight:700">TOTAL: ${tot}</span>
-        </div>
+        ${(()=>{
+          const pChip=(lbl,v)=>`<span style="background:var(--wood);color:var(--cream);border-radius:10px;padding:1px 10px;font-weight:700">${lbl}: ${v!=null?v+' punto'+(Math.abs(v)===1?'':'s'):'—'}</span>`;
+          return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:11px">
+          ${pChip('1er toro',s.puntos1)}
+          ${pChip('2do toro',s.puntos2)}
+          ${isCampS||s.puntos3!=null||s.puntos4!=null?pChip('3er toro',s.puntos3)+pChip('4to toro',s.puntos4):''}
+          ${pChip('TOTAL',tot)}
+        </div>`;})()}
         <div style="margin-top:5px">${fotosHTML}</div>
       </div>`;
     }).join('');
