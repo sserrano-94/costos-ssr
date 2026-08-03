@@ -300,7 +300,7 @@ select:focus,input:focus{border-color:var(--accent)}
     <span class="login-chip"><i class="ti ti-calendar"></i> Calendario</span>
     <span class="login-chip"><i class="ti ti-horseshoe"></i> Aperos</span>
   </div>
-  <div style="margin-top:10px;font-size:9px;color:rgba(253,246,236,0.55);letter-spacing:1px">v27.07-2</div>
+  <div style="margin-top:10px;font-size:9px;color:rgba(253,246,236,0.55);letter-spacing:1px">v29.07</div>
   </div>
 </div>
 
@@ -2047,14 +2047,36 @@ function openPhotoUpload(nombre,sid){
   photoTargetHorse={nombre,sid};
   document.getElementById('photo-input').click();
 }
+
+// ===== COMPRESIÓN DE IMÁGENES (máx 1200px, JPEG 0.82) =====
+async function compressImage(file){
+  try{
+    if(!file||!/^image\//.test(file.type)||/gif/.test(file.type))return file;
+    const MAX=1200;
+    const url=URL.createObjectURL(file);
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url;});
+    const w=img.naturalWidth,h=img.naturalHeight;
+    if(Math.max(w,h)<=MAX&&file.size<400*1024){URL.revokeObjectURL(url);return file;}
+    const scale=Math.min(1,MAX/Math.max(w,h));
+    const cw=Math.round(w*scale),ch=Math.round(h*scale);
+    const cv=document.createElement('canvas');cv.width=cw;cv.height=ch;
+    cv.getContext('2d').drawImage(img,0,0,cw,ch);
+    const blob=await new Promise(res=>cv.toBlob(res,'image/jpeg',0.82));
+    URL.revokeObjectURL(url);
+    if(blob&&blob.size<file.size)return new File([blob],(file.name.replace(/\.[^.]+$/,'')||'foto')+'.jpg',{type:'image/jpeg'});
+    return file;
+  }catch(e){return file;}
+}
+
 document.getElementById('photo-input').addEventListener('change',async function(){
   if(!photoTargetHorse)return;
   const{nombre,sid}=photoTargetHorse;
   const files=Array.from(this.files);
   this.value='';
-  for(const file of files){
+  for(const rawFile of files){
     try{
       toast('Subiendo foto...','ok');
+      const file=await compressImage(rawFile);
       const ext=file.name.split('.').pop();
       const fileName=nombre.replace(/[^a-zA-Z0-9]/g,'_')+'_'+Date.now()+'.'+ext;
       // Upload to Supabase Storage
@@ -2582,7 +2604,7 @@ async function saveEditHorse(id){
     // Upload photo if selected
     const photoInput=document.getElementById('eh-photo-'+id);
     if(photoInput&&photoInput.files&&photoInput.files[0]){
-      const file=photoInput.files[0];
+      const file=await compressImage(photoInput.files[0]);
       const ext=file.name.split('.').pop();
       const fileName=nombre.replace(/[^a-zA-Z0-9]/g,'_')+'_'+Date.now()+'.'+ext;
       const session=supabaseClient?(await supabaseClient.auth.getSession()).data.session:null;
@@ -3307,9 +3329,10 @@ function uploadSerieFoto(serieId){
   const inp=document.createElement('input');
   inp.type='file';inp.accept='image/*';
   inp.onchange=async function(){
-    const file=this.files[0];if(!file)return;
+    const rawFile=this.files[0];if(!rawFile)return;
     toast('Subiendo foto...');
     try{
+      const file=await compressImage(rawFile);
       const ext=file.name.split('.').pop();
       const fileName='rodeo_serie_'+serieId+'_'+Date.now()+'.'+ext;
       const session=supabaseClient?(await supabaseClient.auth.getSession()).data.session:null;
@@ -4702,9 +4725,10 @@ async function saveApero(){
   err.style.display='none';
 
   let foto_url=null;
-  const fotoFile=document.getElementById('apero-foto').files[0];
+  let fotoFile=document.getElementById('apero-foto').files[0];
   if(fotoFile){
     try{
+      fotoFile=await compressImage(fotoFile);
       const ext=fotoFile.name.split('.').pop();
       const path=`aperos/${currentUser.id}/${Date.now()}.${ext}`;
       const{data:upData,error:upErr}=await supabaseClient.storage.from('fotos-caballos').upload(path,fotoFile,{upsert:true});
@@ -4794,9 +4818,10 @@ async function saveEditApero(id){
   const talabartero=document.getElementById('edit-apero-tala').value.trim();
   if(!nombre){toast('Ingresa el nombre','err');return;}
   let foto_url=allAperos.find(a=>a.id===id)?.foto_url||null;
-  const fotoFile=document.getElementById('edit-apero-foto').files[0];
+  let fotoFile=document.getElementById('edit-apero-foto').files[0];
   if(fotoFile){
     try{
+      fotoFile=await compressImage(fotoFile);
       const ext=fotoFile.name.split('.').pop();
       const path=`aperos/${currentUser.id}/${Date.now()}.${ext}`;
       const{data:upData,error:upErr}=await supabaseClient.storage.from('fotos-caballos').upload(path,fotoFile,{upsert:true});
@@ -5015,7 +5040,7 @@ function openInvUso(itemId){
   document.getElementById('inv-uso-mes').value=new Date().getMonth()+1;
   document.getElementById('inv-uso-modal').style.display='flex';
 }
-console.log('MANCOS v27.07-2');window.addEventListener('load', function(){ checkSession(); setTimeout(hideSplash,6000); });
+console.log('MANCOS v29.07');window.addEventListener('load', function(){ checkSession(); setTimeout(hideSplash,6000); });
 document.addEventListener('DOMContentLoaded',function(){
   const cantEl=document.getElementById('inv-uso-cantidad');
   if(cantEl)cantEl.addEventListener('input',function(){
