@@ -1278,23 +1278,32 @@ function renderResumen(){
     const upcoming=(allEvents||[]).filter(e=>{
       if(!e.recordatorio||e.resuelto)return false;
       const d=new Date(e.fecha+'T12:00:00');d.setHours(0,0,0,0);
-      return d<=limit; // pendientes: vencidos, hoy y próximos 7 días
+      if(d>limit)return false; // pendientes: vencidos, hoy y próximos 7 días
+      if(e.avisar_desde){const ad=new Date(e.avisar_desde+'T12:00:00');ad.setHours(0,0,0,0);if(today<ad)return false;}
+      return true;
     }).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
     if(upcoming.length){
       remindHTML=`<div style="background:linear-gradient(135deg,#fdf3dc,#fbe9c4);border:1.5px solid var(--gold);border-radius:10px;padding:12px 14px;margin-bottom:14px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
           <span style="font-size:11px;font-weight:700;color:var(--wood);text-transform:uppercase;letter-spacing:1px"><i class="ti ti-bell-ringing" style="font-size:13px;vertical-align:-2px"></i> Recordatorios próximos</span>
-          <button id="btn-resolver-sel" onclick="resolverSeleccionados()" style="display:none;height:24px;padding:0 10px;font-size:10px;font-weight:700;border-radius:5px;border:none;background:var(--wood);color:var(--cream);cursor:pointer"><i class="ti ti-checks" style="font-size:11px;vertical-align:-2px"></i> Resolver (<span id="sel-count">0</span>)</button>
+
         </div>
         ${upcoming.map(e=>{
           const d=new Date(e.fecha+'T12:00:00');d.setHours(0,0,0,0);
           const days=Math.round((d-today)/86400000);
           const when=days<0?'hace '+Math.abs(days)+(Math.abs(days)===1?' día':' días'):days===0?'HOY':days===1?'mañana':'en '+days+' días';
           const wcolor=days<=0?'var(--red)':'var(--wood)';
-          return `<div style="font-size:12px;color:var(--ink);padding:4px 0;display:flex;align-items:center;gap:8px">
-            ${canEdit?`<span onclick="toggleReminderSel(${e.id},this)" title="Seleccionar" style="width:17px;height:17px;border:1.5px solid var(--wood);border-radius:4px;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:#fff"><i class="ti ti-check" style="font-size:12px;color:transparent"></i></span>`:''}
-            <span style="flex:1"><b>${e.horse}</b> — ${e.tipo}${e.descripcion?' · '+e.descripcion:''}</span>
+          return `<div style="font-size:12px;color:var(--ink);padding:5px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="flex:1;min-width:150px"><b>${e.horse}</b> — ${e.tipo}${e.descripcion?' · '+e.descripcion:''}</span>
             <span style="font-weight:700;color:${wcolor};white-space:nowrap">${when}</span>
+            ${canEdit?`
+            <select onchange="if(this.value!==''){snoozeReminder(${e.id},+this.value);}" style="height:24px;padding:0 6px;font-size:10px;border:1px solid var(--gold);border-radius:5px;background:#fff;color:var(--wood);outline:none;cursor:pointer">
+              <option value="" selected>🔕 Avisar…</option>
+              <option value="2">2 días antes</option>
+              <option value="1">1 día antes</option>
+              <option value="0">El mismo día</option>
+            </select>
+            <button onclick="okReminder(${e.id})" style="height:24px;padding:0 12px;font-size:10px;font-weight:700;border-radius:5px;border:none;background:var(--wood);color:var(--cream);cursor:pointer">OK ✓</button>`:''}
           </div>`;
         }).join('')}
       </div>`;
@@ -1302,12 +1311,12 @@ function renderResumen(){
   }catch(e){}
   const navBtn=(sec,icon,label)=>{
     const active=resSection===sec;
-    return `<div onclick="showResSection('${sec}')" style="cursor:pointer;user-select:none;background:${active?'var(--wood)':'var(--surface)'};border:1.5px solid ${active?'var(--wood-dark)':'var(--gold)'};border-radius:10px;padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:all .15s">
+    return `<div onclick="showResSection('${sec}')" style="min-width:0;cursor:pointer;user-select:none;background:${active?'var(--wood)':'var(--surface)'};border:1.5px solid ${active?'var(--wood-dark)':'var(--gold)'};border-radius:10px;padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:all .15s">
       <i class="ti ti-${icon}" style="font-size:20px;color:${active?'var(--cream)':'var(--wood)'}"></i>
-      <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:${active?'var(--cream)':'var(--ink)'}">${label}</span>
+      <span style="font-size:11px;font-weight:700;letter-spacing:0.8px;color:${active?'var(--cream)':'var(--ink)'};text-align:center;line-height:1.25;max-width:100%">${label}</span>
     </div>`;
   };
-  const navHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+  const navHTML=`<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px">
     ${navBtn('caballos','horse','CABALLOS')}${navBtn('gastos','coin','GASTOS')}${navBtn('rodeos','trophy','RODEOS')}${navBtn('arregladores','users','ARREGLADORES Y JINETES')}
   </div>`;
   const rodeosHTML=resSection==='rodeos'?buildResRodeos():'';
@@ -2974,6 +2983,29 @@ function highlightEventInList(id){
   setTimeout(()=>{el.style.background='';},1800);
 }
 
+async function snoozeReminder(id,daysBefore){
+  const e=allEvents.find(x=>x.id===id);
+  if(!e)return;
+  const d=new Date(e.fecha+'T12:00:00');
+  d.setDate(d.getDate()-daysBefore);
+  const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  try{
+    await sbFetch('eventos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({avisar_desde:iso}),headers:{'Prefer':'return=minimal'}});
+    e.avisar_desde=iso;
+    renderResumen();
+    toast('🔕 Se avisará '+(daysBefore===0?'el mismo día':daysBefore===1?'1 día antes':daysBefore+' días antes'));
+  }catch(err){toast('Error: '+err.message,'err');}
+}
+async function okReminder(id){
+  const e=allEvents.find(x=>x.id===id);
+  try{
+    await sbFetch('eventos?id=eq.'+id,{method:'PATCH',body:JSON.stringify({resuelto:true}),headers:{'Prefer':'return=minimal'}});
+    if(e)e.resuelto=true;
+    renderResumen();renderCalendar();
+    toast('✓ Recordatorio resuelto');
+  }catch(err){toast('Error: '+err.message,'err');}
+}
+
 async function deleteEvent(id){
   const ev0=allEvents.find(e=>e.id===id);
   if(!await mancosConfirm('¿Eliminar evento?'+(ev0&&ev0.costo_id?' (también se eliminará su costo asociado)':'')))return;
@@ -4452,7 +4484,7 @@ function renderEntrenamiento(){
   const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   let html='<table class="ent-table" style="border-collapse:collapse;width:100%;table-layout:fixed">';
   html+='<tr><th style="position:sticky;left:0;background:var(--cream);text-align:left;padding:6px 6px;font-size:10px;color:var(--text-soft);text-transform:uppercase;border-bottom:2px solid var(--gold);z-index:1;width:85px">Caballo</th>';
-  for(let m=1;m<=12;m++){html+=`<th style="padding:6px 4px;font-size:10px;color:var(--wood);border-bottom:2px solid var(--gold);text-align:center;font-weight:700;text-transform:uppercase">${MES[m-1]}</th>`;}
+  for(let m=1;m<=12;m++){html+=`<th id="ent-th-m-${m}" style="padding:6px 4px;font-size:10px;color:var(--wood);border-bottom:2px solid var(--gold);text-align:center;font-weight:700;text-transform:uppercase">${MES[m-1]}</th>`;}
   html+='</tr>';
   horses.forEach(h=>{
     const hObj=horseObjs.find(x=>x.nombre===h);
@@ -4477,6 +4509,12 @@ function renderEntrenamiento(){
   });
   html+='</table>';
   wrap.innerHTML=html;
+  if(entYear===new Date().getFullYear()){
+    setTimeout(()=>{
+      const th=document.getElementById('ent-th-m-'+(new Date().getMonth()+1));
+      if(th&&wrap.scrollWidth>wrap.clientWidth){wrap.scrollLeft=Math.max(0,th.offsetLeft-wrap.clientWidth/2+th.offsetWidth/2);}
+    },60);
+  }
   const hint=document.getElementById('ent-hint');
   if(hint)hint.textContent=canEdit?'Toca una celda para asignar etapa y jinete':'';
 }
@@ -4596,7 +4634,8 @@ function filterAperos(tipo){
 function renderAperos(){
   const grid=document.getElementById('aperos-grid');
   if(!grid)return;
-  const lista=aperoFiltroActivo==='Todos'?allAperos:allAperos.filter(a=>a.tipo===aperoFiltroActivo);
+  const lista=[...(aperoFiltroActivo==='Todos'?allAperos:allAperos.filter(a=>a.tipo===aperoFiltroActivo))]
+    .sort((a,b)=>(a.tipo||'').localeCompare(b.tipo||'','es')||(a.nombre||'').localeCompare(b.nombre||'','es'));
   if(!lista.length){grid.innerHTML='<div style="color:#a07840;font-size:12px;text-align:center;padding:20px;grid-column:1/-1">No hay aperos registrados</div>';return;}
   grid.innerHTML=lista.map(a=>`
     <div class="apero-card" onclick="viewApero('${a.id}')">
