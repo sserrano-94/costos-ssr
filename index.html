@@ -3646,36 +3646,40 @@ function buildResRodeos(){
       const fotosHTML=fotos.map(u=>`<span style="display:inline-block;margin:2px">
         <img src="${u}" onclick="viewSerieFoto(${s.id},'${u}')" style="height:40px;width:40px;object-fit:cover;border-radius:4px;border:1.5px solid var(--gold);cursor:zoom-in">
       </span>`).join('')+(canEdit?`<span onclick="uploadSerieFoto(${s.id})" title="Agregar foto" style="display:inline-flex;height:20px;width:20px;border:1px dashed #e6dcc6;border-radius:50%;align-items:center;justify-content:center;cursor:pointer;color:#d3c5a6;background:transparent;margin:2px 2px 2px 4px;vertical-align:top;align-self:center"><i class="ti ti-plus" style="font-size:11px"></i></span>`:'');
-      return `<div style="border:1.5px solid var(--gold);border-radius:8px;padding:8px 10px;margin:8px 0;background:var(--surface);box-shadow:0 1px 3px rgba(61,43,15,0.08)">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span style="background:var(--gold);color:var(--ink);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700">${s.serie||'Serie'}</span>
-            ${s.valor?`<span style="font-size:10px;color:var(--text-soft)">Valor: <b style="color:var(--wood)">${clp(s.valor)}</b></span>`:''}
-            ${s.lugar?`<span style="background:#fdf3dc;border:1px solid var(--gold);border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;color:var(--wood)"><i class="ti ti-award" style="font-size:10px;vertical-align:-1px"></i> ${lugarOrdinal(s.lugar)}</span>`:''}
-            ${s.link?`<a href="${s.link}" target="_blank" style="font-size:10px;color:#2b5fa6;text-decoration:underline"><i class="ti ti-video" style="font-size:11px;vertical-align:-2px"></i> Ver serie</a>`:''}
+      return `<div style="border:1.5px solid var(--gold);border-radius:8px;margin:8px 0;background:var(--surface);box-shadow:0 1px 3px rgba(61,43,15,0.08);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--cream);border-bottom:1px solid var(--gold);padding:6px 10px">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0">
+            <span style="font-size:12px;font-weight:800;color:var(--wood);text-transform:uppercase;letter-spacing:0.5px">${s.serie||'Serie'}</span>
+            ${s.lugar?`<span style="background:var(--gold);border-radius:10px;padding:1px 9px;font-size:10px;font-weight:800;color:var(--ink)"><i class="ti ti-award" style="font-size:10px;vertical-align:-1px"></i> ${lugarOrdinal(s.lugar)}</span>`:''}
           </div>
-          ${canEdit?`<div style="display:flex;gap:8px">
-            <span onclick="openSerieModal(${r.id},${s.id})" style="cursor:pointer;color:#bbb" title="Editar"><i class="ti ti-pencil" style="font-size:13px"></i></span>
+          ${canEdit?`<div style="display:flex;gap:10px;flex-shrink:0">
+            <span onclick="openSerieModal(${r.id},${s.id})" style="cursor:pointer;color:#b9a988" title="Editar"><i class="ti ti-pencil" style="font-size:13px"></i></span>
             <span onclick="deleteSerie(${s.id})" style="cursor:pointer;color:var(--red)" title="Eliminar"><i class="ti ti-trash" style="font-size:13px"></i></span>
           </div>`:''}
         </div>
-        <div style="margin-top:6px">
-          <span style="display:inline-flex;align-items:center;gap:6px;background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 11px;font-size:11px;color:var(--ink);flex-wrap:wrap">
-            <i class="ti ti-horse" style="font-size:12px;color:var(--wood)"></i>
-            <span><b>${s.caballo1||'—'}</b>${s.jinete1?` <span style="color:var(--text-soft)">(${s.jinete1})</span>`:''}</span>
-            <span style="color:var(--gold);font-weight:700">·</span>
-            <span><b>${s.caballo2||'—'}</b>${s.jinete2?` <span style="color:var(--text-soft)">(${s.jinete2})</span>`:''}</span>
-          </span>
+        <div style="padding:8px 10px">
+          <div style="margin-bottom:7px">
+            <span style="display:inline-flex;align-items:center;gap:6px;background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 11px;font-size:11px;color:var(--ink);flex-wrap:wrap">
+              <i class="ti ti-horse" style="font-size:12px;color:var(--wood)"></i>
+              <span><b>${s.caballo1||'—'}</b>${s.jinete1?` <span style="color:var(--text-soft)">(${s.jinete1})</span>`:''}</span>
+              <span style="color:var(--gold);font-weight:700">·</span>
+              <span><b>${s.caballo2||'—'}</b>${s.jinete2?` <span style="color:var(--text-soft)">(${s.jinete2})</span>`:''}</span>
+            </span>
+          </div>
+          ${(()=>{
+            const pChip=(lbl,v,strong)=>`<span style="background:${strong?'var(--wood)':'#fff'};color:${strong?'var(--cream)':'var(--wood)'};border:1px solid ${strong?'var(--wood-dark)':'var(--gold)'};border-radius:10px;padding:2px 10px;font-weight:700">${lbl}: ${v!=null?v+' punto'+(Math.abs(v)===1?'':'s'):'—'}</span>`;
+            return `<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11px;align-items:center">
+            ${pChip('1er toro',s.puntos1)}
+            ${pChip('2do toro',s.puntos2)}
+            ${isCampS||s.puntos3!=null||s.puntos4!=null?pChip('3er toro',s.puntos3)+pChip('4to toro',s.puntos4):''}
+            ${pChip('TOTAL',tot,true)}
+          </div>`;})()}
+          ${s.valor||s.link?`<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:10.5px">
+            ${s.valor?`<span style="color:var(--text-soft)"><i class="ti ti-coin" style="font-size:11px;vertical-align:-2px;color:var(--wood)"></i> Valor: <b style="color:var(--wood)">${clp(s.valor)}</b></span>`:''}
+            ${s.link?`<a href="${s.link}" target="_blank" style="color:#2b5fa6;text-decoration:underline"><i class="ti ti-video" style="font-size:11px;vertical-align:-2px"></i> Ver serie</a>`:''}
+          </div>`:''}
+          ${fotos.length||canEdit?`<div style="margin-top:7px;padding-top:6px;border-top:1px dashed var(--border);display:flex;align-items:center;flex-wrap:wrap">${fotosHTML}</div>`:''}
         </div>
-        ${(()=>{
-          const pChip=(lbl,v)=>`<span style="background:var(--wood);color:var(--cream);border-radius:10px;padding:1px 10px;font-weight:700">${lbl}: ${v!=null?v+' punto'+(Math.abs(v)===1?'':'s'):'—'}</span>`;
-          return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:11px">
-          ${pChip('1er toro',s.puntos1)}
-          ${pChip('2do toro',s.puntos2)}
-          ${isCampS||s.puntos3!=null||s.puntos4!=null?pChip('3er toro',s.puntos3)+pChip('4to toro',s.puntos4):''}
-          ${pChip('TOTAL',tot)}
-        </div>`;})()}
-        <div style="margin-top:5px">${fotosHTML}</div>
       </div>`;
     }).join('');
     return `${monthHdr}<div class="exp-h-block" style="margin-bottom:10px;border:2px solid var(--wood);border-radius:9px;overflow:hidden;box-shadow:0 1px 4px rgba(61,43,15,0.12)">
