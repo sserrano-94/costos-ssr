@@ -1439,7 +1439,7 @@ function renderResumen(){
               const c=ETAPA_COLORS[e.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
               chip=`<div title="${e.etapa}${e.potrero?' ('+e.potrero+')':''}${e.jinete?' — '+e.jinete:''}${e.comentario?' · '+e.comentario:''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;height:22px;box-sizing:border-box;overflow:hidden">
                 <div style="font-size:8.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.etapa}</div>
-                <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(e.jinete||e.potrero||'&nbsp;').toUpperCase()}</div>
+                <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(e.jinete||e.potrero)?(e.jinete||e.potrero).toUpperCase():'&nbsp;'}</div>
               </div>`;
             }else{
               chip=`<div style="border:1px dashed #e0d5bd;border-radius:4px;height:22px;box-sizing:border-box"></div>`;
@@ -1510,7 +1510,7 @@ function renderResumen(){
               ${['CABALLOS','GENERALES','RODEOS','TOTAL'].map(f=>`<button onclick="setChartFilter(${year},'${f}')" id="cf-${year}-${f}" style="padding:3px 8px;font-size:10px;font-weight:600;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-soft);cursor:pointer;transition:all .15s">${f}</button>`).join('')}
             </div>
           </div>
-          <canvas id="chart-${year}" height="78"></canvas>
+          <canvas id="chart-${year}" height="48"></canvas>
         </div>
         <div id="res-tbl-h${year}" style="display:none;margin-top:16px">
           <table class="year-table">
@@ -3482,7 +3482,7 @@ function buildResArregladores(){
         const gray=resArrEtapa?(e.etapa!==resArrEtapa):(!sel);
         inner=`<div title="${e.etapa}${e.potrero?' ('+e.potrero+')':''}${e.jinete?' — '+e.jinete:''}${e.comentario?' · '+e.comentario:''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden;${dim?'opacity:0.25;':''}${gray?'filter:grayscale(1);opacity:0.5;':''}">
           <div style="font-size:8.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.etapa}</div>
-          <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(e.jinete||e.potrero||'&nbsp;').toUpperCase()}</div>
+          <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(e.jinete||e.potrero)?(e.jinete||e.potrero).toUpperCase():'&nbsp;'}</div>
         </div>`;
       }else{
         inner='<div style="border:1px dashed #e8ddc4;border-radius:4px;height:22px;box-sizing:border-box"></div>';
@@ -4442,6 +4442,7 @@ function showCabSub(sub){
 let allEntrenamientos=[];
 let entYear=new Date().getFullYear();
 const ETAPAS=['Potrero','Caminata','Topeo','Correr','Rodeo','Galope-Rienda','Amansa','Reposo en pesebrera'];
+const MESES_LG=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const ETAPA_COLORS={
  'Potrero':{bg:'#e6f4ec',text:'#14603a',border:'#1a7a4a'},
  'Caminata':{bg:'#e4f5f5',text:'#0f6b6b',border:'#148f8f'},
@@ -4463,6 +4464,7 @@ async function loadEntrenamiento(){
   }catch(e){allEntrenamientos=[];}
 }
 
+let entSelHorses=new Set();
 function getEnt(horse,year,month){
   return allEntrenamientos.find(e=>e.horse===horse&&e.year===year&&e.month===month);
 }
@@ -4504,14 +4506,35 @@ function renderEntrenamiento(){
   const horses=horseObjs.map(h=>h.nombre);
   if(!horses.length){wrap.innerHTML='<div style="color:var(--text-soft);font-size:12px;padding:20px;text-align:center">No hay caballos activos</div>';return;}
   const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  let html='<table class="ent-table" style="border-collapse:collapse;width:100%;table-layout:fixed">';
+  let bulkBar='';
+  if(entSelHorses.size>0&&canEdit&&!isSubuser){
+    const jinetesAll=[...new Set(allEntrenamientos.map(e=>e.jinete).filter(Boolean))].sort();
+    const curM=new Date().getMonth()+1;
+    bulkBar=`<div style="border:1.5px solid var(--wood);background:var(--cream);border-radius:8px;padding:8px 10px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:800;color:var(--wood)">${entSelHorses.size} seleccionado${entSelHorses.size!==1?'s':''}</span>
+      <select id="bulk-ent-mes" style="height:26px;padding:0 6px;font-size:11px;border:1px solid var(--gold);border-radius:5px;background:#fff;outline:none">
+        ${MESES_LG.map((n,idx)=>`<option value="${idx+1}" ${idx+1===curM?'selected':''}>${n}</option>`).join('')}
+      </select>
+      <select id="bulk-ent-etapa" onchange="document.getElementById('bulk-ent-potrero-wrap').style.display=this.value==='Potrero'?'':'none'" style="height:26px;padding:0 6px;font-size:11px;border:1px solid var(--gold);border-radius:5px;background:#fff;outline:none">
+        <option value="">Etapa…</option>
+        ${ETAPAS.map(et=>`<option value="${et}">${et}</option>`).join('')}
+      </select>
+      <span id="bulk-ent-potrero-wrap" style="display:none"><input id="bulk-ent-potrero" placeholder="Nombre potrero" style="height:24px;padding:0 6px;font-size:11px;border:1px solid var(--gold);border-radius:5px;outline:none;width:110px"></span>
+      <input id="bulk-ent-jinete" list="bulk-ent-jin-list" placeholder="Arreglador (opcional)" style="height:24px;padding:0 6px;font-size:11px;border:1px solid var(--gold);border-radius:5px;outline:none;width:150px">
+      <datalist id="bulk-ent-jin-list">${jinetesAll.map(j=>`<option value="${j.replace(/"/g,'&quot;')}">`).join('')}</datalist>
+      <button onclick="entBulkApply()" style="height:26px;padding:0 12px;font-size:11px;font-weight:700;border-radius:5px;border:none;background:var(--wood);color:var(--cream);cursor:pointer">Aplicar</button>
+      <button onclick="entSelHorses.clear();renderEntrenamiento()" style="height:26px;padding:0 10px;font-size:11px;border-radius:5px;border:1px solid var(--border);background:#fff;color:var(--text-soft);cursor:pointer">Cancelar</button>
+    </div>`;
+  }
+  let html=bulkBar+'<table class="ent-table" style="border-collapse:collapse;width:100%;table-layout:fixed">';
   html+='<tr><th style="position:sticky;left:0;background:var(--cream);text-align:left;padding:6px 6px;font-size:10px;color:var(--text-soft);text-transform:uppercase;border-bottom:2px solid var(--gold);z-index:1;width:85px">Caballo</th>';
   for(let m=1;m<=12;m++){html+=`<th id="ent-th-m-${m}" style="padding:6px 4px;font-size:10px;color:var(--wood);border-bottom:2px solid var(--gold);text-align:center;font-weight:700;text-transform:uppercase">${MES[m-1]}</th>`;}
   html+='</tr>';
   horses.forEach(h=>{
     const hObj=horseObjs.find(x=>x.nombre===h);
     const star=hObj?(canEdit?`<span onclick="toggleFavorito(${hObj.id})" title="${hObj.favorito?'Quitar de favoritos':'Marcar favorito'}" style="cursor:pointer;font-size:11px;color:${hObj.favorito?'#d4a017':'#d8d0c0'};margin-right:2px">${hObj.favorito?'★':'☆'}</span>`:(hObj.favorito?'<span style="font-size:11px;color:#d4a017;margin-right:2px">★</span>':'')):'';
-    html+=`<tr><td title="${h}" style="position:sticky;left:0;background:var(--cream);padding:2px 6px;font-size:10px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92px;height:30px">${star}${h}</td>`;
+    const chk=(canEdit&&!isSubuser)?`<input type="checkbox" ${entSelHorses.has(h)?'checked':''} onclick="event.stopPropagation();entToggleSel('${h.replace(/'/g,"\\'")}',this.checked)" style="width:11px;height:11px;accent-color:var(--wood);cursor:pointer;margin-right:2px;vertical-align:-1px">`:'';
+    html+=`<tr><td title="${h}" style="position:sticky;left:0;background:var(--cream);padding:2px 6px;font-size:10px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92px;height:30px">${chk}${star}${h}</td>`;
     for(let m=1;m<=12;m++){
       const ent=getEnt(h,entYear,m);
       let inner;
@@ -4519,7 +4542,7 @@ function renderEntrenamiento(){
         const c=ETAPA_COLORS[ent.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
         inner=`<div title="${ent.etapa}${ent.potrero?' ('+ent.potrero.replace(/"/g,'&quot;')+')':''}${ent.jinete?' — '+ent.jinete.replace(/"/g,'&quot;'):''}${ent.comentario?' · '+ent.comentario.replace(/"/g,'&quot;'):''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden">
           <div style="font-size:9.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.etapa}</div>
-          <div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(ent.jinete||ent.potrero||'&nbsp;').toUpperCase()}</div>
+          <div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(ent.jinete||ent.potrero)?(ent.jinete||ent.potrero).toUpperCase():'&nbsp;'}</div>
         </div>`;
       }else{
         inner=canEdit?'<div style="color:#d8cbb0;font-size:12px">+</div>':'<div style="color:#eee;font-size:10px">—</div>';
@@ -4584,6 +4607,38 @@ function editEntCell(horse,month){
     </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+}
+
+function entToggleSel(h,on){
+  if(on)entSelHorses.add(h);else entSelHorses.delete(h);
+  renderEntrenamiento();
+}
+async function entBulkApply(){
+  const month=+document.getElementById('bulk-ent-mes').value;
+  const etapa=document.getElementById('bulk-ent-etapa').value||null;
+  const jinete=document.getElementById('bulk-ent-jinete').value.trim()||null;
+  const potrero=etapa==='Potrero'?(document.getElementById('bulk-ent-potrero')?.value.trim()||null):null;
+  if(!etapa){toast('Elige una etapa','err');return;}
+  const list=[...entSelHorses];
+  const ok=await mancosConfirm(`¿Asignar "${etapa}"${jinete?' con '+jinete.toUpperCase():''} en ${MESES_LG[month-1]} a ${list.length} caballo${list.length!==1?'s':''}?`);
+  if(!ok)return;
+  let n=0;
+  for(const h of list){
+    try{
+      const ent=getEnt(h,entYear,month);
+      if(ent){
+        await sbFetch('entrenamiento?id=eq.'+ent.id,{method:'PATCH',body:JSON.stringify({etapa,jinete,potrero}),headers:{'Prefer':'return=minimal'}});
+        ent.etapa=etapa;ent.jinete=jinete;ent.potrero=potrero;
+      }else{
+        const res=await sbFetch('entrenamiento',{method:'POST',body:JSON.stringify({horse:h,year:entYear,month,etapa,jinete,potrero,user_id:currentUser?.id}),headers:{'Prefer':'return=representation'}});
+        if(res&&res[0])allEntrenamientos.push(res[0]);
+      }
+      n++;
+    }catch(e){}
+  }
+  entSelHorses.clear();
+  renderEntrenamiento();renderResumen();
+  toast(`✓ ${n} caballo${n!==1?'s':''} actualizado${n!==1?'s':''} (${MESES_LG[month-1]})`);
 }
 
 async function saveEntCell(horse,month){
