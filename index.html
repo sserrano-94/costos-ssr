@@ -392,7 +392,7 @@ select:focus,input:focus{border-color:var(--accent)}
         <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> <span id="ent-year-label"></span></span>
         <button onclick="entYear++;renderEntrenamiento()" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">›</button>
       </div>
-      <div id="ent-summary" style="margin-bottom:10px"></div>
+      <div id="ent-summary" style="margin:20px 0 12px"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Ordenar por</span>
         <select id="ent-sort" onchange="renderEntrenamiento()" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
@@ -1333,10 +1333,10 @@ function renderResumen(){
     const imgSrc=getHorseImg(nombre);
     // Check if main image is an uploaded photo (not from GEO)
     const isUploadedMain=imgSrc&&!(GEO[nombre]||{}).img&&!newHorsePhotos[nombre];
-    const mainImgOnclick=canEdit&&isUploadedMain?`onclick="setMainPhoto('${sid}','${imgSrc}','${nombre.replace(/'/g,"\\'")}')"`:'';     
-    const mainImgTitle=canEdit&&isUploadedMain?' title="Clic para opciones"':'';
+    const mainImgOnclick=`onclick="viewFotoFull(this.src,'${nombre.replace(/'/g,"\\'")}')"`;
+    const mainImgTitle=' title="Ver foto completa"';
     const mainImg=imgSrc
-      ?`<img class="main-img" src="${imgSrc}" alt="${nombre}" ${mainImgOnclick}${mainImgTitle} style="${isUploadedMain&&canEdit?'cursor:pointer':''}" onerror="this.style.display='none'">`
+      ?`<img class="main-img" src="${imgSrc}" alt="${nombre}" ${mainImgOnclick}${mainImgTitle} style="cursor:zoom-in" onerror="this.style.display='none'">`
       :`<img class="main-img" src="" alt="${nombre}" style="display:none"><div class="main-img-placeholder" style="padding:20px;text-align:center;color:#aaa;font-size:13px">Sin imagen</div>`;
     const dob=info&&info.fecha_nacimiento?new Date(info.fecha_nacimiento+'T12:00:00').toLocaleDateString('es-CL'):'—';
     const numero=(info&&info.numero)||(geo.numero||'—');
@@ -1439,7 +1439,7 @@ function renderResumen(){
               const c=ETAPA_COLORS[e.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
               chip=`<div title="${e.etapa}${e.potrero?' ('+e.potrero+')':''}${e.jinete?' — '+e.jinete:''}${e.comentario?' · '+e.comentario:''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;height:22px;box-sizing:border-box;overflow:hidden">
                 <div style="font-size:8.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.etapa}</div>
-                <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.jinete||e.potrero||'&nbsp;'}</div>
+                <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(e.jinete||e.potrero||'&nbsp;').toUpperCase()}</div>
               </div>`;
             }else{
               chip=`<div style="border:1px dashed #e0d5bd;border-radius:4px;height:22px;box-sizing:border-box"></div>`;
@@ -1512,7 +1512,7 @@ function renderResumen(){
           </div>
           <canvas id="chart-${year}" height="78"></canvas>
         </div>
-        <div id="res-tbl-h${year}" style="display:none">
+        <div id="res-tbl-h${year}" style="display:none;margin-top:16px">
           <table class="year-table">
             <thead><tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
             <tbody>
@@ -1521,7 +1521,7 @@ function renderResumen(){
             </tbody>
           </table>
         </div>
-        <div id="res-tbl-r${year}" style="display:none;padding:4px 10px 10px">
+        <div id="res-tbl-r${year}" style="display:none;padding:4px 10px 10px;margin-top:16px">
           ${(()=>{
             const rds=allRodeos.filter(r=>r.year===year).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
             if(!rds.length)return `<div style="color:var(--text-soft);font-size:12px;padding:14px;text-align:center">Sin rodeos registrados en ${year}</div>`;
@@ -1539,7 +1539,7 @@ function renderResumen(){
             </table>`;
           })()}
         </div>
-        <div id="res-tbl-g${year}" style="display:none;padding:4px 10px 10px">
+        <div id="res-tbl-g${year}" style="display:none;padding:4px 10px 10px;margin-top:16px">
           ${(()=>{
             const cats=[...new Set(yg.map(e=>e.categoria))].sort((a,b)=>a.localeCompare(b,'es'));
             if(!cats.length)return `<div style="color:var(--text-soft);font-size:12px;padding:14px;text-align:center">Sin gastos generales en ${year}</div>`;
@@ -1556,7 +1556,7 @@ function renderResumen(){
             </table>`;
           })()}
         </div>
-        <div id="res-tbl-t${year}" style="padding:4px 10px 10px">
+        <div id="res-tbl-t${year}" style="padding:4px 10px 10px;margin-top:16px">
           ${(()=>{
             const cabM=am.map(m=>ye.filter(e=>e.month===m).reduce((s,e)=>s+Number(e.amount),0));
             const genM=am.map(m=>yg.filter(e=>e.month===m).reduce((s,e)=>s+Number(e.monto),0));
@@ -3424,7 +3424,7 @@ function buildResArregladores(){
   }else if(resArrEtapa){
     statsHTML=`<span style="background:var(--cream);border:1px solid var(--gold);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--wood)">${horseObjs.length} caballo${horseObjs.length!==1?'s':''} en ${resArrEtapa} — ${MESES_L[resArrMonth-1]}</span>`;
   }
-  const ctrls=`<div class="arr-top-gap" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+  const ctrls=`<div class="arr-top-gap" style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:8px">
       <button onclick="resArrChangeYear(-1)" style="height:28px;width:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px">‹</button>
       <span style="font-size:15px;font-weight:700;color:var(--ink);min-width:52px;text-align:center"><i class="ti ti-calendar" style="font-size:13px;vertical-align:-2px"></i> ${resArrYear}</span>
@@ -3453,7 +3453,7 @@ function buildResArregladores(){
     const arrChips=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([j,n])=>{
       const on=resArrFilter===j;
       const next=(on?'':j).replace(/'/g,"\\'");
-      return `<span onclick="setResArrFilter('${next}')" title="${(who[j]||[]).join(', ').replace(/"/g,'&quot;')}" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-user" style="font-size:10px"></i> ${j} <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`;
+      return `<span onclick="setResArrFilter('${next}')" title="${(who[j]||[]).join(', ').replace(/"/g,'&quot;')}" style="cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;background:${on?'var(--wood)':'var(--cream)'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-user" style="font-size:10px"></i> ${j.toUpperCase()} <span style="background:${on?'var(--cream)':'var(--wood)'};color:${on?'var(--wood)':'var(--cream)'};border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`;
     }).join(' ');
     return `<div style="border:1.5px solid var(--gold);background:var(--cream);border-radius:10px;padding:10px 12px;margin-bottom:12px">
       <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${MESES_L[resArrMonth-1]} ${resArrYear}</div>
@@ -3482,7 +3482,7 @@ function buildResArregladores(){
         const gray=resArrEtapa?(e.etapa!==resArrEtapa):(!sel);
         inner=`<div title="${e.etapa}${e.potrero?' ('+e.potrero+')':''}${e.jinete?' — '+e.jinete:''}${e.comentario?' · '+e.comentario:''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden;${dim?'opacity:0.25;':''}${gray?'filter:grayscale(1);opacity:0.5;':''}">
           <div style="font-size:8.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.etapa}</div>
-          <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.jinete||e.potrero||'&nbsp;'}</div>
+          <div style="font-size:7.5px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(e.jinete||e.potrero||'&nbsp;').toUpperCase()}</div>
         </div>`;
       }else{
         inner='<div style="border:1px dashed #e8ddc4;border-radius:4px;height:22px;box-sizing:border-box"></div>';
@@ -3516,7 +3516,7 @@ function buildResArregladores(){
       <span style="font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase">Jinete</span>
       <select onchange="setResRodJin(this.value)" style="height:28px;padding:0 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
         <option value="">Todos</option>
-        ${jinetesRodAll.map(j=>`<option value="${j.replace(/"/g,'&quot;')}" ${resRodJin===j?'selected':''}>${j}</option>`).join('')}
+        ${jinetesRodAll.map(j=>`<option value="${j.replace(/"/g,'&quot;')}" ${resRodJin===j?'selected':''}>${j.toUpperCase()}</option>`).join('')}
       </select>
     </div>
     ${rodStats}
@@ -4483,7 +4483,7 @@ function renderEntrenamiento(){
         return `<span style="display:inline-flex;align-items:center;gap:4px;background:${c.bg};border:1px solid ${c.border};color:${c.text};border-radius:12px;padding:2px 9px;font-size:10px;font-weight:700">${e} <span style="background:${c.border};color:#fff;border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${porEtapa[e]}</span></span>`;
       }).join(' ');
       const jineteChips=Object.entries(porJinete).sort((a,b)=>b[1]-a[1]).map(([j,n])=>
-        `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--cream);border:1px solid var(--gold);color:var(--wood);border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-user" style="font-size:10px"></i> ${j} <span style="background:var(--wood);color:var(--cream);border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`
+        `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--cream);border:1px solid var(--gold);color:var(--wood);border-radius:12px;padding:2px 9px;font-size:10px;font-weight:600"><i class="ti ti-user" style="font-size:10px"></i> ${j.toUpperCase()} <span style="background:var(--wood);color:var(--cream);border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${n}</span></span>`
       ).join(' ');
       const totalCab=sortedActive().length;
       const totalChipEnt=`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--wood);border:1px solid var(--wood-dark);color:var(--cream);border-radius:12px;padding:2px 9px;font-size:10px;font-weight:700">TOTAL CABALLOS <span style="background:var(--cream);color:var(--wood);border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${totalCab}</span></span>`;
@@ -4515,7 +4515,7 @@ function renderEntrenamiento(){
         const c=ETAPA_COLORS[ent.etapa]||{bg:'#eee',text:'#666',border:'#bbb'};
         inner=`<div title="${ent.etapa}${ent.potrero?' ('+ent.potrero.replace(/"/g,'&quot;')+')':''}${ent.jinete?' — '+ent.jinete.replace(/"/g,'&quot;'):''}${ent.comentario?' · '+ent.comentario.replace(/"/g,'&quot;'):''}" style="background:${c.bg};border:1px solid ${c.border};border-radius:4px;padding:1px 3px;line-height:1.15;width:100%;height:22px;box-sizing:border-box;overflow:hidden">
           <div style="font-size:9.5px;font-weight:700;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.etapa}</div>
-          <div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ent.jinete||ent.potrero||'&nbsp;'}</div>
+          <div style="font-size:8px;color:${c.text};opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(ent.jinete||ent.potrero||'&nbsp;').toUpperCase()}</div>
         </div>`;
       }else{
         inner=canEdit?'<div style="color:#d8cbb0;font-size:12px">+</div>':'<div style="color:#eee;font-size:10px">—</div>';
@@ -4955,14 +4955,14 @@ function buildInvYear(year){
 function buildInvCategoria(titulo,tipo,year,items){
   const rows=items.map(item=>{
     let stockInfo='',usarBtn='';
-    if(tipo==='remedio'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_ml}${item.envase_unidad||'ml'}/${item.envase_ml}${item.envase_unidad||'ml'}</span>`;usarBtn=isAdmin?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:'';}
-    else if(tipo==='alimento'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_sacos} sacos</span>`;usarBtn=isAdmin?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:'';}
-    else if(tipo==='fardo'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_fardos} fardos</span>`;usarBtn=isAdmin?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:''; }
+    if(tipo==='remedio'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_ml}${item.envase_unidad||'ml'}/${item.envase_ml}${item.envase_unidad||'ml'}</span>`;usarBtn=canEdit?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:'';}
+    else if(tipo==='alimento'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_sacos} sacos</span>`;usarBtn=canEdit?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:'';}
+    else if(tipo==='fardo'){stockInfo=`<span style="font-size:10px;color:var(--text-soft)">${item.stock_fardos} fardos</span>`;usarBtn=canEdit?`<button onclick="openInvUso(${item.id})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer;margin-left:8px">Usar</button>`:''; }
     const fechaCompra=item.fecha_compra?new Date(item.fecha_compra+'T12:00:00').toLocaleDateString('es-CL'):'';
     const delBtn=isAdmin?`<button onclick="delInvItem(${item.id})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:12px;margin-left:4px">×</button>`:'';
     return `<div style="display:flex;align-items:center;padding:6px 20px;border-bottom:1px solid var(--border);gap:8px;flex-wrap:wrap" id="invitem${item.id}"><span style="font-size:12px;font-weight:500;flex:1">${item.nombre}${fechaCompra?`<span style="font-size:9px;color:var(--text-soft);margin-left:6px"><i class="ti ti-calendar" style="font-size:9px;vertical-align:-1px"></i> ${fechaCompra}</span>`:''}</span><span style="font-size:11px;color:var(--accent)">${clp(item.precio)}</span>${stockInfo}${usarBtn}${delBtn}</div>`;
   }).join('');
-  const addBtn=isAdmin?`<div style="padding:6px 16px;border-top:1px solid var(--border)"><button onclick="openInvModal('${tipo}',${year})" style="height:24px;padding:0 12px;font-size:10px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar</button></div>`:'';
+  const addBtn=canEdit?`<div style="padding:6px 16px;border-top:1px solid var(--border)"><button onclick="openInvModal('${tipo}',${year})" style="height:24px;padding:0 12px;font-size:10px;font-weight:600;border-radius:4px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer">+ Agregar</button></div>`:'';
   const sid=`inv_${tipo}_${year}`;
   return `<div class="exp-h-block"><div class="exp-h-hdr" onclick="tog('${sid}h','${sid}b','${sid}a')"><span class="exp-h-name">${titulo}</span><span class="exp-h-arrow" id="${sid}a">▼</span></div><div class="exp-h-body" id="${sid}b"><div id="invrows_${tipo}_${year}">${rows||'<div class="empty">Sin registros</div>'}</div>${addBtn}</div></div>`;
 }
