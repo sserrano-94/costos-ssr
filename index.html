@@ -3733,48 +3733,71 @@ function openToroPuntos(serieId,n){
   const s=allRodeoSeries.find(x=>x.id===serieId);
   if(!s)return;
   const ORD={1:'1er toro',2:'2do toro',3:'3er toro',4:'4to toro'};
+  const det=(s.atajadas&&s.atajadas['t'+n])||{};
+  const dj1=det.j1||{},dj2=det.j2||{};
   const m=document.createElement('div');
   m.id='pj-modal';
   m.style.cssText='position:fixed;inset:0;background:rgba(30,20,8,0.45);display:flex;align-items:center;justify-content:center;z-index:9999;padding:14px;box-sizing:border-box';
   const lbl='font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px';
-  const inp='width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none;background:#fff';
-  const v1=s['puntos'+n+'_j1'],v2=s['puntos'+n+'_j2'],va=s['puntos'+n+'_ap'];
-  m.innerHTML=`<div style="background:var(--cream);border-radius:12px;overflow:hidden;width:100%;max-width:340px;box-shadow:0 12px 40px rgba(61,43,15,0.35)">
-    <div style="background:var(--wood);padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+  const slbl='font-size:8.5px;font-weight:600;color:var(--text-soft);text-transform:uppercase;display:block;margin-bottom:3px;line-height:1.2';
+  const inp='width:100%;height:34px;padding:0 8px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none;background:#fff';
+  const jinBlock=(who,nombre,caballo,d)=>`
+    <div style="margin-bottom:12px;background:#fff;border:1px solid var(--gold);border-radius:8px;padding:9px 10px">
+      <div style="${lbl};margin-bottom:7px"><i class="ti ti-user" style="font-size:11px;vertical-align:-1px"></i> ${nombre} <span style="color:var(--text-soft);font-weight:400;text-transform:none">(${caballo})</span> <span id="tp-sub-${who}" style="float:right;color:var(--wood);font-weight:800"></span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px">
+        <div><label style="${slbl}">1ª atajada adelante</label><input type="number" id="tp-${who}-a1" value="${d.a1??''}" oninput="tpTotal()" style="${inp}"></div>
+        <div><label style="${slbl}">2ª atajada adelante</label><input type="number" id="tp-${who}-a2" value="${d.a2??''}" oninput="tpTotal()" style="${inp}"></div>
+        <div><label style="${slbl}">Atajada de atrás</label><input type="number" id="tp-${who}-at" value="${d.at??''}" oninput="tpTotal()" style="${inp}"></div>
+      </div>
+    </div>`;
+  m.innerHTML=`<div style="background:var(--cream);border-radius:12px;overflow:hidden;width:100%;max-width:420px;box-shadow:0 12px 40px rgba(61,43,15,0.35);max-height:92vh;display:flex;flex-direction:column">
+    <div style="background:var(--wood);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
       <span style="font-size:13px;font-weight:700;color:var(--cream)"><i class="ti ti-target-arrow" style="font-size:14px;vertical-align:-2px"></i> ${ORD[n]} — puntos</span>
       <span onclick="document.getElementById('pj-modal').remove()" style="cursor:pointer;color:var(--cream);font-size:18px;line-height:1">×</span>
     </div>
-    <div style="padding:16px 18px">
+    <div style="padding:16px 18px;overflow-y:auto">
       <div style="font-size:11px;color:var(--text-soft);margin-bottom:12px">${(s.serie||'Serie').toUpperCase()}</div>
-      <div style="margin-bottom:12px"><label style="${lbl}">${s.jinete1||'Jinete 1'} (${s.caballo1||'—'})</label><input type="number" id="tp-j1" value="${v1??''}" placeholder="Puntos" oninput="tpTotal(${n})" style="${inp}"></div>
-      <div style="margin-bottom:12px"><label style="${lbl}">${s.jinete2||'Jinete 2'} (${s.caballo2||'—'})</label><input type="number" id="tp-j2" value="${v2??''}" placeholder="Puntos" oninput="tpTotal(${n})" style="${inp}"></div>
-      <div style="margin-bottom:12px"><label style="${lbl}">Apiñadero (+/-)</label><input type="number" id="tp-ap" value="${va??''}" placeholder="Ej: -1 o 2" oninput="tpTotal(${n})" style="${inp}"></div>
+      <div style="margin-bottom:12px"><label style="${lbl}">Apiñadero (+/-)</label><input type="number" id="tp-ap" value="${det.ap??''}" placeholder="Ej: -1 o 2" oninput="tpTotal()" style="${inp}"></div>
+      ${jinBlock('j1',s.jinete1||'Jinete 1',s.caballo1||'—',dj1)}
+      ${jinBlock('j2',s.jinete2||'Jinete 2',s.caballo2||'—',dj2)}
       <div style="text-align:center;margin-bottom:14px"><span id="tp-total-chip" style="display:inline-block;background:var(--wood);color:var(--cream);border-radius:10px;padding:4px 16px;font-weight:800;font-size:13px"></span></div>
       <button onclick="saveToroPuntos(${serieId},${n})" style="width:100%;height:38px;font-size:13px;font-weight:700;border-radius:8px;border:none;background:var(--wood);color:var(--cream);cursor:pointer">Guardar</button>
     </div>
   </div>`;
   m.onclick=e=>{if(e.target===m)m.remove();};
   document.body.appendChild(m);
-  tpTotal(n);
+  tpTotal();
 }
-function tpTotal(n){
-  const g=id=>{const v=document.getElementById(id)?.value;return v===''||v==null?null:+v;};
-  const j1=g('tp-j1'),j2=g('tp-j2'),ap=g('tp-ap');
+function tpVal(id){const v=document.getElementById(id)?.value;return v===''||v==null?null:+v;}
+function tpJinSum(who){
+  const a1=tpVal('tp-'+who+'-a1'),a2=tpVal('tp-'+who+'-a2'),at=tpVal('tp-'+who+'-at');
+  if(a1==null&&a2==null&&at==null)return null;
+  return (a1||0)+(a2||0)+(at||0);
+}
+function tpTotal(){
+  const s1=tpJinSum('j1'),s2=tpJinSum('j2'),ap=tpVal('tp-ap');
+  const e1=document.getElementById('tp-sub-j1');if(e1)e1.textContent=s1!=null?(s1>0?'+':'')+s1:'';
+  const e2=document.getElementById('tp-sub-j2');if(e2)e2.textContent=s2!=null?(s2>0?'+':'')+s2:'';
   const chip=document.getElementById('tp-total-chip');
   if(!chip)return;
-  if(j1==null&&j2==null&&ap==null){chip.textContent='Total: —';return;}
-  const t=(j1||0)+(j2||0)+(ap||0);
+  if(s1==null&&s2==null&&ap==null){chip.textContent='Total: —';return;}
+  const t=(s1||0)+(s2||0)+(ap||0);
   chip.textContent='Total: '+t+' punto'+(Math.abs(t)===1?'':'s');
 }
 async function saveToroPuntos(serieId,n){
-  const g=id=>{const v=document.getElementById(id)?.value;return v===''||v==null?null:+v;};
-  const j1=g('tp-j1'),j2=g('tp-j2'),ap=g('tp-ap');
-  const total=(j1==null&&j2==null&&ap==null)?null:(j1||0)+(j2||0)+(ap||0);
-  const body={};
-  body['puntos'+n+'_j1']=j1;body['puntos'+n+'_j2']=j2;body['puntos'+n+'_ap']=ap;body['puntos'+n]=total;
+  const s=allRodeoSeries.find(x=>x.id===serieId);
+  const s1=tpJinSum('j1'),s2=tpJinSum('j2'),ap=tpVal('tp-ap');
+  const total=(s1==null&&s2==null&&ap==null)?null:(s1||0)+(s2||0)+(ap||0);
+  const at={...(s&&s.atajadas||{})};
+  at['t'+n]={
+    ap:ap,
+    j1:{a1:tpVal('tp-j1-a1'),a2:tpVal('tp-j1-a2'),at:tpVal('tp-j1-at')},
+    j2:{a1:tpVal('tp-j2-a1'),a2:tpVal('tp-j2-a2'),at:tpVal('tp-j2-at')}
+  };
+  const body={atajadas:at};
+  body['puntos'+n+'_j1']=s1;body['puntos'+n+'_j2']=s2;body['puntos'+n+'_ap']=ap;body['puntos'+n]=total;
   try{
     await sbFetch('rodeo_series?id=eq.'+serieId,{method:'PATCH',body:JSON.stringify(body),headers:{'Prefer':'return=minimal'}});
-    const s=allRodeoSeries.find(x=>x.id===serieId);
     if(s)Object.assign(s,body);
     document.getElementById('pj-modal')?.remove();
     renderResumen();
