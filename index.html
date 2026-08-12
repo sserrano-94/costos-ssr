@@ -111,9 +111,17 @@ main{max-width:1200px;margin:0 auto;padding:20px 24px 60px}
 .year-body{display:none;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);overflow-x:auto}
 .year-body.open{display:block}
 .year-table{width:100%;border-collapse:collapse;font-size:10px;table-layout:auto}
+.year-table.eqcols{table-layout:fixed;min-width:820px}
+.year-table.eqcols td:first-child,.year-table.eqcols th:first-child{overflow:hidden;text-overflow:ellipsis}
+.year-table th.m-th{text-align:center}
+.gbar{position:relative;border-radius:3px 3px 0 0;transition:background .12s;cursor:pointer;background:var(--bc)}
+.gbar:hover{background:var(--bch)}
+.gbar .gbar-tip{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:5px;background:var(--ink);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap;z-index:6;box-shadow:0 2px 8px rgba(0,0,0,0.25)}
+.gbar:hover .gbar-tip{display:block}
 .year-table th{font-size:9px;font-weight:600;color:var(--text-soft);text-transform:uppercase;padding:5px 6px;border-bottom:1px solid var(--border);background:#fafaf8;text-align:right;white-space:nowrap}
 .year-table th:first-child{text-align:left;width:auto;min-width:80px}
 .year-table td{padding:5px 6px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.year-table td.bars-td{border-bottom:none;background:transparent;padding:2px 2px 0}
 .year-table td:first-child{text-align:left;font-weight:600;color:var(--text);width:auto;min-width:80px}
 .year-table tr:last-child td{border-bottom:none;font-weight:700;background:#f7f6f3;color:var(--accent)}
 .year-table tbody tr:hover:not(:last-child) td{background:var(--accent-light)}
@@ -1510,11 +1518,11 @@ function renderResumen(){
               ${['CABALLOS','GENERALES','RODEOS','TOTAL'].map(f=>`<button onclick="setChartFilter(${year},'${f}')" id="cf-${year}-${f}" style="padding:3px 8px;font-size:10px;font-weight:600;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text-soft);cursor:pointer;transition:all .15s">${f}</button>`).join('')}
             </div>
           </div>
-          <canvas id="chart-${year}" height="48"></canvas>
         </div>
         <div id="res-tbl-h${year}" style="display:none;margin-top:16px">
-          <table class="year-table">
-            <thead><tr><th>Caballo</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
+          <table class="year-table eqcols">
+            <colgroup><col style="width:105px">${am.map(()=>'<col>').join('')}<col style="width:92px"></colgroup>
+            <thead>${barsRow(colT,'#7a5c2e','#5a431f')}<tr><th>Caballo</th>${am.map(m=>`<th class="m-th">${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
             <tbody>
               ${rows.map(r=>`<tr><td>${r.h}</td>${r.cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${r.rt>0?clp(r.rt):clp(0)}</strong></td></tr>`).join('')}
               <tr><td>TOTAL</td>${colT.map(v=>`<td>${clp(v)}</td>`).join('')}<td>${clp(yt)}</td></tr>
@@ -1525,6 +1533,11 @@ function renderResumen(){
           ${(()=>{
             const rds=allRodeos.filter(r=>r.year===year).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
             if(!rds.length)return `<div style="color:var(--text-soft);font-size:12px;padding:14px;text-align:center">Sin rodeos registrados en ${year}</div>`;
+            const rodMM=am.map(m=>{
+              const rr=rds.filter(r=>r.fecha&&(new Date(r.fecha+'T12:00:00').getMonth()+1)===m);
+              return allRodeosCostos.filter(c=>rr.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
+            });
+            const rodBars=`<table class="year-table eqcols" style="margin-bottom:10px"><colgroup><col style="width:105px">${am.map(()=>'<col>').join('')}<col style="width:92px"></colgroup><thead>${barsRow(rodMM,'#1a7a4a','#125835')}<tr><th></th>${am.map(m=>`<th class="m-th">${MONTHS_S[m]}</th>`).join('')}<th></th></tr></thead></table>`;
             const rrows=rds.map(r=>{
               const costs=allRodeosCostos.filter(c=>c.rodeo_id===r.id);
               const tot=costs.reduce((s,c)=>s+Number(c.monto),0);
@@ -1532,7 +1545,7 @@ function renderResumen(){
               return `<tr><td style="font-weight:600;text-align:left">${r.nombre}</td><td style="text-align:left">${r.fecha?new Date(r.fecha+'T12:00:00').toLocaleDateString('es-CL'):'—'}</td><td style="text-align:left">${det||'—'}</td><td style="text-align:right"><strong>${clp(tot)||'$0'}</strong></td></tr>`;
             }).join('');
             const rtot=allRodeosCostos.filter(c=>rds.some(r=>r.id===c.rodeo_id)).reduce((s,c)=>s+Number(c.monto),0);
-            return `<table class="year-table" style="width:100%">
+            return rodBars+`<table class="year-table" style="width:100%">
               <thead><tr><th style="text-align:left">Rodeo</th><th style="text-align:left">Fecha</th><th style="text-align:left">Detalle</th><th style="text-align:right">Total gastado</th></tr></thead>
               <tbody>${rrows}
               <tr><td style="font-weight:700;text-align:left">TOTAL</td><td></td><td></td><td style="text-align:right;font-weight:700">${clp(rtot)||'$0'}</td></tr></tbody>
@@ -1549,8 +1562,9 @@ function renderResumen(){
               return `<tr><td>${cat}</td>${cells.map(v=>`<td>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${clp(rt)}</strong></td></tr>`;
             }).join('');
             const gcolT=am.map(m=>yg.filter(e=>e.month===m).reduce((s,e)=>s+Number(e.monto),0));
-            return `<table class="year-table">
-              <thead><tr><th>Categoría</th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
+            return `<table class="year-table eqcols">
+              <colgroup><col style="width:105px">${am.map(()=>'<col>').join('')}<col style="width:92px"></colgroup>
+              <thead>${barsRow(gcolT,'#2b5fa6','#1f4478')}<tr><th>Categoría</th>${am.map(m=>`<th class="m-th">${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
               <tbody>${grows}
               <tr><td>TOTAL</td>${gcolT.map(v=>`<td>${clp(v)}</td>`).join('')}<td>${clp(ygt)}</td></tr></tbody>
             </table>`;
@@ -1566,8 +1580,9 @@ function renderResumen(){
             });
             const totM=am.map((_,i)=>cabM[i]+genM[i]+rodM[i]);
             const row=(name,cells,tot,bold)=>`<tr>${bold?`<td style="font-weight:700">${name}</td>`:`<td>${name}</td>`}${cells.map(v=>`<td${bold?' style="font-weight:700"':''}>${v?clp(v):'<span class="cell-empty">—</span>'}</td>`).join('')}<td><strong>${clp(tot)}</strong></td></tr>`;
-            return `<table class="year-table">
-              <thead><tr><th></th>${am.map(m=>`<th>${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
+            return `<table class="year-table eqcols">
+              <colgroup><col style="width:105px">${am.map(()=>'<col>').join('')}<col style="width:92px"></colgroup>
+              <thead>${barsRow(totM,'#c9a96e','#a98545')}<tr><th></th>${am.map(m=>`<th class="m-th">${MONTHS_S[m]}</th>`).join('')}<th>Total</th></tr></thead>
               <tbody>
                 ${row('CABALLOS',cabM,yt)}
                 ${row('GENERALES',genM,ygt)}
@@ -1614,9 +1629,19 @@ function updateChartButtons(year){
   });
 }
 
+
+function abbrClp(v){return v>=1000000?'$'+(v/1000000).toFixed(1).replace('.',',')+'M':v>=1000?'$'+Math.round(v/1000)+'K':(v>0?'$'+v:'');}
+function barsRow(vals,color,hoverColor){
+  const max=Math.max(...vals,1);
+  const cells=vals.map(v=>{
+    const h=v>0?Math.max(3,Math.round(v/max*58)):0;
+    const bar=v>0?`<div class="gbar" style="--bc:${color};--bch:${hoverColor||color};height:${h}px;width:64%"><span class="gbar-tip">$${Math.round(v).toLocaleString('es-CL')}</span></div>`:'';
+    return `<td class="bars-td" style="vertical-align:bottom;padding:2px 2px 0"><div style="height:62px;display:flex;align-items:flex-end;justify-content:center">${bar}</div></td>`;
+  }).join('');
+  return `<tr class="bars-tr"><td class="bars-td"></td>${cells}<td class="bars-td"></td></tr>`;
+}
+
 function renderChart(year){
-  const canvas=document.getElementById('chart-'+year);
-  if(!canvas)return;
   const filter=chartFilters[year]||'TOTAL';
   const data=MONTHS_ALL.map((_,i)=>{
     const m=i+1;
@@ -1637,24 +1662,6 @@ function renderChart(year){
   if(rt&&typeof resYear!=='undefined'&&year===resYear){rt.textContent=clp(data.reduce((s,v)=>s+v,0))||'$0';}
   const _tbls={CABALLOS:'res-tbl-h',GENERALES:'res-tbl-g',RODEOS:'res-tbl-r',TOTAL:'res-tbl-t'};
   Object.entries(_tbls).forEach(([f,p])=>{const el=document.getElementById(p+year);if(el)el.style.display=(filter===f)?'':'none';});
-  const colorMap={CABALLOS:'#7a5c2e',GENERALES:'#2b5fa6',RODEOS:'#1a7a4a',TOTAL:'#c9a96e'};
-  const barColor=colorMap[filter]||'#c9a96e';
-  if(chartInstances[year])chartInstances[year].destroy();
-  chartInstances[year]=new Chart(canvas,{
-    type:'bar',
-    data:{
-      labels:MONTHS_ALL,
-      datasets:[{data,backgroundColor:barColor,borderRadius:4,borderSkipped:false,barPercentage:0.6,categoryPercentage:0.95}]
-    },
-    options:{
-      responsive:true,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'$'+Math.round(ctx.raw).toLocaleString('es-CL')}}},
-      scales:{
-        x:{grid:{display:false},ticks:{font:{size:10}}},
-        y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+v,font:{size:10}}}
-      }
-    }
-  });
 }
 
 // ===== INGRESAR =====
@@ -3734,7 +3741,7 @@ function buildResRodeos(){
       const isCampS=/campeon/i.test(s.serie||'');
       const fotos=(s.fotos||[]);
       const fotosHTML=fotos.map(u=>`<span style="display:inline-block;margin:2px">
-        <img src="${u}" onclick="viewSerieFoto(${s.id},'${u}')" style="height:40px;width:40px;object-fit:cover;border-radius:4px;border:1.5px solid var(--gold);cursor:zoom-in">
+        <img src="${u}" loading="lazy" decoding="async" onclick="viewSerieFoto(${s.id},'${u}')" style="height:40px;width:40px;object-fit:cover;border-radius:4px;border:1.5px solid var(--gold);cursor:zoom-in">
       </span>`).join('')+(canEdit?`<span onclick="uploadSerieFoto(${s.id})" title="Agregar foto" style="display:inline-flex;height:20px;width:20px;border:1px dashed #e6dcc6;border-radius:50%;align-items:center;justify-content:center;cursor:pointer;color:#d3c5a6;background:transparent;margin:2px 2px 2px 4px;vertical-align:top;align-self:center"><i class="ti ti-plus" style="font-size:11px"></i></span>`:'');
       return `<div style="border:1.5px solid var(--gold);border-radius:8px;margin:8px 0;background:var(--surface);box-shadow:0 1px 3px rgba(61,43,15,0.08);overflow:hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--cream);border-bottom:1px solid var(--gold);padding:6px 10px">
@@ -4807,7 +4814,7 @@ function renderAperos(){
   if(!lista.length){grid.innerHTML='<div style="color:#a07840;font-size:12px;text-align:center;padding:20px;grid-column:1/-1">No hay aperos registrados</div>';return;}
   grid.innerHTML=lista.map(a=>`
     <div class="apero-card" onclick="viewApero('${a.id}')">
-      ${a.foto_url?`<img src="${a.foto_url}" style="width:100%;height:90px;object-fit:cover">`:`<div class="apero-card-img"><i class="ti ti-horseshoe" style="font-size:30px;color:var(--wood)"></i></div>`}
+      ${a.foto_url?`<img src="${a.foto_url}" loading="lazy" decoding="async" style="width:100%;height:90px;object-fit:cover;background:#f2ead9">`:`<div class="apero-card-img"><i class="ti ti-horseshoe" style="font-size:30px;color:var(--wood)"></i></div>`}
       <div class="apero-card-body">
         <div class="apero-card-name">${a.nombre}</div>
         <div class="apero-card-tipo">${a.tipo}</div>
