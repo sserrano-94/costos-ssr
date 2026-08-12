@@ -3215,6 +3215,7 @@ async function deleteRodeoFull(id){
   if(!await mancosConfirm(`¿Eliminar el rodeo "${r?r.nombre:''}"${nSeries?` con sus ${nSeries} serie${nSeries!==1?'s':''}`:''} y todos sus costos?`))return;
   try{
     await sbFetch('rodeo_series?rodeo_id=eq.'+id,{method:'DELETE'});
+    try{await sbFetch('eventos?rodeo_id=eq.'+id,{method:'DELETE'});allEvents=allEvents.filter(e=>e.rodeo_id!==id);if(typeof renderCalendar==='function')renderCalendar();}catch(e){}
     await sbFetch('rodeos_costos?rodeo_id=eq.'+id,{method:'DELETE'});
     await sbFetch('rodeos?id=eq.'+id,{method:'DELETE'});
     allRodeoSeries=allRodeoSeries.filter(s=>s.rodeo_id!==id);
@@ -3269,6 +3270,11 @@ async function saveRodeoFull(){
   try{
     const res=await sbFetch('rodeos',{method:'POST',body:JSON.stringify({nombre,fecha,year,medialuna,tipo,user_id:currentUser?.id})});
     allRodeos=[...res,...allRodeos];
+    try{
+      const evR=await sbFetch('eventos',{method:'POST',body:JSON.stringify({horse:nombre,fecha,tipo:'RODEO',descripcion:medialuna||'',user_id:currentUser?.id,recordatorio:false,rodeo_id:res[0].id})});
+      allEvents=[...allEvents,...evR];
+      if(typeof renderCalendar==='function')renderCalendar();
+    }catch(e){}
     resRodYear=year;
     resOpenRodeos.add(res[0].id);
     renderResumen();renderExpBlocks();
@@ -3696,6 +3702,7 @@ function openRodeoInfoModal(id){
 }
 
 // ===== SECCION RODEOS (Resumen) =====
+let resRodStatsJin='';
 let resRodYear=new Date().getFullYear();
 let resOpenRodeos=new Set();
 function resRodChangeYear(d){resRodYear+=d;renderResumen();}
@@ -3710,6 +3717,44 @@ function lugarOrdinal(n){
   const suf={1:'er',2:'do',3:'er',4:'to',5:'to',6:'to',7:'mo',8:'vo',9:'no'}[x%10===0?10:(x>10&&x<20?4:x%10)]||'º';
   const map={1:'1er',2:'2do',3:'3er',4:'4to',5:'5to',6:'6to',7:'7mo',8:'8vo',9:'9no',10:'10mo'};
   return (map[x]||x+'º')+' lugar';
+}
+
+function openPuntosJinetes(serieId){
+  if(!canEdit)return;
+  const s=allRodeoSeries.find(x=>x.id===serieId);
+  if(!s)return;
+  const m=document.createElement('div');
+  m.id='pj-modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(30,20,8,0.45);display:flex;align-items:center;justify-content:center;z-index:9999;padding:14px;box-sizing:border-box';
+  const lbl='font-size:10px;font-weight:600;color:var(--wood);text-transform:uppercase;display:block;margin-bottom:4px';
+  const inp='width:100%;height:36px;padding:0 10px;border:1.5px solid var(--gold);border-radius:6px;font-size:13px;box-sizing:border-box;outline:none;background:#fff';
+  m.innerHTML=`<div style="background:var(--cream);border-radius:12px;overflow:hidden;width:100%;max-width:340px;box-shadow:0 12px 40px rgba(61,43,15,0.35)">
+    <div style="background:var(--wood);padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:13px;font-weight:700;color:var(--cream)"><i class="ti ti-user-star" style="font-size:14px;vertical-align:-2px"></i> Puntos por jinete</span>
+      <span onclick="document.getElementById('pj-modal').remove()" style="cursor:pointer;color:var(--cream);font-size:18px;line-height:1">×</span>
+    </div>
+    <div style="padding:16px 18px">
+      <div style="font-size:11px;color:var(--text-soft);margin-bottom:12px">${(s.serie||'Serie').toUpperCase()}</div>
+      <div style="margin-bottom:12px"><label style="${lbl}">${s.jinete1||'Jinete 1'} (${s.caballo1||'—'})</label><input type="number" id="pj-p1" value="${s.puntos_j1??''}" placeholder="Puntos" style="${inp}"></div>
+      <div style="margin-bottom:14px"><label style="${lbl}">${s.jinete2||'Jinete 2'} (${s.caballo2||'—'})</label><input type="number" id="pj-p2" value="${s.puntos_j2??''}" placeholder="Puntos" style="${inp}"></div>
+      <button onclick="savePuntosJinetes(${serieId})" style="width:100%;height:38px;font-size:13px;font-weight:700;border-radius:8px;border:none;background:var(--wood);color:var(--cream);cursor:pointer">Guardar</button>
+    </div>
+  </div>`;
+  m.onclick=e=>{if(e.target===m)m.remove();};
+  document.body.appendChild(m);
+}
+async function savePuntosJinetes(serieId){
+  const p1=document.getElementById('pj-p1').value;
+  const p2=document.getElementById('pj-p2').value;
+  const body={puntos_j1:p1===''?null:+p1,puntos_j2:p2===''?null:+p2};
+  try{
+    await sbFetch('rodeo_series?id=eq.'+serieId,{method:'PATCH',body:JSON.stringify(body),headers:{'Prefer':'return=minimal'}});
+    const s=allRodeoSeries.find(x=>x.id===serieId);
+    if(s)Object.assign(s,body);
+    document.getElementById('pj-modal')?.remove();
+    renderResumen();
+    toast('✓ Puntos por jinete guardados');
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 function buildResRodeos(){
@@ -3765,11 +3810,17 @@ function buildResRodeos(){
           </div>
           ${(()=>{
             const pChip=(lbl,v,strong)=>`<span style="background:${strong?'var(--wood)':'#fff'};color:${strong?'var(--cream)':'var(--wood)'};border:1px solid ${strong?'var(--wood-dark)':'var(--gold)'};border-radius:10px;padding:2px 10px;font-weight:700">${lbl}: ${v!=null?v+' punto'+(Math.abs(v)===1?'':'s'):'—'}</span>`;
-            return `<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11px;align-items:center">
+            const jl=[];
+            if(s.puntos_j1!=null&&s.jinete1)jl.push(`<span style="background:#fff;border:1px solid var(--gold);border-radius:10px;padding:2px 10px;font-weight:700;color:var(--wood)"><i class="ti ti-user" style="font-size:10px;vertical-align:-1px"></i> ${s.jinete1}: ${s.puntos_j1} punto${Math.abs(s.puntos_j1)===1?'':'s'}</span>`);
+            if(s.puntos_j2!=null&&s.jinete2)jl.push(`<span style="background:#fff;border:1px solid var(--gold);border-radius:10px;padding:2px 10px;font-weight:700;color:var(--wood)"><i class="ti ti-user" style="font-size:10px;vertical-align:-1px"></i> ${s.jinete2}: ${s.puntos_j2} punto${Math.abs(s.puntos_j2)===1?'':'s'}</span>`);
+            return `<div ${canEdit?`onclick="openPuntosJinetes(${s.id})" title="Puntos por jinete" style="cursor:pointer"`:''}>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11px;align-items:center">
             ${pChip('1er toro',s.puntos1)}
             ${pChip('2do toro',s.puntos2)}
             ${isCampS||s.puntos3!=null||s.puntos4!=null?pChip('3er toro',s.puntos3)+pChip('4to toro',s.puntos4):''}
             ${pChip('TOTAL',tot,true)}
+          </div>
+          ${jl.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:10.5px;margin-top:5px">${jl.join('')}</div>`:''}
           </div>`;})()}
           ${s.valor||s.link?`<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:10.5px">
             ${s.valor?`<span style="color:var(--text-soft)"><i class="ti ti-coin" style="font-size:11px;vertical-align:-2px;color:var(--wood)"></i> Valor: <b style="color:var(--wood)">${clp(s.valor)}</b></span>`:''}
@@ -3798,7 +3849,33 @@ function buildResRodeos(){
       </div>
     </div>`;
   }).join('');
-  return ctrls+blocks;
+  const jinBox=(()=>{
+    const serYear=allRodeoSeries.filter(s=>rds.some(r=>r.id===s.rodeo_id));
+    const jins=[...new Set(serYear.flatMap(s=>[s.jinete1,s.jinete2]).filter(Boolean).map(j=>j.toUpperCase()))].sort();
+    if(!jins.length)return '';
+    let statsHTML='';
+    if(resRodStatsJin){
+      const mias=serYear.filter(s=>[s.jinete1,s.jinete2].filter(Boolean).map(j=>j.toUpperCase()).includes(resRodStatsJin));
+      const norm=mias.filter(s=>!/campeon/i.test(s.serie||''));
+      const camp=mias.filter(s=>/campeon/i.test(s.serie||''));
+      const premios=norm.filter(s=>s.lugar).length;
+      const figs=camp.filter(s=>s.lugar).length;
+      statsHTML=`<div style="margin-top:10px;font-size:12px;color:var(--ink);line-height:1.9">
+        <div><b>Jinete:</b> ${resRodStatsJin}</div>
+        <div><b>Series corridas</b> (sin serie de campeones): <b style="color:var(--wood)">${norm.length}</b> serie${norm.length!==1?'s':''} y <b style="color:var(--wood)">${premios}</b> premio${premios!==1?'s':''}</div>
+        <div><b>Series de campeones corridas:</b> <b style="color:var(--wood)">${camp.length}</b> serie${camp.length!==1?'s':''} de campeones y <b style="color:var(--wood)">${figs}</b> figuraci${figs!==1?'ones':'ón'}</div>
+      </div>`;
+    }
+    return `<div style="border:1.5px solid var(--gold);background:var(--cream);border-radius:10px;padding:12px 14px;margin-top:16px">
+      <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px"><i class="ti ti-user-star" style="font-size:11px;vertical-align:-2px"></i> Estadísticas por jinete — ${resRodYear}</div>
+      <select onchange="resRodStatsJin=this.value;renderResumen();" style="height:30px;padding:0 10px;font-size:12px;border:1.5px solid var(--gold);border-radius:6px;background:#fff;color:var(--ink);outline:none;cursor:pointer;max-width:100%">
+        <option value="">Elegir jinete…</option>
+        ${jins.map(j=>`<option value="${j.replace(/"/g,'&quot;')}" ${resRodStatsJin===j?'selected':''}>${j}</option>`).join('')}
+      </select>
+      ${statsHTML}
+    </div>`;
+  })();
+  return ctrls+blocks+jinBox;
 }
 
 // ===== RODEO SERIES =====
