@@ -3713,6 +3713,8 @@ function openRodeoInfoModal(id){
 // ===== SECCION RODEOS (Resumen) =====
 let resRodStatsJin='';
 let resRodStatsRod='';
+let resRodStatsCab='';
+let resRodStatsAta='';
 let resRodYear=new Date().getFullYear();
 let resOpenRodeos=new Set();
 function resRodChangeYear(d){resRodYear+=d;renderResumen();}
@@ -3961,10 +3963,14 @@ function buildResRodeos(){
     const rodOk=resRodStatsRod&&rdsAll.some(r=>String(r.id)===String(resRodStatsRod))?resRodStatsRod:'';
     const serYear=allRodeoSeries.filter(s=>rodOk?String(s.rodeo_id)===String(rodOk):rdsAll.some(r=>r.id===s.rodeo_id));
     const jins=[...new Set(serYear.flatMap(s=>[s.jinete1,s.jinete2]).filter(Boolean).map(j=>j.toUpperCase()))].sort();
-    if(!jins.length&&!rdsAll.length)return '';
+    const cabs=[...new Set(serYear.flatMap(s=>[s.caballo1,s.caballo2]).filter(Boolean).map(j=>j.toUpperCase()))].sort();
+    if(!jins.length&&!cabs.length&&!rdsAll.length)return '';
     let statsHTML='';
-    if(resRodStatsJin){
-      const mias=serYear.filter(s=>[s.jinete1,s.jinete2].filter(Boolean).map(j=>j.toUpperCase()).includes(resRodStatsJin));
+    const selJin=resRodStatsJin,selCab=resRodStatsCab;
+    if(selJin||selCab){
+      const mias=serYear.filter(s=>selJin
+        ?[s.jinete1,s.jinete2].filter(Boolean).map(j=>j.toUpperCase()).includes(selJin)
+        :[s.caballo1,s.caballo2].filter(Boolean).map(j=>j.toUpperCase()).includes(selCab));
       const norm=mias.filter(s=>!/campeon/i.test(s.serie||''));
       const camp=mias.filter(s=>/campeon/i.test(s.serie||''));
       const premios=norm.filter(s=>s.lugar).length;
@@ -3972,33 +3978,64 @@ function buildResRodeos(){
       // distribución de puntos por tipo de atajada
       const dist={a1:{},a2:{},at:{}};
       mias.forEach(s=>{
-        const who=(s.jinete1||'').toUpperCase()===resRodStatsJin?'j1':'j2';
+        const who=selJin?(((s.jinete1||'').toUpperCase()===selJin)?'j1':'j2'):(((s.caballo1||'').toUpperCase()===selCab)?'j1':'j2');
         for(let k=1;k<=4;k++){
           const d=s.atajadas&&s.atajadas['t'+k]&&s.atajadas['t'+k][who];
           if(!d)continue;
           ['a1','a2','at'].forEach(t=>{if(d[t]!=null)dist[t][d[t]]=(dist[t][d[t]]||0)+1;});
         }
       });
-      const distLine=(titulo,obj)=>{
-        const keys=Object.keys(obj).map(Number).sort((a,b)=>b-a);
-        if(!keys.length)return '';
-        const chips=keys.map(v=>`<span style="display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--gold);border-radius:10px;padding:1px 8px;font-size:10.5px;font-weight:700;color:${v<0?'var(--red)':'var(--wood)'}">${v>0?'+':''}${v} pt${Math.abs(v)===1?'':'s'} <span style="background:var(--wood);color:var(--cream);border-radius:50%;min-width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">×${obj[v]}</span></span>`).join(' ');
-        return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px"><span style="font-size:10px;font-weight:700;color:var(--text-soft);text-transform:uppercase;min-width:120px">${titulo}:</span>${chips}</div>`;
-      };
-      const distHTML=(distLine('1ª atajada adelante',dist.a1)+distLine('2ª atajada adelante',dist.a2)+distLine('Atajada de atrás',dist.at));
+      const colorAta=v=>v<=-3?'#7f1d1d':v===-2?'#b91c1c':v===-1?'#e07a5f':v===0?'#9aa0a6':v===1?'#c9a96e':v===2?'#a3b18a':v===3?'#588157':v===4?'#2d6a4f':'#1b4332';
+      const agg=(()=>{
+        if(resRodStatsAta)return {...(dist[resRodStatsAta]||{})};
+        const o={};
+        ['a1','a2','at'].forEach(t=>Object.entries(dist[t]).forEach(([v,c])=>{o[v]=(o[v]||0)+c;}));
+        return o;
+      })();
+      const hayAtajadas=Object.keys(dist.a1).length||Object.keys(dist.a2).length||Object.keys(dist.at).length;
+      const ataChips=[['','TODAS'],['a1','1ª ADELANTE'],['a2','2ª ADELANTE'],['at','ATRÁS']].map(([k,lb])=>{
+        const on=resRodStatsAta===k;
+        return `<span onclick="resRodStatsAta='${k}';renderResumen();" style="cursor:pointer;user-select:none;background:${on?'var(--wood)':'#fff'};border:1px solid ${on?'var(--wood-dark)':'var(--gold)'};color:${on?'var(--cream)':'var(--wood)'};border-radius:12px;padding:2px 10px;font-size:10px;font-weight:700">${lb}</span>`;
+      }).join(' ');
+      const donutHTML=(()=>{
+        const entries=Object.entries(agg).map(([v,c])=>[+v,c]).sort((a,b)=>b[0]-a[0]);
+        const total=entries.reduce((s,e)=>s+e[1],0);
+        if(!total)return '<div style="font-size:11px;color:var(--text-soft);padding:8px 0">Sin atajadas anotadas en esta selección</div>';
+        const C=2*Math.PI*35;
+        let off=0;
+        const segs=entries.map(([v,c])=>{
+          const frac=c/total,dash=frac*C;
+          const seg=`<circle r="35" cx="60" cy="60" fill="none" stroke="${colorAta(v)}" stroke-width="21" stroke-dasharray="${dash.toFixed(2)} ${(C-dash).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 60 60)"><title>${v>0?'+':''}${v} punto${Math.abs(v)===1?'':'s'}: ${c} atajada${c!==1?'s':''} (${Math.round(frac*100)}%)</title></circle>`;
+          off+=dash;
+          return seg;
+        }).join('');
+        const legend=entries.map(([v,c])=>`<span style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--gold);border-radius:10px;padding:2px 9px;font-size:10.5px;font-weight:700;color:var(--ink)"><span style="width:10px;height:10px;border-radius:50%;background:${colorAta(v)};display:inline-block"></span>${v>0?'+':''}${v} pt${Math.abs(v)===1?'':'s'} ×${c} <span style="color:var(--text-soft);font-weight:400">(${Math.round(c/total*100)}%)</span></span>`).join(' ');
+        return `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px">
+          <svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0">${segs}
+            <text x="60" y="58" text-anchor="middle" font-size="18" font-weight="800" fill="#7a5c2e">${total}</text>
+            <text x="60" y="73" text-anchor="middle" font-size="7.5" fill="#8a7a5c" letter-spacing="1">ATAJADAS</text>
+          </svg>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;flex:1;min-width:170px">${legend}</div>
+        </div>`;
+      })();
+      const distHTML=hayAtajadas?`<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">${ataChips}</div>${donutHTML}`:'';
       statsHTML=`<div style="margin-top:10px;font-size:12px;color:var(--ink);line-height:1.9">
-        <div><b>Jinete:</b> ${resRodStatsJin}${rodOk?` — <b>${(rdsAll.find(r=>String(r.id)===String(rodOk))||{}).nombre||''}</b>`:' — todos los rodeos'}</div>
+        <div><b>${selJin?'Jinete':'Caballo'}:</b> ${selJin||selCab}${rodOk?` — <b>${(rdsAll.find(r=>String(r.id)===String(rodOk))||{}).nombre||''}</b>`:' — todos los rodeos'}</div>
         <div><b>Series corridas</b> (sin serie de campeones): <b style="color:var(--wood)">${norm.length}</b> serie${norm.length!==1?'s':''} y <b style="color:var(--wood)">${premios}</b> premio${premios!==1?'s':''}</div>
         <div><b>Series de campeones corridas:</b> <b style="color:var(--wood)">${camp.length}</b> serie${camp.length!==1?'s':''} de campeones y <b style="color:var(--wood)">${figs}</b> figuraci${figs!==1?'ones':'ón'}</div>
-        ${distHTML?`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--gold)"><div style="font-size:10px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Puntos marcados por atajada</div>${distHTML}</div>`:''}
+        ${distHTML?`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--gold)"><div style="font-size:10px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Puntos marcados por atajada</div>${distHTML}</div>`:''}
       </div>`;
     }
     return `<div style="border:1.5px solid var(--gold);background:var(--cream);border-radius:10px;padding:12px 14px;margin-top:16px">
-      <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px"><i class="ti ti-user-star" style="font-size:11px;vertical-align:-2px"></i> Estadísticas por jinete — ${resRodYear}</div>
+      <div style="font-size:9px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px"><i class="ti ti-user-star" style="font-size:11px;vertical-align:-2px"></i> Estadísticas por jinete o caballo — ${resRodYear}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <select onchange="resRodStatsJin=this.value;renderResumen();" style="height:30px;padding:0 10px;font-size:12px;border:1.5px solid var(--gold);border-radius:6px;background:#fff;color:var(--ink);outline:none;cursor:pointer;max-width:100%">
+        <select onchange="resRodStatsJin=this.value;if(this.value)resRodStatsCab='';renderResumen();" style="height:30px;padding:0 10px;font-size:12px;border:1.5px solid var(--gold);border-radius:6px;background:#fff;color:var(--ink);outline:none;cursor:pointer;max-width:100%">
           <option value="">Elegir jinete…</option>
           ${jins.map(j=>`<option value="${j.replace(/"/g,'&quot;')}" ${resRodStatsJin===j?'selected':''}>${j}</option>`).join('')}
+        </select>
+        <select onchange="resRodStatsCab=this.value;if(this.value)resRodStatsJin='';renderResumen();" style="height:30px;padding:0 10px;font-size:12px;border:1.5px solid var(--gold);border-radius:6px;background:#fff;color:var(--ink);outline:none;cursor:pointer;max-width:100%">
+          <option value="">Elegir caballo…</option>
+          ${cabs.map(j=>`<option value="${j.replace(/"/g,'&quot;')}" ${resRodStatsCab===j?'selected':''}>${j}</option>`).join('')}
         </select>
         <select onchange="resRodStatsRod=this.value;renderResumen();" style="height:30px;padding:0 10px;font-size:12px;border:1.5px solid var(--gold);border-radius:6px;background:#fff;color:var(--ink);outline:none;cursor:pointer;max-width:100%">
           <option value="">Todos los rodeos</option>
