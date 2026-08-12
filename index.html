@@ -3788,6 +3788,7 @@ function openToroPuntos(serieId,n){
   </div>`;
   m.onclick=e=>{if(e.target===m)m.remove();};
   document.body.appendChild(m);
+  window._tpLegacy=s['puntos'+n];
   tpApplyAdelante();
   tpTotal();
 }
@@ -3818,9 +3819,15 @@ function tpApplyAdelante(){
 }
 function tpVal(id){const v=document.getElementById(id)?.value;return v===''||v==null?null:+v;}
 function tpJinSum(who){
-  const a1=tpVal('tp-'+who+'-a1'),a2=tpVal('tp-'+who+'-a2'),at=tpVal('tp-'+who+'-at');
-  if(a1==null&&a2==null&&at==null)return null;
-  return (a1||0)+(a2||0)+(at||0);
+  const adel=window._tpAdelante||'j1';
+  if(adel===who){
+    const a1=tpVal('tp-'+who+'-a1'),a2=tpVal('tp-'+who+'-a2');
+    if(a1==null&&a2==null)return null;
+    return (a1||0)+(a2||0);
+  }else{
+    const at=tpVal('tp-'+who+'-at');
+    return at==null?null:at;
+  }
 }
 function tpTotal(){
   const s1=tpJinSum('j1'),s2=tpJinSum('j2'),ap=tpVal('tp-ap');
@@ -3828,7 +3835,10 @@ function tpTotal(){
   const e2=document.getElementById('tp-sub-j2');if(e2)e2.textContent=s2!=null?(s2>0?'+':'')+s2:'';
   const chip=document.getElementById('tp-total-chip');
   if(!chip)return;
-  if(s1==null&&s2==null&&ap==null){chip.textContent='Total: —';return;}
+  if(s1==null&&s2==null&&ap==null){
+    chip.textContent=window._tpLegacy!=null?('Total actual: '+window._tpLegacy+' punto'+(Math.abs(window._tpLegacy)===1?'':'s')+' (sin desglose)'):'Total: —';
+    return;
+  }
   const t=(s1||0)+(s2||0)+(ap||0);
   chip.textContent='Total: '+t+' punto'+(Math.abs(t)===1?'':'s');
 }
@@ -4009,13 +4019,17 @@ function buildResRodeos(){
           off+=dash;
           return seg;
         }).join('');
-        const legend=entries.map(([v,c])=>`<span style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--gold);border-radius:10px;padding:2px 9px;font-size:10.5px;font-weight:700;color:var(--ink)"><span style="width:10px;height:10px;border-radius:50%;background:${colorAta(v)};display:inline-block"></span>${v>0?'+':''}${v} pt${Math.abs(v)===1?'':'s'} ×${c} <span style="color:var(--text-soft);font-weight:400">(${Math.round(c/total*100)}%)</span></span>`).join(' ');
+        const legend=entries.map(([v,c])=>`<div style="background:#fff;border:1px solid var(--gold);border-radius:8px;overflow:hidden;min-width:52px;text-align:center;box-shadow:0 1px 2px rgba(61,43,15,0.08)">
+          <div style="background:${colorAta(v)};color:#fff;font-size:13px;font-weight:800;padding:3px 6px">${v>0?'+':''}${v}</div>
+          <div style="font-size:11px;font-weight:700;color:var(--ink);padding:3px 6px 0">×${c}</div>
+          <div style="font-size:9.5px;color:var(--text-soft);padding:0 6px 4px">${Math.round(c/total*100)}%</div>
+        </div>`).join('');
         return `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px">
           <svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0">${segs}
             <text x="60" y="58" text-anchor="middle" font-size="18" font-weight="800" fill="#7a5c2e">${total}</text>
             <text x="60" y="73" text-anchor="middle" font-size="7.5" fill="#8a7a5c" letter-spacing="1">ATAJADAS</text>
           </svg>
-          <div style="display:flex;gap:5px;flex-wrap:wrap;flex:1;min-width:170px">${legend}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:170px;align-items:flex-start">${legend}</div>
         </div>`;
       })();
       const distHTML=hayAtajadas?`<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">${ataChips}</div>${donutHTML}`:'';
