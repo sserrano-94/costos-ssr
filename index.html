@@ -217,6 +217,7 @@ select:focus,input:focus{border-color:var(--accent)}
 .horse-name{font-size:9.5px;font-weight:600;margin-bottom:1px}
 .horses-table td{text-transform:uppercase}
 .hd-mobile{display:none}
+@media(max-width:768px){.cal-cell{height:64px!important}}
 .arr-chips-row{display:flex;gap:6px;margin-bottom:10px;align-items:center}
 @media(min-width:769px){.arr-top-gap{margin-top:22px!important}.arr-chips-row{flex-wrap:wrap!important;overflow-x:visible}}
 @media(max-width:768px){.hd-desktop{display:none!important}.hd-mobile{display:grid}
@@ -2909,7 +2910,8 @@ function renderCalendar(){
   // Empty cells before first day
   for(let i=0;i<startDow;i++){
     const cell = document.createElement('div');
-    cell.style.cssText='min-height:80px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:#fafaf8;';
+    cell.style.cssText='height:80px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:#fafaf8;box-sizing:border-box;';
+    cell.className='cal-cell';
     grid.appendChild(cell);
   }
 
@@ -2919,7 +2921,8 @@ function renderCalendar(){
     const dateStr = calYear+'-'+(String(calMonth+1).padStart(2,'0'))+'-'+(String(d).padStart(2,'0'));
 
     const cell = document.createElement('div');
-    cell.style.cssText=`min-height:80px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px;cursor:pointer;${isToday?'background:#e8eef8;':'background:var(--surface);'}`;
+    cell.style.cssText=`height:80px;overflow:hidden;box-sizing:border-box;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px;cursor:pointer;${isToday?'background:#e8eef8;':'background:var(--surface);'}`;
+    cell.className='cal-cell';
     cell.onmouseover=()=>{if(!isToday)cell.style.background='var(--accent-light)';};
     cell.onmouseout=()=>{if(!isToday)cell.style.background='var(--surface)';};
 
@@ -2950,7 +2953,8 @@ function renderCalendar(){
   if(remainder>0){
     for(let i=0;i<7-remainder;i++){
       const cell=document.createElement('div');
-      cell.style.cssText='min-height:80px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:#fafaf8;';
+      cell.style.cssText='height:80px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:#fafaf8;box-sizing:border-box;';
+    cell.className='cal-cell';
       grid.appendChild(cell);
     }
   }
@@ -4035,12 +4039,12 @@ function buildResRodeos(){
           </svg>
           <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:170px;align-items:flex-start">${legend}</div>
         </div>
-        <div style="margin-top:8px;font-size:12px;color:var(--ink)"><b>Total atajadas marcadas</b> (2, 3 y 4 puntos): <b style="color:var(--wood)">${marcadas}</b> <span style="background:var(--wood);color:var(--cream);border-radius:10px;padding:1px 9px;font-size:10.5px;font-weight:800;margin-left:4px">${pctM}% de las oportunidades</span></div>`;
+        <div style="margin-top:8px;font-size:12px;color:var(--ink)"><b>Total atajadas marcadas:</b> <b style="color:var(--wood)">${marcadas}</b> <span style="background:var(--wood);color:var(--cream);border-radius:10px;padding:1px 9px;font-size:10.5px;font-weight:800;margin-left:4px">${pctM}% de las oportunidades</span></div>`;
       })();
       const distHTML=hayAtajadas?`<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">${ataChips}</div>${donutHTML}`:'';
       statsHTML=`<div style="margin-top:10px;font-size:12px;color:var(--ink);line-height:1.9">
         <div><b>${selJin?'Jinete':'Caballo'}:</b> ${selJin||selCab}${rodOk?` — <b>${(rdsAll.find(r=>String(r.id)===String(rodOk))||{}).nombre||''}</b>`:' — todos los rodeos'}</div>
-        <div><b>Series corridas</b> (sin serie de campeones): <b style="color:var(--wood)">${norm.length}</b> serie${norm.length!==1?'s':''} y <b style="color:var(--wood)">${premios}</b> premio${premios!==1?'s':''}</div>
+        <div><b>Series corridas:</b> <b style="color:var(--wood)">${norm.length}</b> serie${norm.length!==1?'s':''} y <b style="color:var(--wood)">${premios}</b> premio${premios!==1?'s':''}</div>
         <div><b>Series de campeones corridas:</b> <b style="color:var(--wood)">${camp.length}</b> serie${camp.length!==1?'s':''} de campeones y <b style="color:var(--wood)">${figs}</b> figuraci${figs!==1?'ones':'ón'}</div>
         ${(()=>{
           const novPorSerie=mias.map(s=>({serie:(s.serie||'Serie').toUpperCase(),rodeo:((rdsAll.find(r=>r.id===s.rodeo_id)||{}).nombre||''),n:[1,2,3,4].filter(k=>s['puntos'+k]!=null).length})).filter(x=>x.n>0);
