@@ -4025,14 +4025,17 @@ function buildResRodeos(){
           <div style="font-size:11px;font-weight:700;color:var(--ink);padding:3px 6px 0">${c}</div>
           <div style="font-size:9.5px;color:var(--text-soft);padding:0 6px 4px">${Math.round(c/total*100)}%</div>
         </div>`).join('');
+        const marcadas=entries.filter(([v])=>v>=2).reduce((s,e)=>s+e[1],0);
+        const pctM=Math.round(marcadas/total*100);
         return `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px">
           <svg width="142" height="142" viewBox="0 0 120 120" style="flex-shrink:0">${segs}
             <text x="60" y="55" text-anchor="middle" font-size="18" font-weight="800" fill="#7a5c2e">${total}</text>
-            <text x="60" y="67" text-anchor="middle" font-size="6.2" fill="#8a7a5c" letter-spacing="0.6">OPORTUNIDADES</text>
-            <text x="60" y="76" text-anchor="middle" font-size="6.2" fill="#8a7a5c" letter-spacing="0.6">DE ATAJADAS</text>
+            <text x="60" y="67" text-anchor="middle" font-size="6.2" fill="#1d1710" letter-spacing="0.6">OPORTUNIDADES</text>
+            <text x="60" y="76" text-anchor="middle" font-size="6.2" fill="#1d1710" letter-spacing="0.6">DE ATAJADAS</text>
           </svg>
           <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:170px;align-items:flex-start">${legend}</div>
-        </div>`;
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:var(--ink)"><b>Total atajadas marcadas</b> (2, 3 y 4 puntos): <b style="color:var(--wood)">${marcadas}</b> <span style="background:var(--wood);color:var(--cream);border-radius:10px;padding:1px 9px;font-size:10.5px;font-weight:800;margin-left:4px">${pctM}% de las oportunidades</span></div>`;
       })();
       const distHTML=hayAtajadas?`<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">${ataChips}</div>${donutHTML}`:'';
       statsHTML=`<div style="margin-top:10px;font-size:12px;color:var(--ink);line-height:1.9">
